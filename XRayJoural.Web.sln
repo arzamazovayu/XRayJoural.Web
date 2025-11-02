@@ -1,0 +1,64 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35931.197 d17.13
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XRayJournal.Core", "WRayJournal.Core\XRayJournal.Core.csproj", "{75B05872-B38A-4850-ABC8-0D2E5D55E595}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XRayJournal.BLL", "XRayJournal.BLL\XRayJournal.BLL.csproj", "{A2B84154-0E73-46C0-80FA-9BA954364680}"
+	ProjectSection(ProjectDependencies) = postProject
+		{75B05872-B38A-4850-ABC8-0D2E5D55E595} = {75B05872-B38A-4850-ABC8-0D2E5D55E595}
+		{DF5DDC15-0E18-4921-AC5F-E880760A32E0} = {DF5DDC15-0E18-4921-AC5F-E880760A32E0}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XRayJournal.DAL", "XRayJournal.DAL\XRayJournal.DAL.csproj", "{DF5DDC15-0E18-4921-AC5F-E880760A32E0}"
+	ProjectSection(ProjectDependencies) = postProject
+		{75B05872-B38A-4850-ABC8-0D2E5D55E595} = {75B05872-B38A-4850-ABC8-0D2E5D55E595}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XRayJournal.Web", "XRayJournal.Web\XRayJournal.Web\XRayJournal.Web.csproj", "{F89643F4-3C1C-4820-AA93-028C30D87086}"
+	ProjectSection(ProjectDependencies) = postProject
+		{75B05872-B38A-4850-ABC8-0D2E5D55E595} = {75B05872-B38A-4850-ABC8-0D2E5D55E595}
+		{A2B84154-0E73-46C0-80FA-9BA954364680} = {A2B84154-0E73-46C0-80FA-9BA954364680}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XRayJournal.Web.Client", "XRayJournal.Web\XRayJournal.Web.Client\XRayJournal.Web.Client.csproj", "{745E53C3-15F0-452F-9C73-C9A8FF37017D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A2B84154-0E73-46C0-80FA-9BA954364680} = {A2B84154-0E73-46C0-80FA-9BA954364680}
+		{DF5DDC15-0E18-4921-AC5F-E880760A32E0} = {DF5DDC15-0E18-4921-AC5F-E880760A32E0}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{75B05872-B38A-4850-ABC8-0D2E5D55E595}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{75B05872-B38A-4850-ABC8-0D2E5D55E595}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{75B05872-B38A-4850-ABC8-0D2E5D55E595}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{75B05872-B38A-4850-ABC8-0D2E5D55E595}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A2B84154-0E73-46C0-80FA-9BA954364680}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A2B84154-0E73-46C0-80FA-9BA954364680}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A2B84154-0E73-46C0-80FA-9BA954364680}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A2B84154-0E73-46C0-80FA-9BA954364680}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DF5DDC15-0E18-4921-AC5F-E880760A32E0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DF5DDC15-0E18-4921-AC5F-E880760A32E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DF5DDC15-0E18-4921-AC5F-E880760A32E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DF5DDC15-0E18-4921-AC5F-E880760A32E0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F89643F4-3C1C-4820-AA93-028C30D87086}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F89643F4-3C1C-4820-AA93-028C30D87086}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F89643F4-3C1C-4820-AA93-028C30D87086}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F89643F4-3C1C-4820-AA93-028C30D87086}.Release|Any CPU.Build.0 = Release|Any CPU
+		{745E53C3-15F0-452F-9C73-C9A8FF37017D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{745E53C3-15F0-452F-9C73-C9A8FF37017D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{745E53C3-15F0-452F-9C73-C9A8FF37017D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{745E53C3-15F0-452F-9C73-C9A8FF37017D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D2A206D1-E387-478B-B01B-D9F29F91B24B}
+	EndGlobalSection
+EndGlobal
