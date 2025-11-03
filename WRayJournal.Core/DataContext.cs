@@ -12,11 +12,14 @@ namespace XRayJournal.Core
     {
         public DbSet<PatientDTO> Patients { get; set; }
 
-        public DbSet<XRayExamDTO> XRayExam { get; set; }
+        public DbSet<XRayExamDTO> Exams { get; set; }
+
+        public DbSet<UserDTO> Users { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            string connectionString = Options.ConnectionString;
+            //string connectionString = Options.ConnectionString;
+            string connectionString = "Server = localhost; Port = 5432; User Id = postgres; Password = Flvby1; Database = XRayJournalWeb";
             optionsBuilder.UseNpgsql(connectionString);
         }
     }

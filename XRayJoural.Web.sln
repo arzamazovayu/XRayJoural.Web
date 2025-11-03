@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.13.35931.197 d17.13
+VisualStudioVersion = 17.13.35931.197
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XRayJournal.Core", "WRayJournal.Core\XRayJournal.Core.csproj", "{75B05872-B38A-4850-ABC8-0D2E5D55E595}"
 EndProject
@@ -27,6 +27,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XRayJournal.Web.Client", "X
 		{A2B84154-0E73-46C0-80FA-9BA954364680} = {A2B84154-0E73-46C0-80FA-9BA954364680}
 		{DF5DDC15-0E18-4921-AC5F-E880760A32E0} = {DF5DDC15-0E18-4921-AC5F-E880760A32E0}
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ForDebug", "ForDebug\ForDebug.csproj", "{3E37AE9D-676B-44CA-A4C4-AE44B62A3275}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -54,6 +56,10 @@ Global
 		{745E53C3-15F0-452F-9C73-C9A8FF37017D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{745E53C3-15F0-452F-9C73-C9A8FF37017D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{745E53C3-15F0-452F-9C73-C9A8FF37017D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3E37AE9D-676B-44CA-A4C4-AE44B62A3275}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3E37AE9D-676B-44CA-A4C4-AE44B62A3275}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3E37AE9D-676B-44CA-A4C4-AE44B62A3275}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3E37AE9D-676B-44CA-A4C4-AE44B62A3275}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
