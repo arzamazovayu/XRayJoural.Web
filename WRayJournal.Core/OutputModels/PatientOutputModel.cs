@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace XRayJournal.Core.DTOs
+namespace XRayJournal.Core.OutputModels
 {
-    public class PatientDTO
+    public class PatientOutputModel
     {
         public int Id { get; set; }
 
@@ -14,15 +14,12 @@ namespace XRayJournal.Core.DTOs
 
         public string FirstName { get; set; }
 
-        public string? ThirdName { get; set; }
+        public string ThirdName { get; set; }
 
         public DateOnly BirthDate { get; set; }
 
         public string Sex { get; set; }
 
         public string MedNumber { get; set; }
-
-        public List<XRayExamDTO>? Exams { get; set; } = new List<XRayExamDTO>();
-
     }
 }

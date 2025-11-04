@@ -1,5 +1,7 @@
-using XRayJournal.Web.Client.Pages;
+//using XRayJournal.Web.Client.Pages;
 using XRayJournal.Web.Components;
+using Mapster;
+using XRayJournal.Core;
 
 namespace XRayJournal.Web
 {
@@ -13,6 +15,9 @@ namespace XRayJournal.Web
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents()
                 .AddInteractiveWebAssemblyComponents();
+
+            TypeAdapterConfig.GlobalSettings.Apply(new MapsterConfig());
+            builder.Services.AddMapster();
 
             var app = builder.Build();
 

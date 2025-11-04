@@ -1,0 +1,15 @@
+INSERT INTO public."Patients"(
+	"SecondName", "FirstName", "ThirdName", "BirthDate", "Sex", "MedNumber")
+	VALUES ( 'Иванова', 'Анна', 'Сергеевна', '1985-03-15', 'Жен', '25-004357'),
+	( 'Петров', 'Дмитрий', 'Игоревич', '1978-11-22', 'Муж', '20.6914'),
+	( 'Сидорова', 'Елена', 'Владимировна', '1992-07-08', 'Жен', '11-ХИР-657'),
+	( 'Козлов', 'Артем', 'Денисович', '1989-09-03', 'Муж', '14.23');
+
+INSERT INTO public."Exams"(
+	"Id", "XRayName", "XRayDose", "XRayShots", "XRayDate", "Category", "XRayDiagnose", "XRayPatology", "XRayCost", "Doctor", "Laborant", "XRayModality", "InOperation", "Contrast", "PatientId")
+	VALUES 
+(1, 'ОГК', 2.00, 1, '2025-07-01','ИДФЛ', 'Пневмония', true, 5000, 'Иванов И.И.', 'Сидорова А.И.', 'CT', false, false, 1),
+(2, 'ОБП', 0.5, 1, '2025-07-01','ДМС', 'норма', true, 1200, 'Иванов И.И.', 'Сидорова А.И.', 'DR', false, true, 2),
+(3, 'ОГК', 0.05, 1, '2025-07-02','ОМС', 'Z01.8', false, NULL, 'Иванов И.И.', 'Сидорова А.И.', 'DR', false, false, 3),
+(4, 'таз', 0.4, 1, '2025-07-23','ИДЮЛ', NULL, false, 1500, 'Иванов И.И.', 'Сидорова А.И.', 'RS', true, false, 4);
+

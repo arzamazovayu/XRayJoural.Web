@@ -7,7 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\WRayJournal.Core\XRayJournal.Core.csproj" />
     <ProjectReference Include="..\XRayJournal.Web.Client\XRayJournal.Web.Client.csproj" />
+    <PackageReference Include="Mapster" Version="7.4.0" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.15" />
   </ItemGroup>
 

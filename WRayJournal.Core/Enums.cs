@@ -1,4 +1,4 @@
-﻿namespace WRayJournal.Core
+﻿namespace XRayJournal.Core
 {
     public enum UserRole
     {

@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\WRayJournal.Core\XRayJournal.Core.csproj" />
+  </ItemGroup>
+
 </Project>

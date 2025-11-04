@@ -1,4 +1,7 @@
-﻿using XRayJournal.Core;
+﻿using Mapster;
+using XRayJournal.Core;
+using XRayJournal.Core.OutputModels;
+using XRayJournal.DAL;
 
 namespace ForDebug
 {
@@ -8,7 +11,13 @@ namespace ForDebug
         {
             DataContext data= new DataContext();
 
-            data.Database.EnsureCreated();
+            //data.Database.EnsureCreated();
+
+            PatientRepository repository = new PatientRepository(data);
+
+            var a = repository.GetAll();
+
+            var b = a.Adapt<List<PatientOutputModel>>();
         }
     }
 }
