@@ -15,6 +15,8 @@ namespace XRayJournal.Core
         {
             config.NewConfig<PatientDTO, PatientOutputModel>();
                 //.Map(p=>p.SecondName, dto=>dto.SecondName!.ToUpper);
+
+            config.NewConfig<XRayExamDTO, XRayExamOutputModel>();
         }
     }
 }
