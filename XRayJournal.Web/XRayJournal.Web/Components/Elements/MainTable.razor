@@ -1,0 +1,15 @@
+﻿ <tr>
+    <th scope="row">@Patient.Id</th>
+    <td>@Patient.SecondName</td>
+    <td>@Patient.FirstName</td>
+    <td>@Patient.ThirdName</td>
+    <td>@Patient.Sex</td>
+    <td>@Patient.BirthDate</td>
+    <td>@Patient.MedNumber</td>
+ </tr>
+
+@code {
+    [Parameter]
+    public PatientOutputModel Patient { get; set; }
+
+}

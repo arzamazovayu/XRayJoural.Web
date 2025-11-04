@@ -2,6 +2,9 @@
 using XRayJournal.Web.Components;
 using Mapster;
 using XRayJournal.Core;
+using XRayJournal.Core.IRepositories;
+using XRayJournal.DAL;
+using XRayJournal.BLL;
 
 namespace XRayJournal.Web
 {
@@ -15,6 +18,12 @@ namespace XRayJournal.Web
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents()
                 .AddInteractiveWebAssemblyComponents();
+
+            builder.Services.AddDbContext<DataContext>();
+
+            builder.Services.AddScoped<IPatientRepository, PatientRepository>();
+
+            builder.Services.AddScoped<PatientService>();
 
             TypeAdapterConfig.GlobalSettings.Apply(new MapsterConfig());
             builder.Services.AddMapster();
