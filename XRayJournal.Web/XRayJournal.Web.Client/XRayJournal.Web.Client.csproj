@@ -12,4 +12,9 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.15" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\WRayJournal.Core\XRayJournal.Core.csproj" />
+    <ProjectReference Include="..\..\XRayJournal.BLL\XRayJournal.BLL.csproj" />
+  </ItemGroup>
+
 </Project>
