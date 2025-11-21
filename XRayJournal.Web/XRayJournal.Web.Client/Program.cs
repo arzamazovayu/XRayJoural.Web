@@ -8,6 +8,8 @@ namespace XRayJournal.Web.Client
         {
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
+
+
             await builder.Build().RunAsync();
         }
     }

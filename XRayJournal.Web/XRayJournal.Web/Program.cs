@@ -22,8 +22,10 @@ namespace XRayJournal.Web
             builder.Services.AddDbContext<DataContext>();
 
             builder.Services.AddScoped<IPatientRepository, PatientRepository>();
+            builder.Services.AddScoped<IXRayExamRepository, XRayExamRepository>();
 
             builder.Services.AddScoped<PatientService>();
+            builder.Services.AddScoped<XRayExamService>();
 
             TypeAdapterConfig.GlobalSettings.Apply(new MapsterConfig());
             builder.Services.AddMapster();

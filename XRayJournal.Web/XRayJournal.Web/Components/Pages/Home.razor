@@ -1,5 +1,5 @@
 ﻿@page "/"
-@rendermode InteractiveServer
+@rendermode InteractiveServer // 1:57:47
 
 <PageTitle>Home</PageTitle>
 
@@ -12,8 +12,9 @@
         <option value="Муж">Муж</option>
         <option value="Жен">Жен</option>
     </InputSelect>
-</div>
 
+    <button @onclick="ShowModal">Добавить пациента</button>
+</div>
 
 <table class="table table-striped table-hover">
     <thead>
@@ -51,6 +52,61 @@
         } *@
     </tbody>
 </table>
+@if (isModalShowed)
+{
+    <div class="modal show d-block fade" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Добавить пациента</h5>
+                    <button type="button" class="btn-close" @onclick="HideModal"></button>
+                </div>
+                <EditForm Model="patient" OnValidSubmit="OnSubmit">
+                    <DataAnnotationsValidator></DataAnnotationsValidator>
+                    <div class="modal-body">
+                        <div>
+                            <span>Фамилия</span>
+                            <InputText @bind-Value="patient.SecondName"/>
+                            <ValidationMessage For="()=>patient.SecondName"/>
+                        </div>
+                        <div>
+                            <span>Имя</span>
+                            <InputText @bind-Value="patient.FirstName"/>
+                            <ValidationMessage For="()=>patient.FirstName"/>
+                        </div>
+                        <div>
+                            <span>Отчество</span>
+                            <InputText @bind-Value="patient.ThirdName"/>
+                            <ValidationMessage For="()=>patient.ThirdName"/>
+                        </div>
+                        <div>
+                            <span>Дата рождения</span>
+                            <InputDate @bind-Value="patient.BirthDate"/>
+                        </div>
+                        <div>
+                            <span>Пол</span>
+                            <InputSelect @bind-Value="patient.Sex">
+                                <option value="Иное">Не определён</option>
+                                <option value="Муж">Муж</option>
+                                <option value="Жен">Жен</option>
+                            </InputSelect>
+                        </div>
+                        <div>
+                            <span>Номер карты</span>
+                            <InputText @bind-Value="patient.MedNumber"/>
+                            <ValidationMessage For="()=>patient.MedNumber"/>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @onclick="HideModal">Закрыть</button>
+                        <button type="submit" class="btn btn-primary">Сохранить</button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+
+}
 @code{
     [Inject] 
     public PatientService PatientService { get; set; }
@@ -65,10 +121,16 @@
 
     private List<PatientOutputModel> selectedPatients;
 
+    private bool isModalShowed;
+
+    private PatientInputModel patient;
+
     protected override void OnInitialized()
     {
         patients = PatientService.GetAll();
         selectedPatients = patients;
+        searchText = "";
+        isModalShowed = false;
     }
 
     private void OnFilter()
@@ -85,10 +147,32 @@
         // if (searchSex!="Не определён")
         // {
         //     string a = searchSex.Trim().ToLower();
-        //     selectedPatients = selectedPatients.Where(p => p.Sex.ToLower().Contains(a)).ToList(); // 1:35:54
+        //     selectedPatients = selectedPatients.Where(p => p.Sex.ToLower().Contains(a)).ToList(); 
         // }
 
         StateHasChanged();
     }
 
+    private void ShowModal()
+    {
+        patient = new PatientInputModel()
+        {
+            Sex = "Иное",
+        };
+        isModalShowed = true;
+    }
+    private void HideModal()
+    {
+        isModalShowed = false;
+    }
+
+    private void OnSubmit()
+    {
+        var tmp = PatientService.Add(patient);
+        patients.Add(tmp);
+
+        HideModal();
+
+        StateHasChanged();
+    }
 }

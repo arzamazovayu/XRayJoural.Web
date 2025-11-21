@@ -14,6 +14,13 @@ namespace XRayJournal.DAL
             _dataContext = dataContext;
         }
 
+        public PatientDTO Add(PatientDTO patient)
+        {
+            _dataContext.Patients.Add(patient);
+            _dataContext.SaveChanges();
+            return patient;
+        }
+
         public List<PatientDTO> GetAll()
         {
             var result = _dataContext.Patients.OrderBy(p=>p.Id).ToList();

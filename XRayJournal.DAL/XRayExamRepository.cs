@@ -9,7 +9,7 @@ using XRayJournal.Core.IRepositories;
 
 namespace XRayJournal.DAL
 {
-    internal class XRayExamRepository : IXRayExamRepository
+    public class XRayExamRepository : IXRayExamRepository
     {
         public DataContext _dataContext;
 

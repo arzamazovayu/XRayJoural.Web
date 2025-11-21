@@ -10,5 +10,6 @@ namespace XRayJournal.Core.IRepositories
     public interface IPatientRepository
     {
         public List<PatientDTO> GetAll();
+        public PatientDTO Add(PatientDTO patient);
     }
 }
