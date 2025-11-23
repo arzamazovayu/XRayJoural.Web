@@ -31,6 +31,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XRayJournal.Web.Client", "X
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ForDebug", "ForDebug\ForDebug.csproj", "{3E37AE9D-676B-44CA-A4C4-AE44B62A3275}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XRayJoural.API", "XRayJoural.API\XRayJoural.API.csproj", "{D247523C-C425-4B06-8C9D-31FD939BDC35}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -61,6 +63,10 @@ Global
 		{3E37AE9D-676B-44CA-A4C4-AE44B62A3275}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3E37AE9D-676B-44CA-A4C4-AE44B62A3275}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3E37AE9D-676B-44CA-A4C4-AE44B62A3275}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D247523C-C425-4B06-8C9D-31FD939BDC35}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D247523C-C425-4B06-8C9D-31FD939BDC35}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D247523C-C425-4B06-8C9D-31FD939BDC35}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D247523C-C425-4B06-8C9D-31FD939BDC35}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
