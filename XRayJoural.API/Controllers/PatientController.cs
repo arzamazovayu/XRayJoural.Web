@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using XRayJournal.BLL;
+using XRayJournal.Core.InputModels;
 using XRayJournal.Core.OutputModels;
 
 namespace XRayJoural.API.Controllers
@@ -12,19 +15,51 @@ namespace XRayJoural.API.Controllers
         /// </summary>
         /// <returns>Возвращает мок модель пациента, чтобы это ни значило</returns>
         /// <response code="200">Возвращает мок модель пациента, чтобы это ни значило</response>
-        [HttpGet]
-        public PatientOutputModel Get()   // 1:55:55
+        
+        private PatientService _patientService;
+
+        public PatientController(PatientService patientService)
         {
-            return new PatientOutputModel()
+            _patientService = patientService;
+        }
+
+        [Authorize(Roles = "Doctor, Laborant")]
+        [HttpGet("all", Name ="Все пациенты")]
+        public ActionResult<IEnumerable<PatientOutputModel>> GetAll()
+        {
+            return _patientService.GetAll();
+        }
+
+        [Authorize(Roles = "Doctor")]
+        [HttpGet("{id}")]
+        public ActionResult<PatientOutputModel> GetById(int id)
+        {
+            try
             {
-                Id = 1,
-                SecondName = "Осипов",
-                FirstName = "Евгений",
-                ThirdName = "Игнатович",
-                BirthDate = System.DateOnly.Parse("01.01.1991"),
-                Sex = "Муж",
-                MedNumber = "25-002385",
-            };
+                var result = GetPatientById(id);
+                return Ok(result);
+            }
+            catch(InvalidOperationException)
+            {
+                return NotFound();
+            }
+        }
+
+        [Authorize(Roles = "Doctor")]
+        private PatientOutputModel GetPatientById(int id)
+        {
+            var tmp = _patientService.GetAll();
+            var result = tmp.Single(p => p.Id == id);
+            return result;
+        }
+
+        [Authorize(Roles = "Doctor, Laborant")]
+        [HttpPost]
+        public ActionResult<PatientOutputModel> Add(PatientInputModel patient)
+        {
+            var result = _patientService.Add(patient);
+
+            return Ok(result);
         }
     }
 }
