@@ -5,32 +5,56 @@
     <td>@Patient.ThirdName</td>
     <td>@Patient.Sex</td>
     <td>@Patient.BirthDate</td>
-    <td>@Patient.MedNumber</td>
-
-  @*  @{  
-       foreach(var exam in Patient.Exams ?? Enumerable.Empty<XRayExamDTO>())
-       {
-            <td>@Exam.XRayName</td>
-            <td>@Exam.XRayDose</td>
-            <td>@Exam.XRayShots</td>
-            <td>@Exam.XRayDate</td>
-            <td>@Exam.Category</td>
-            <td>@Exam.XRayDiagnose</td>
-            <td>@Exam.XRayPatology</td>
-            <td>@Exam.XRayCost</td>
-            <td>@Exam.Doctor</td>
-            <td>@Exam.Laborant</td>
-            <td>@Exam.XRayModality</td>
-            <td>@Exam.InOperation</td>
-            <td>@Exam.Contrast</td> 
-       }
-    } *@
+    <td>@Patient.MedNumber</td>  
+    <td>@(Exam?.XRayName ?? "-")</td>
+    <td>@(Exam?.XRayDose.ToString() ?? "-")</td>
+    <td>@(Exam?.XRayShots.ToString() ?? "-")</td>
+    <td>@(Exam?.XRayDate.ToString() ?? "-")</td>
+    <td>@(Exam?.Category ?? "-")</td>
+    <td>@(Exam?.XRayDiagnose ?? "-")</td>
+    <td>@(GetPatologyDisplay(Exam?.XRayPatology))</td>
+    <td>@(Exam?.XRayCost.ToString() ?? "-")</td>
+    <td>@(Exam?.Doctor ?? "-")</td>
+    <td>@(Exam?.Laborant ?? "-")</td>
+    <td>@(Exam?.XRayModality ?? "-")</td>
+    <td>@(GetInOperationDisplay(Exam?.InOperation))</td>
+    <td>@(GetContrastDisplay(Exam?.Contrast))</td>     
 </tr>
 
 @code {
     [Parameter]
-    public PatientOutputModel Patient { get; set; }
-    // [Parameter]
-    // public XRayExamOutputModel Exam { get; set; }
+    public PatientWithExamOutputModel Patient { get; set; }
 
+    [Parameter]
+    public XRayExamOutputModel? Exam { get; set; }
+
+    private string GetPatologyDisplay(bool? patology)
+    {
+        return patology switch
+        {
+            true => "Да",
+            false => "Нет",
+            null => "Не указано"
+        };
+    }
+
+    private string GetInOperationDisplay(bool? inOperation)
+    {
+        return inOperation switch
+        {
+            true => "Да",
+            false => "Нет",
+            null => "Не указано"
+        };
+    }
+
+    private string GetContrastDisplay(bool? contrast)
+    {
+        return contrast switch
+        {
+            true => "Да",
+            false => "Нет",
+            null => "Не указано"
+        };
+    }
 }

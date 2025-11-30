@@ -4,12 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace XRayJournal.Core.DTOs
+namespace XRayJournal.Core.InputModels
 {
-    public class XRayExamDTO
+    public class XRayExamInputModel
     {
-        public int Id { get; set; }
-
         public string XRayName { get; set; }
 
         public float XRayDose { get; set; }
@@ -18,7 +16,7 @@ namespace XRayJournal.Core.DTOs
 
         public DateOnly XRayDate { get; set; }
 
-        public string Category {  get; set; }
+        public string Category { get; set; }
 
         public string? XRayDiagnose { get; set; }
 
@@ -35,8 +33,6 @@ namespace XRayJournal.Core.DTOs
         public bool? InOperation { get; set; }
 
         public bool? Contrast { get; set; }
-
-        public PatientDTO Patient { get; set; }
 
         public int PatientId { get; set; }
     }

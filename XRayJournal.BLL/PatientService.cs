@@ -28,5 +28,12 @@ namespace XRayJournal.BLL
             var result = tmp.Adapt<PatientOutputModel>();
             return result;
         }
+
+        public List<PatientWithExamOutputModel> GetAllWithExams()
+        {
+            var tmp = _patientRepository.GetAllWithExams();
+            var result = tmp.Adapt<List<PatientWithExamOutputModel>>();
+            return result;
+        }
     }
 }

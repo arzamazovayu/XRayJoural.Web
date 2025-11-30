@@ -11,5 +11,7 @@ namespace XRayJournal.Core.IRepositories
     {
         public List<PatientDTO> GetAll();
         public PatientDTO Add(PatientDTO patient);
+
+        public List<PatientDTO> GetAllWithExams();
     }
 }

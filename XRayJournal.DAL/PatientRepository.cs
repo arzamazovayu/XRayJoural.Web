@@ -32,5 +32,14 @@ namespace XRayJournal.DAL
             var result = _dataContext.Patients.Single(p => p.Id == id);
             return result;
         }
+
+        public List<PatientDTO> GetAllWithExams()
+        {
+            var result = _dataContext.Patients
+                .Include(p => p.Exams)
+                .OrderBy(p => p.Id)
+                .ToList();
+            return result;
+        }
     }
 }

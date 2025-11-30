@@ -26,7 +26,7 @@
             <th scope="col">Пол</th>
             <th scope="col">Дата рождения</th>
             <th scope="col">ID пациента</th>
-            @*  <th scope="col">Исследование</th>
+            <th scope="col">Исследование</th>
             <th scope="col">Доза</th>
             <th scope="col">Снимков/серий</th>
             <th scope="col">Дата исс-я</th>
@@ -38,18 +38,24 @@
             <th scope="col">Лаборант</th>
             <th scope="col">Модальность</th>
             <th scope="col">В операционной</th>
-            <th scope="col">Контраст</th> *@
+            <th scope="col">Контраст</th>
         </tr>
     </thead>
     <tbody>
-        @foreach (var p in selectedPatients)
+        @foreach (var patient in selectedPatients)
         {
-            <MainTable Patient="p"></MainTable>
+            @if (patient.Exams?.Count > 0)
+            {
+                @foreach (var exam in patient.Exams)
+                {
+                    <MainTable Patient="patient" Exam="exam"></MainTable>
+                }
+            }
+            else
+            {
+                <MainTable Patient="patient" Exam="null"></MainTable>
+            }
         }
-        @*  @foreach (var e in XRayService.GetAllExams())
-        {
-            <MainTable Exam="e"></MainTable>
-        } *@
     </tbody>
 </table>
 @if (isModalShowed)
@@ -114,12 +120,12 @@
     // [Inject] 
     // public XRayExamService XRayService { get; set; }
 
-    private string searchText;
-    private string searchSex;
+    private string searchText = "";
+    private string searchSex = "";
 
-    private List<PatientOutputModel> patients;
+    private List<PatientWithExamOutputModel> patients = new();
 
-    private List<PatientOutputModel> selectedPatients;
+    private List<PatientWithExamOutputModel> selectedPatients = new();
 
     private bool isModalShowed;
 
@@ -127,28 +133,38 @@
 
     protected override void OnInitialized()
     {
-        patients = PatientService.GetAll();
+        patients = PatientService.GetAllWithExams();
         selectedPatients = patients;
+        patient = new PatientInputModel()
+        {
+            Sex = "Иное",
+            BirthDate = DateOnly.FromDateTime(DateTime.Now)
+        };
         searchText = "";
         isModalShowed = false;
     }
 
     private void OnFilter()
     {
-        string tmp = searchText.Trim().ToLower();
-        selectedPatients = patients.Where(p => p.SecondName.ToLower().Contains(tmp)).ToList();
+        if (string.IsNullOrWhiteSpace(searchText))
+        {
+            selectedPatients = patients;
+        }
+        else
+        {
+            string tmp = searchText.Trim().ToLower();
+            selectedPatients = patients.Where(p => 
+                p.SecondName.ToLower().Contains(tmp) ||
+                p.FirstName.ToLower().Contains(tmp) ||
+                (p.ThirdName !=null && p.ThirdName.ToLower().Contains(tmp)) ||
+                p.MedNumber.ToLower().Contains(tmp)
+            ).ToList();
+        }
 
-        // selectedPatients = patients.Where(p => p.SecondName.ToLower().Contains(tmp)).ToList();
-        // selectedPatients = patients.Where(p => p.FirstName.ToLower().Contains(tmp)).ToList();
-        // selectedPatients = patients.Where(p => p.ThirdName.ToLower().Contains(tmp)).ToList();
-        // selectedPatients = patients.Where(p => p.MedNumber.ToLower().Contains(tmp)).ToList();
-        // selectedPatients = patients.Where(p => p.BirthDate.ToString().Contains(tmp)).ToList();
-
-        // if (searchSex!="Не определён")
-        // {
-        //     string a = searchSex.Trim().ToLower();
-        //     selectedPatients = selectedPatients.Where(p => p.Sex.ToLower().Contains(a)).ToList(); 
-        // }
+        if (!string.IsNullOrEmpty(searchSex))
+        {
+            selectedPatients = selectedPatients.Where(p => p.Sex == searchSex).ToList();
+        }
 
         StateHasChanged();
     }
@@ -158,6 +174,7 @@
         patient = new PatientInputModel()
         {
             Sex = "Иное",
+            BirthDate = DateOnly.FromDateTime(DateTime.Now)
         };
         isModalShowed = true;
     }
@@ -168,11 +185,23 @@
 
     private void OnSubmit()
     {
-        var tmp = PatientService.Add(patient);
-        patients.Add(tmp);
+        var newPatient = PatientService.Add(patient);
+        var newPatientWithExams = new PatientWithExamOutputModel
+        {
+            Id = newPatient.Id,
+            SecondName = newPatient.SecondName,
+            FirstName = newPatient.FirstName,
+            ThirdName = newPatient.ThirdName,
+            BirthDate = newPatient.BirthDate,
+            Sex = newPatient.Sex,
+            MedNumber = newPatient.MedNumber,
+            Exams = new List<XRayExamOutputModel>()
+        };
+
+        patients.Add(newPatientWithExams);
+        selectedPatients = patients;
 
         HideModal();
-
         StateHasChanged();
     }
 } 
