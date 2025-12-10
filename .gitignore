@@ -361,3 +361,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/XRayJournal.Web/XRayJournal.Web/Components/ExamForm.txt
+/XRayJournal.Web/XRayJournal.Web/Components/PatientEditModal.txt
+/XRayJournal.Web/XRayJournal.Web/Components/Pages/Home.txt
