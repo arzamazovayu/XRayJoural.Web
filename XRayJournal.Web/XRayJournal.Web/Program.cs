@@ -1,10 +1,10 @@
-//using XRayJournal.Web.Client.Pages;
 using XRayJournal.Web.Components;
 using Mapster;
 using XRayJournal.Core;
 using XRayJournal.Core.IRepositories;
 using XRayJournal.DAL;
 using XRayJournal.BLL;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace XRayJournal.Web
 {
@@ -21,14 +21,33 @@ namespace XRayJournal.Web
 
             builder.Services.AddDbContext<DataContext>();
 
+            //Репозитории
             builder.Services.AddScoped<IPatientRepository, PatientRepository>();
             builder.Services.AddScoped<IXRayExamRepository, XRayExamRepository>();
+            builder.Services.AddScoped<IUserRepository, UserRepository>();
 
+            //Сервисы
             builder.Services.AddScoped<PatientService>();
             builder.Services.AddScoped<XRayExamService>();
+            builder.Services.AddScoped<UserService>();
 
             TypeAdapterConfig.GlobalSettings.Apply(new MapsterConfig());
             builder.Services.AddMapster();
+
+            //Аутентификация
+            builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie(
+                    options =>
+                    {
+                        options.Cookie.Name = "auth_token";
+                        options.LoginPath = "/login";
+                        options.Cookie.MaxAge = TimeSpan.FromMinutes(390);
+                        options.AccessDeniedPath = "/access-denied"; // Что это значит?
+                    });
+
+            builder.Services.AddAuthorization();
+            builder.Services.AddCascadingAuthenticationState();
+            builder.Services.AddHttpContextAccessor();
 
             var app = builder.Build();
 
@@ -48,6 +67,12 @@ namespace XRayJournal.Web
 
             app.UseStaticFiles();
             app.UseAntiforgery();
+
+            //----====!ВАЖНО!====----
+            app.UseAuthentication(); // Сначала Аутентификация
+            app.UseAuthorization(); // А потом Авторизация
+
+            app.MapGet("/", () => Results.Redirect("/home"));
 
             app.MapRazorComponents<App>()
                 .AddInteractiveServerRenderMode()

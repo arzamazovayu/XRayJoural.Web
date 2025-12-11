@@ -9,6 +9,8 @@ namespace XRayJournal.Core.InputModels
 {
     public class PatientInputModel
     {
+        public int Id { get; set; }
+
         [Required(ErrorMessage ="Фамилия обязательна!")]
         [StringLength(255, MinimumLength = 1, ErrorMessage ="Фамилия минимум 1 символ!")]
         public string SecondName { get; set; }

@@ -20,34 +20,18 @@ namespace XRayJoural.API
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
-
-            builder.Services.AddAuthorization();
-            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer(option=>
-                {
-                    option.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters()
-                    {
-                        ValidateIssuer = true,
-                        ValidIssuer = "MyAuth",
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("mysupersecret_secretsecretsecretkey!123")),
-                        ValidateIssuerSigningKey = true,
-                        ValidateAudience = true,
-                        ValidAudience = "Potreb",
-                        ValidateLifetime = true,
-                    };
-                });
-
             builder.Services.AddControllers();
+            builder.Services.AddEndpointsApiExplorer();
+
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             //builder.Services.AddOpenApi();
-            builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(options =>
             {
                 options.SwaggerDoc("v1", new OpenApiInfo
                 {
-                    Title = "My API",
+                    Title = "XRayJournal API",
                     Version = "v1",
-                    Description = "API Description"
+                    Description = "API для ведения журнала исследований"
                 });
 
                 options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -80,11 +64,37 @@ namespace XRayJoural.API
 
             builder.Services.AddDbContext<DataContext>();
 
+            //Репозитории
             builder.Services.AddScoped<IPatientRepository, PatientRepository>();
             builder.Services.AddScoped<IXRayExamRepository, XRayExamRepository>();
+            builder.Services.AddScoped<IUserRepository, UserRepository>();
 
+            //Сервисы
             builder.Services.AddScoped<PatientService>();
             builder.Services.AddScoped<XRayExamService>();
+            builder.Services.AddScoped<UserService>();
+
+            // Mapster
+            TypeAdapterConfig.GlobalSettings.Apply(new MapsterConfig());
+            builder.Services.AddMapster();
+
+            // JWT Authentication
+            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(option =>
+                {
+                    option.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters()
+                    {
+                        ValidateIssuer = true,
+                        ValidIssuer = "MyAuth",
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("mysupersecret_secretsecretsecretkey!123")),
+                        ValidateIssuerSigningKey = true,
+                        ValidateAudience = true,
+                        ValidAudience = "Potreb",
+                        ValidateLifetime = true,
+                    };
+                });
+
+            builder.Services.AddAuthorization();
 
             var app = builder.Build();
 
@@ -100,7 +110,6 @@ namespace XRayJoural.API
 
             app.UseAuthentication();
             app.UseAuthorization();
-
 
             app.MapControllers();
 

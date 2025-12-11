@@ -13,3 +13,7 @@ INSERT INTO public."Exams"(
 (3, 'ОГК', 0.05, 1, '2025-07-02','ОМС', 'Z01.8', false, NULL, 'Иванов И.И.', 'Сидорова А.И.', 'DR', false, false, 3),
 (4, 'таз', 0.4, 1, '2025-07-23','ИДЮЛ', NULL, false, 1500, 'Иванов И.И.', 'Сидорова А.И.', 'RS', true, false, 4);
 
+UPDATE "Patients"
+SET "IsDeleted" = false
+WHERE "Id" = 7;
+

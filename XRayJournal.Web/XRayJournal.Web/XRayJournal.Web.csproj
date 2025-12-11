@@ -7,6 +7,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="Components\MainTable.razor" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Components\ExamForm.txt" />
+    <None Remove="Components\Pages\Home.txt" />
+    <None Remove="Components\PatientEditModal.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\WRayJournal.Core\XRayJournal.Core.csproj" />
     <ProjectReference Include="..\..\XRayJournal.BLL\XRayJournal.BLL.csproj" />
     <ProjectReference Include="..\..\XRayJournal.DAL\XRayJournal.DAL.csproj" />

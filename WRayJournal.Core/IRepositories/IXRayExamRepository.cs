@@ -11,5 +11,14 @@ namespace XRayJournal.Core.IRepositories
     public interface IXRayExamRepository
     {
         public List<XRayExamDTO> GetAllExams();
+
+        public XRayExamDTO Add(XRayExamDTO exam);
+
+        public bool Update(XRayExamDTO exam);
+
+        public bool Delete(int id);
+
+        public XRayExamDTO GetById(int id);
+
     }
 }

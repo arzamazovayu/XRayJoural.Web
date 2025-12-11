@@ -1,124 +1,137 @@
-﻿@page "/"
+﻿@page "/home"
+@using System.Security.Claims
+@using XRayJournal.Core.Results
 @rendermode InteractiveServer 
+@inject XRayExamService XRayExamService
 
-<PageTitle>Home</PageTitle>
+<AuthorizeView>
+    <Authorized Context="authContext">
+        <PageTitle>Home</PageTitle>
 
-<div class="container" style="margin-bottom:15px;">
-    <InputText @bind-Value="searchText"> </InputText>
-    <button @onclick="OnFilter">Поиск</button>
+        <div class="alert alert-info mb-3">
+            <i class="bi bi-person-circle"></i>
+            Вы авторизованы как: <strong>@authContext.User.Identity?.Name</strong>
+            <a href="/logout" class="btn btn-sm btn-outline-secondary float-end">Выйти</a>
+        </div>
 
-    <InputSelect @bind-Value="searchSex">
-        <option value="">Не определён</option>
-        <option value="Муж">Муж</option>
-        <option value="Жен">Жен</option>
-    </InputSelect>
-
-    <button @onclick="ShowModal">Добавить пациента</button>
-</div>
-
-<table class="table table-striped table-hover">
-    <thead>
-        <tr>
-            <th scope="col">№</th>
-            <th scope="col">Фамилия</th>
-            <th scope="col">Имя</th>
-            <th scope="col">Отчество</th>
-            <th scope="col">Пол</th>
-            <th scope="col">Дата рождения</th>
-            <th scope="col">ID пациента</th>
-            <th scope="col">Исследование</th>
-            <th scope="col">Доза</th>
-            <th scope="col">Снимков/серий</th>
-            <th scope="col">Дата исс-я</th>
-            <th scope="col">Категория</th>
-            <th scope="col">Диагноз</th>
-            <th scope="col">Патология</th>
-            <th scope="col">Стоимость</th>
-            <th scope="col">Врач</th>
-            <th scope="col">Лаборант</th>
-            <th scope="col">Модальность</th>
-            <th scope="col">В операционной</th>
-            <th scope="col">Контраст</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var patient in selectedPatients)
-        {
-            @if (patient.Exams?.Count > 0)
-            {
-                @foreach (var exam in patient.Exams)
-                {
-                    <MainTable Patient="patient" Exam="exam"></MainTable>
-                }
-            }
-            else
-            {
-                <MainTable Patient="patient" Exam="null"></MainTable>
-            }
-        }
-    </tbody>
-</table>
-@if (isModalShowed)
-{
-    <div class="modal show d-block fade" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Добавить пациента</h5>
-                    <button type="button" class="btn-close" @onclick="HideModal"></button>
+        <div class="container" style="margin-bottom:15px;">
+            <div class="row g-3 align-items-center">
+                <div class="col-auto">
+                    <InputText @bind-Value="searchText" class="form-control"> </InputText>
                 </div>
-                <EditForm Model="patient" OnValidSubmit="OnSubmit">
-                    <DataAnnotationsValidator></DataAnnotationsValidator>
-                    <div class="modal-body">
-                        <div>
-                            <span>Фамилия</span>
-                            <InputText @bind-Value="patient.SecondName"/>
-                            <ValidationMessage For="()=>patient.SecondName"/>
-                        </div>
-                        <div>
-                            <span>Имя</span>
-                            <InputText @bind-Value="patient.FirstName"/>
-                            <ValidationMessage For="()=>patient.FirstName"/>
-                        </div>
-                        <div>
-                            <span>Отчество</span>
-                            <InputText @bind-Value="patient.ThirdName"/>
-                            <ValidationMessage For="()=>patient.ThirdName"/>
-                        </div>
-                        <div>
-                            <span>Дата рождения</span>
-                            <InputDate @bind-Value="patient.BirthDate"/>
-                        </div>
-                        <div>
-                            <span>Пол</span>
-                            <InputSelect @bind-Value="patient.Sex">
-                                <option value="Иное">Не определён</option>
-                                <option value="Муж">Муж</option>
-                                <option value="Жен">Жен</option>
-                            </InputSelect>
-                        </div>
-                        <div>
-                            <span>Номер карты</span>
-                            <InputText @bind-Value="patient.MedNumber"/>
-                            <ValidationMessage For="()=>patient.MedNumber"/>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" @onclick="HideModal">Закрыть</button>
-                        <button type="submit" class="btn btn-primary">Сохранить</button>
-                    </div>
-                </EditForm>
+                <div class="col-auto">
+                    <button @onclick="OnFilter">Поиск</button>
+                </div>
+                <div class="col-auto">
+                    <InputSelect @bind-Value="searchSex" class="form-select">
+                        <option value="">Все</option>
+                        <option value="Муж">Муж</option>
+                        <option value="Жен">Жен</option>
+                    </InputSelect>
+                </div>
+                <div class="col-auto">
+                    <button @onclick="ShowAddModal">Добавить пациента</button>
+                </div>
             </div>
         </div>
-    </div>
 
-}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th scope="col">№</th>
+                        <th scope="col">Фамилия</th>
+                        <th scope="col">Имя</th>
+                        <th scope="col">Отчество</th>
+                        <th scope="col">Пол</th>
+                        <th scope="col">Дата рождения</th>
+                        <th scope="col">ID пациента</th>
+                        <th scope="col">Исследование</th>
+                        <th scope="col">Доза</th>
+                        <th scope="col">Снимков/серий</th>
+                        <th scope="col">Дата исс-я</th>
+                        <th scope="col">Категория</th>
+                        <th scope="col">Диагноз</th>
+                        <th scope="col">Патология</th>
+                        <th scope="col">Стоимость</th>
+                        <th scope="col">Врач</th>
+                        <th scope="col">Лаборант</th>
+                        <th scope="col">Модальность</th>
+                        <th scope="col">В операционной</th>
+                        <th scope="col">Контраст</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var patient in selectedPatients)
+                    {
+                        @if (patient.Exams?.Count > 0)
+                        {
+                            @foreach (var exam in patient.Exams)
+                            {
+                                <tr @ondblclick="() => EditPatient(patient)">
+                                    <td>@patient.Id</td>
+                                    <td>@patient.SecondName</td>
+                                    <td>@patient.FirstName</td>
+                                    <td>@patient.ThirdName</td>
+                                    <td>@patient.Sex</td>
+                                    <td>@patient.BirthDate</td>
+                                    <td>@patient.MedNumber</td>  
+                                    <td>@(exam?.XRayName ?? "-")</td>
+                                    <td>@(exam?.XRayDose.ToString() ?? "-")</td>
+                                    <td>@(exam?.XRayShots.ToString() ?? "-")</td>
+                                    <td>@(exam?.XRayDate.ToString() ?? "-")</td>
+                                    <td>@(exam?.Category ?? "-")</td>
+                                    <td>@(exam?.XRayDiagnose ?? "-")</td>
+                                    <td>@GetPatologyDisplay(exam?.XRayPatology)</td>
+                                    <td>@(exam?.XRayCost.ToString() ?? "-")</td>
+                                    <td>@(exam?.Doctor ?? "-")</td>
+                                    <td>@(exam?.Laborant ?? "-")</td>
+                                    <td>@(exam?.XRayModality ?? "-")</td>
+                                    <td>@GetInOperationDisplay(exam?.InOperation)</td>
+                                    <td>@GetContrastDisplay(exam?.Contrast)</td>     
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr @ondblclick="() => EditPatient(patient)">
+                                <td>@patient.Id</td>
+                                <td>@patient.SecondName</td>
+                                <td>@patient.FirstName</td>
+                                <td>@patient.ThirdName</td>
+                                <td>@patient.Sex</td>
+                                <td>@patient.BirthDate</td>
+                                <td>@patient.MedNumber</td>  
+                                <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
+                                <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
+                                <td>-</td><td>-</td><td>-</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        @if (showPatientModal)
+        {
+            <PatientEditModal Patient="editingPatient"
+            OnSave="HandleSavePatient"
+            OnCancel="HideModal"/>
+        }
+    </Authorized>
+    <NotAuthorized>
+        <div class="text-center mt-5">
+            <div class="alert alert-warning">
+                <h4>Требуется авторизация</h4>
+                <p>Для доступа к системе необходимо войти в систему.</p>
+                <a href="/login" class="btn btn-primary">Войти</a>
+            </div>
+        </div>
+    </NotAuthorized>
+</AuthorizeView>
 @code{
     [Inject] 
     public PatientService PatientService { get; set; }
-
-    // [Inject] 
-    // public XRayExamService XRayService { get; set; }
 
     private string searchText = "";
     private string searchSex = "";
@@ -127,21 +140,19 @@
 
     private List<PatientWithExamOutputModel> selectedPatients = new();
 
-    private bool isModalShowed;
+    private bool showPatientModal = false;
 
-    private PatientInputModel patient;
+    private PatientWithExamOutputModel? editingPatient = null;
 
     protected override void OnInitialized()
     {
+        LoadPatients();
+    }
+
+    private void LoadPatients()
+    {
         patients = PatientService.GetAllWithExams();
         selectedPatients = patients;
-        patient = new PatientInputModel()
-        {
-            Sex = "Иное",
-            BirthDate = DateOnly.FromDateTime(DateTime.Now)
-        };
-        searchText = "";
-        isModalShowed = false;
     }
 
     private void OnFilter()
@@ -169,39 +180,128 @@
         StateHasChanged();
     }
 
-    private void ShowModal()
+    private void ShowAddModal()
     {
-        patient = new PatientInputModel()
-        {
-            Sex = "Иное",
-            BirthDate = DateOnly.FromDateTime(DateTime.Now)
-        };
-        isModalShowed = true;
+        editingPatient = null;
+        showPatientModal = true;
+    }
+
+    private void EditPatient(PatientWithExamOutputModel patient)
+    {
+        editingPatient = patient;
+        showPatientModal = true;
     }
     private void HideModal()
     {
-        isModalShowed = false;
+        showPatientModal = false;
+        editingPatient = null;
     }
 
-    private void OnSubmit()
+    private async Task HandleSavePatient(PatientWithExamsInputModel formModel)
     {
-        var newPatient = PatientService.Add(patient);
-        var newPatientWithExams = new PatientWithExamOutputModel
+        try
         {
-            Id = newPatient.Id,
-            SecondName = newPatient.SecondName,
-            FirstName = newPatient.FirstName,
-            ThirdName = newPatient.ThirdName,
-            BirthDate = newPatient.BirthDate,
-            Sex = newPatient.Sex,
-            MedNumber = newPatient.MedNumber,
-            Exams = new List<XRayExamOutputModel>()
+            if (editingPatient == null)
+            {
+                var result = PatientService.Add(formModel.Patient);
+
+                var newPatient = result.Data;
+                var newPatientWithExams = new PatientWithExamOutputModel
+                {
+                    Id = newPatient.Id,
+                    SecondName = newPatient.SecondName,
+                    FirstName = newPatient.FirstName,
+                    ThirdName = newPatient.ThirdName,
+                    BirthDate = newPatient.BirthDate,
+                    Sex = newPatient.Sex,
+                    MedNumber = newPatient.MedNumber,
+                    Exams = new List<XRayExamOutputModel>()
+                };
+                patients.Add(newPatientWithExams);
+            }
+            else
+            {
+                formModel.Patient.Id = editingPatient.Id;
+
+                var result = PatientService.Update(formModel.Patient);
+
+                var updatedPatient = result.Data;
+
+                var existingPatient = patients.FirstOrDefault(p => p.Id == editingPatient.Id);
+                if(existingPatient != null)
+                {
+                    existingPatient.SecondName = updatedPatient.SecondName;
+                    existingPatient.FirstName = updatedPatient.FirstName;
+                    existingPatient.ThirdName = updatedPatient.ThirdName;
+                    existingPatient.BirthDate = updatedPatient.BirthDate;
+                    existingPatient.Sex = updatedPatient.Sex;
+                    existingPatient.MedNumber = updatedPatient.MedNumber;
+                }
+            }
+            LoadPatients();
+            HideModal();
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[DEBUG] Исключение в HandleSavePatient: {ex}");
+        }
+    }
+
+    private bool IsExamValid(XRayExamInputModel exam)
+    {
+        return !string.IsNullOrWhiteSpace(exam.XRayName) ||
+            exam.XRayDose != 0 ||
+            exam.XRayShots != 0 ||
+            !string.IsNullOrWhiteSpace(exam.Category) ||
+            !string.IsNullOrWhiteSpace(exam.XRayDiagnose);
+    }
+    private string GetPatologyDisplay(bool? patology)
+    {
+        return patology switch
+        {
+            true => "Да",
+            false => "Нет",
+            null => "Не указано"
         };
+    }
 
-        patients.Add(newPatientWithExams);
-        selectedPatients = patients;
+    private string GetInOperationDisplay(bool? inOperation)
+    {
+        return inOperation switch
+        {
+            true => "Да",
+            false => "Нет",
+            null => "Не указано"
+        };
+    }
 
-        HideModal();
+    private string GetContrastDisplay(bool? contrast)
+    {
+        return contrast switch
+        {
+            true => "Да",
+            false => "Нет",
+            null => "Не указано"
+        };
+    }
+
+    private async Task HandlePatientDeleted(int patientId)
+    {
+        var patientToRemove = patients.FirstOrDefault(p => p.Id == patientId);
+
+        if (patientToRemove != null)
+        {
+            patients.Remove(patientToRemove);
+            selectedPatients.Remove(patientToRemove);
+        }
+
         StateHasChanged();
+    }
+
+    private string GetRoleDisplayName(ClaimsPrincipal user)
+    {
+        var roleClaim = user.FindFirst(ClaimTypes.Name)?.Value;
+        return roleClaim ?? "Неизвестно";
     }
 } 

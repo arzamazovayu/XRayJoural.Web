@@ -17,6 +17,6 @@ namespace XRayJournal.Core.DTOs
 
         public UserRole Role { get; set; }
 
-        public List<PatientDTO> Patients { get; set; }
+        public List<PatientDTO> Patients { get; set; } // Кажется, это здесь лишнее
     }
 }

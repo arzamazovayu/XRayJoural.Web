@@ -1,0 +1,125 @@
+﻿@page "/login"
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Authentication.Cookies
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.ComponentModel.DataAnnotations
+@using XRayJournal.DAL
+
+<PageTitle>Вход в систему</PageTitle>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white text-center">
+                    <h5>Авторизация</h5>
+                </div>
+                <div class="card-body">
+                    <EditForm Model="userModel" OnValidSubmit="HandleLogin" FormName="LoginForm">
+                        <DataAnnotationsValidator />
+
+                        <div class="mb-3">
+                            <label class="form-label">Логин</label>
+                            <InputText @bind-Value="userModel.Name" class="form-control" />
+                            <ValidationMessage For="() => userModel.Name" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Пароль</label>
+                            <InputText type="password" @bind-Value="userModel.Password" class="form-control" />
+                            <ValidationMessage For="() => userModel.Password" />
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(errorMessage))
+                        {
+                            <div class="alert alert-danger">
+                                @errorMessage
+                            </div>
+                        }
+
+                        <button type="submit" class="btn btn-primary w-100">
+                            Войти
+                        </button>
+                    </EditForm>
+                </div>
+                <div class="card-footer text-center small text-muted">
+                    X-Ray Journal System
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Inject]
+    private UserService UserService { get; set; }
+
+    [CascadingParameter]
+    public HttpContext HttpContext { get; set; } = default!;
+
+    [SupplyParameterFromForm]
+    public UserModel userModel { get; set; } = new UserModel();
+
+    private string errorMessage = string.Empty;
+
+    private async Task HandleLogin()
+    {
+        errorMessage = string.Empty;
+        //Валидация
+        if (string.IsNullOrWhiteSpace(userModel.Name))
+        {
+            errorMessage = "Логин обязателен";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(userModel.Password))
+        {
+            errorMessage = "Пароль обязателен";
+            return;
+        }
+        // Используем UserService
+        var result = await UserService.AuthenticateAsync(userModel.Name, userModel.Password);
+
+        if (!result.Success)
+        {
+            errorMessage = result.ErrorMessage;
+            return;
+        }
+
+        var currentUser = result.Data;
+
+        // Создаем claims для пользователя
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.Name, userModel.Name),
+            new Claim(ClaimTypes.Role, currentUser.Role.ToString()),
+            new Claim("RoleId", ((int)currentUser.Role).ToString())
+        };
+
+        var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+        var principal = new ClaimsPrincipal(identity);
+
+        // Выполняем вход
+        await HttpContext.SignInAsync(
+            CookieAuthenticationDefaults.AuthenticationScheme,
+            principal,
+            new AuthenticationProperties
+                {
+                    IsPersistent = true,
+                    ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(390) // 390 минут потому что рабочий день 6.5 часов
+                });
+
+        // Перенаправляем на главную
+        HttpContext.Response.Redirect("/home");
+    }
+
+    public class UserModel
+    {
+        [Required(ErrorMessage = "Логин обязателен")]
+        public string Name { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Пароль обязателен")]
+        public string Password { get; set; } = string.Empty;
+    }
+}

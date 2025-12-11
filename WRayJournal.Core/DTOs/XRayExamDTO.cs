@@ -14,7 +14,7 @@ namespace XRayJournal.Core.DTOs
 
         public float XRayDose { get; set; }
 
-        public byte XRayShots { get; set; }
+        public int XRayShots { get; set; }
 
         public DateOnly XRayDate { get; set; }
 

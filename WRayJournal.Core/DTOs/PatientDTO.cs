@@ -24,5 +24,8 @@ namespace XRayJournal.Core.DTOs
 
         public List<XRayExamDTO>? Exams { get; set; } = new List<XRayExamDTO>();
 
+        //Флаг удаления
+        public bool IsDeleted { get; set; } = false;
+
     }
 }
