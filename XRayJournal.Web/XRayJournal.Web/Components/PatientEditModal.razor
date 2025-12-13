@@ -9,26 +9,38 @@
                 <button type="button" class="btn-close" @onclick="CloseModal"></button>
             </div>
 
-            <EditForm Model="FormModel" OnValidSubmit="HandleValidSubmit" FormName="TableForm">
-                <DataAnnotationsValidator />
-                <div class="modal-body">
-                    <!-- Вкладки -->
-                    <ul class="nav nav-tabs" id="patientTabs">
-                        <li class="nav-item">
-                            <a class="nav-link @(activeTab == "patient" ? "active" : "")" 
-                            @onclick='() => SwitchTab("patient")' style="cursor: pointer;">Данные пациента</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link @(activeTab == "exams" ? "active" : "")" 
-                            @onclick='() => SwitchTab("exams")' style="cursor: pointer;">Исследования</a>
-                        </li>
-                    </ul>
 
-                    <div class="tab-content mt-3">
-                        <!-- Вкладка данных пациента -->
-                        @if (activeTab == "patient")
-                        {
-                            <div class="tab-pane fade show active">
+            <div class="modal-body">
+                <!-- Вкладки -->
+                <ul class="nav nav-tabs" id="patientTabs">
+                    <li class="nav-item">
+                        <a class="nav-link @(activeTab == "patient" ? "active" : "")" 
+                        @onclick="SwitchToPatientTab" style="cursor: pointer;">Данные пациента</a>
+                    </li>
+                    @{
+                        var isExamsEnabled = Patient?.Id > 0;
+                        var examsCount = Patient?.Exams?.Count ?? 0;
+                    }
+                    <li class="nav-item">
+                        <a class="nav-link @(activeTab == "exams" ? "active" : "") @(!isExamsEnabled ? "disabled" : "")" 
+                        @onclick="@(() => { if (isExamsEnabled) activeTab = "exams";})" 
+                        style="cursor: @(isExamsEnabled ? "pointer" : "not-allowed")">
+                            Исследования
+                            @if (examsCount > 0)
+                            {
+                                <span class="badge bg-secondary ms-1">@examsCount</span>
+                            }
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="tab-content mt-3">
+                    <!-- Вкладка данных пациента -->
+                    @if (activeTab == "patient")
+                    {
+                        <div class="tab-pane fade show active">
+                            <EditForm Model="FormModel.Patient" OnValidSubmit="HandleSavePatient" FormName="TableForm">
+                                <DataAnnotationsValidator />
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="mb-3">
@@ -80,91 +92,102 @@
                                         </div>
                                     </div>
                                 </div>
-                                <!-- Кнопка удаления пациента -->
-                                @if (Patient != null && Patient.Id > 0)
-                                {
-                                    <AuthorizeView Roles="Doctor">
-                                        <Authorized Context="Doctor">
-                                            <hr/>
-                                                <div class="modal-footer">
+                                <div class="row mt-4">
+                                    <div class="col-md-6 d-flex gap-2">
+                                        <!-- Кнопка сохранения пациента -->
+                                        <button type="submit" class="btn btn-outline-success" >
+                                            <i class="bi bi-save"></i> 
+                                            @(Patient == null ? "Добавить пациента" : "Обновить пациента")
+                                        </button>
+                                        <!-- Кнопка удаления пациента -->
+                                        @if (Patient != null && Patient.Id > 0)
+                                        {
+                                            <AuthorizeView Roles="Doctor">
+                                                <Authorized Context="Doctor">
                                                     <button type="button"
-                                                            class="btn btn-outline-danger btn-sm"
-                                                            @onclick="ShowDeletePatientModal">
+                                                    class="btn btn-outline-danger btn-sm"
+                                                    @onclick="ShowDeletePatientModal">
                                                         <i class="bi bi-trash"></i>Удалить пациента
                                                     </button>
-                                                </div>
-                                        </Authorized>
-                                        <NotAuthorized Context ="Laborant"></NotAuthorized>
-                                    </AuthorizeView>
-                                }
-                            </div>
-                        }
+                                                </Authorized>
+                                                <NotAuthorized Context ="Laborant"></NotAuthorized>
+                                            </AuthorizeView>
+                                        }
+                                    </div>
+                                </div>
+                            </EditForm>
+                        </div>
+                    }
 
-                        <!-- Вкладка исследований -->
-                        @if (activeTab == "exams")
-                        {
-                            <div class="tab-pane fade show active">
-                                <!-- Список существующих исследований -->
-                                @if (Patient?.Exams?.Count > 0)
-                                {
-                                    <div class="mb-4">
-                                        <h6>Существующие исследования:</h6>
-                                        @foreach (var exam in Patient.Exams)
-                                        {
-                                            <div class="card mb-2">
-                                                <div class="card-body py-2">
-                                                    <div class="d-flex justify-content-between align-items-center">
-                                                        <div>
-                                                            <strong>@exam.XRayName</strong> 
-                                                            <small class="text-muted ms-2">@exam.XRayDate.ToString("dd.MM.yyyy")</small>
-                                                            <br/>
-                                                            <small>Категория: @exam.Category | Снимков: @exam.XRayShots | 
-                                                                Доза: @exam.XRayDose мЗв</small>
-                                                        </div>
-                                                        <div>
-                                                            <button type="button" class="btn btn-sm btn-outline-primary me-2" 
-                                                            @onclick="() => EditExistingExam(exam)">
-                                                                ✏️ Редактировать
-                                                            </button>
-                                                            <button type="button" class="btn btn-sm btn-outline-danger" 
-                                                            @onclick="() => ConfirmDeleteExam(exam)">
-                                                                🗑️ Удалить
-                                                            </button>
-                                                        </div>
+                    <!-- Вкладка исследований -->
+                    @if (activeTab == "exams")
+                    {
+                        <div class="tab-pane fade show active">
+                            <!-- Список существующих исследований -->
+                            @if (Patient?.Exams?.Count > 0)
+                            {
+                                <div class="mb-4">
+                                    <h6>Существующие исследования:</h6>
+                                    @foreach (var exam in Patient.Exams)
+                                    {
+                                        <div class="card mb-2">
+                                            <div class="card-body py-2">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <strong>@exam.XRayName</strong> 
+                                                        <small class="text-muted ms-2">@exam.XRayDate.ToString("dd.MM.yyyy")</small>
+                                                        <br/>
+                                                        <small>Категория: @exam.Category | Снимков: @exam.XRayShots | 
+                                                            Доза: @exam.XRayDose мЗв</small>
+                                                    </div>
+                                                    <div>
+                                                        <button type="button" class="btn btn-sm btn-outline-primary me-2" 
+                                                        @onclick="() => EditExistingExam(exam)">
+                                                            ✏️ Редактировать
+                                                        </button>
+                                                        <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                        @onclick="() => ConfirmDeleteExam(exam)">
+                                                            🗑️ Удалить
+                                                        </button>
                                                     </div>
                                                 </div>
                                             </div>
-                                        }
-                                    </div>
-                                }
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="alert alert-info">
+                                    <i class="bi bi-info-circle"></i> 
+                                    У пациента пока нет исследований. Добавьте первое исследование.
+                                </div>
+                            }
 
-                                <!-- Форма для нового/редактируемого исследования -->
-                                @if (showExamForm)
-                                {
-                                    <div class="mb-4">
-                                        <ExamForm Exam="currentExam" 
-                                        OnSave="HandleExamSave" 
-                                        OnCancel="CancelExamEdit" />
-                                    </div>
-                                }
+                            <!-- Форма для нового/редактируемого исследования -->
+                            @if (showExamForm)
+                            {
+                                <div class="mb-4">
+                                    <ExamForm Exam="currentExam" 
+                                    OnSave="HandleExamSave" 
+                                    OnCancel="CancelExamEdit" />
+                                </div>
+                            }
 
-                                <!-- Кнопка добавления нового исследования -->
-                                @if (!showExamForm)
-                                {
-                                    <button type="button" class="btn btn-outline-primary" @onclick="AddNewExam">
-                                        + Добавить новое исследование
-                                    </button>
-                                }
-                            </div>
-                        }
-                    </div>
+                            <!-- Кнопка добавления нового исследования -->
+                            @if (!showExamForm)
+                            {
+                                <button type="button" class="btn btn-outline-primary" @onclick="AddNewExam">
+                                    + Добавить новое исследование
+                                </button>
+                            }
+                        </div>
+                    }
                 </div>
-
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" @onclick="CloseModal">Отмена</button>
-                    <button type="submit" class="btn btn-primary">Сохранить</button>
-                </div>
-            </EditForm>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" @onclick="CloseModal">Отмена</button>
+            </div>
         </div>
     </div>
     @if (showDeleteDialog)
@@ -221,10 +244,10 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" @onclick="CancelDeletePatient">Отмена</button>
                         <button type="button" 
-                                class="btn btn-danger" 
-                                @onclick="DeletePatientConfirmed"
-                                disabled="@(!confirmPatientDelete)">
-                        <i class="bi bi-trash"></i> Удалить пациента
+                        class="btn btn-danger" 
+                        @onclick="DeletePatientConfirmed"
+                        disabled="@(!confirmPatientDelete)">
+                            <i class="bi bi-trash"></i> Удалить пациента
                         </button>
                     </div>
                 </div>
@@ -295,27 +318,15 @@
         }
     }
 
-    private void SwitchTab(string tabName)
-    {
-        activeTab = tabName;
-        StateHasChanged();
-    }
-
     private async Task CloseModal()
     {
         await OnCancel.InvokeAsync();
-    }
-
-    private async Task HandleValidSubmit()
-    {
-        await OnSave.InvokeAsync(FormModel);
     }
 
     private void AddNewExam()
     {
         if (Patient == null || Patient.Id == 0)
         {
-            // ShowErrorMessage("Сначала сохраните пациента");
             return;
         }
         currentExam = new XRayExamInputModel
@@ -435,7 +446,7 @@
         }
         catch (Exception ex)
         {
-
+            Console.WriteLine($"Ошибка при удалении исследования: {ex.Message}");
         }
         finally
         {
@@ -473,6 +484,26 @@
         else
         {
             Console.WriteLine($"[ERROR] Ошибка при удалении пациента: {result.ErrorMessage}");
+        }
+    }
+
+    private void SwitchToPatientTab()
+    {
+        activeTab = "patient";
+        StateHasChanged();
+    }
+
+    private async Task HandleSavePatient()
+    {
+        await OnSave.InvokeAsync(new PatientWithExamsInputModel
+        {
+            Patient = FormModel.Patient
+        });
+        // После успешного сохранения пациента, переключаемся на исследования
+        if (Patient?.Id > 0)
+        {
+            activeTab = "exams";
+            StateHasChanged();
         }
     }
 }
