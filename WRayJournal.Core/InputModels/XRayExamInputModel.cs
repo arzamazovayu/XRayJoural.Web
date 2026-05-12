@@ -18,7 +18,7 @@ namespace XRayJournal.Core.InputModels
         [Range(0.0001, 1000, ErrorMessage = "Доза должна быть от 0 до 1000 мЗв")]
         public float XRayDose { get; set; }
 
-        [Range(0, 100, ErrorMessage = "Количество снимков должно быть от 0 до 1000")]
+        [Range(0, 1000, ErrorMessage = "Количество снимков/последовательностей должно быть от 0 до 1000")]
         public int XRayShots { get; set; }
 
         [Required(ErrorMessage = "Дата исследования обязательна")]
@@ -52,5 +52,12 @@ namespace XRayJournal.Core.InputModels
         [Required(ErrorMessage ="Пациент обязателен!")]
         [Range(1, int.MaxValue, ErrorMessage = "Некорректный идентификатор пациента")]
         public int PatientId { get; set; }
+
+        [StringLength(200, ErrorMessage = "Название клиники не может превышать 200 символов")]
+        public string Clinic { get; set; }
+
+        [StringLength(200, ErrorMessage = "Название отделения не может превышать 200 символов")]
+        public string Department { get; set; }
+
     }
 }

@@ -39,5 +39,10 @@ namespace XRayJournal.Core.DTOs
         public PatientDTO Patient { get; set; }
 
         public int PatientId { get; set; }
+
+        public string? Clinic { get; set; }
+
+        public string? Department { get; set; }
+
     }
 }

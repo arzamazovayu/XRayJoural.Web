@@ -12,6 +12,8 @@ namespace XRayJournal.Core.IRepositories
     {
         public List<XRayExamDTO> GetAllExams();
 
+        public List<XRayExamDTO> GetNecessaryExams();
+
         public XRayExamDTO Add(XRayExamDTO exam);
 
         public bool Update(XRayExamDTO exam);

@@ -35,5 +35,9 @@ namespace XRayJournal.Core.OutputModels
         public bool InOperation { get; set; }
 
         public bool Contrast { get; set; }
+
+        public string Clinic { get; set; }
+
+        public string Department {  get; set; }
     }
 }

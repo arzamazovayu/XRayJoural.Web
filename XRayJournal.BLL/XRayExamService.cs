@@ -28,6 +28,13 @@ namespace XRayJournal.BLL
             return result;
         }
 
+        public List<XrayExamNecessaryInfoOutputModel> GetNecessaryExams()
+        {
+            var tmp = _xRayExamRepository.GetNecessaryExams();
+            var result = tmp.Adapt<List<XrayExamNecessaryInfoOutputModel>>();
+            return result;
+        }
+
         public OperationResult<XRayExamOutputModel> Add(XRayExamInputModel exam)
         {
             try 

@@ -26,6 +26,8 @@ namespace XRayJournal.Core
 
             config.NewConfig<XRayExamOutputModel, XRayExamInputModel>()
                 .Map(dest => dest.Id, src => src.Id);
+
+            config.NewConfig<XRayExamDTO, XrayExamNecessaryInfoOutputModel>();
         }
     }
 }

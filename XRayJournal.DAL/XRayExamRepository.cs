@@ -24,6 +24,12 @@ namespace XRayJournal.DAL
             return result;
         }
 
+        public List<XRayExamDTO> GetNecessaryExams()
+        {
+            var result = _dataContext.Exams.Include(e => e.Patient).OrderBy(p => p.Id).ToList();
+            return result;
+        }
+
         public XRayExamDTO Add(XRayExamDTO exam)
         {
             _dataContext.Exams.Add(exam);
@@ -59,5 +65,6 @@ namespace XRayJournal.DAL
             _dataContext.SaveChanges();
             return true;
         }
+
     }
 }
