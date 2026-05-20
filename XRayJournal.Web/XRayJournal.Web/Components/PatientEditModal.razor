@@ -42,6 +42,23 @@
                             <EditForm Model="FormModel.Patient" OnValidSubmit="HandleSavePatient" FormName="TableForm">
                                 <DataAnnotationsValidator />
                                 <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label class="form-label">№ п/п *</label>
+                                            <div class="input-group">
+                                                <InputNumber class="form-control" 
+                                                @bind-Value="FormModel.Number.YearlyNum" 
+                                                min="1" />
+                                                <span class="input-group-text">/</span>
+                                                <InputNumber class="form-control" 
+                                                @bind-Value="FormModel.Number.DailyNum" 
+                                                min="1" />
+                                            </div>
+                                            <ValidationMessage For="() => FormModel.Number.YearlyNum" />
+                                            <ValidationMessage For="() => FormModel.Number.DailyNum" />
+
+                                        </div>
+                                    </div>
                                     <div class="col-md-6">
                                         <div class="mb-3">
                                             <label class="form-label">Фамилия *</label>
@@ -143,11 +160,11 @@
                                                     <div>
                                                         <button type="button" class="btn btn-sm btn-outline-primary me-2" 
                                                         @onclick="() => EditExistingExam(exam)">
-                                                            ✏️ Редактировать
+                                                            Редактировать
                                                         </button>
                                                         <button type="button" class="btn btn-sm btn-outline-danger" 
                                                         @onclick="() => ConfirmDeleteExam(exam)">
-                                                            🗑️ Удалить
+                                                            Удалить
                                                         </button>
                                                     </div>
                                                 </div>
@@ -178,7 +195,7 @@
                             @if (!showExamForm)
                             {
                                 <button type="button" class="btn btn-outline-primary" @onclick="AddNewExam">
-                                    + Добавить новое исследование
+                                    Добавить новое исследование
                                 </button>
                             }
                         </div>
@@ -260,6 +277,7 @@
     @inject XRayExamService XRayExamService
     @inject PatientService PatientService
     @inject NavigationManager NavigationManager
+    @inject NumberService NumberService
 
     [Parameter]
     public PatientWithExamOutputModel? Patient { get; set; }
@@ -272,6 +290,9 @@
 
     [Parameter]
     public EventCallback<int> OnPatientDeleted { get; set; }
+
+    [Parameter]
+    public NumberOutputModel? Number { get; set; }
 
     private PatientWithExamsInputModel FormModel { get; set; } = new PatientWithExamsInputModel();
     private string activeTab = "patient";
@@ -289,9 +310,13 @@
     private bool showDeletePatientDialog = false;
     private bool confirmPatientDelete = false;
 
+    // Поля для номера записи
+    // private int yearlyNum = 1;
+    // private int dailyNum = 1;
+
     private string Title => Patient == null ? "Добавить пациента" : "Редактировать пациента";
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         if (Patient == null)
         {
@@ -301,6 +326,12 @@
                     Sex = "Иное",
                     BirthDate = DateOnly.FromDateTime(DateTime.Now)
                 };
+            var recommendNumber = await NumberService.CalculateNextNumberAsync(DateOnly.FromDateTime(DateTime.Now));
+            FormModel.Number = new NumberInputModel
+            {
+                YearlyNum = recommendNumber.Yearly,
+                DailyNum = recommendNumber.Daily
+            };
         }
         else
         {
@@ -315,7 +346,25 @@
                     Sex = Patient.Sex,
                     MedNumber = Patient.MedNumber
                 };
+            if (Patient.Number != null)
+            {
+                FormModel.Number = new NumberInputModel
+                    {
+                        YearlyNum = Patient.Number.YearlyNum,
+                        DailyNum = Patient.Number.DailyNum
+                    };
+            }
+            else
+            {
+                var recommendNumber = await NumberService.CalculateNextNumberAsync(DateOnly.FromDateTime(DateTime.Now));
+                FormModel.Number = new NumberInputModel
+                    {
+                        YearlyNum = recommendNumber.Yearly,
+                        DailyNum = recommendNumber.Daily
+                    };
+            }
         }
+        await base.OnInitializedAsync();
     }
 
     private async Task CloseModal()
@@ -497,13 +546,24 @@
     {
         await OnSave.InvokeAsync(new PatientWithExamsInputModel
         {
-            Patient = FormModel.Patient
+            Patient = FormModel.Patient,
         });
+
+        int savedPatientId = Patient?.Id ?? FormModel.Patient.Id;
+
         // После успешного сохранения пациента, переключаемся на исследования
-        if (Patient?.Id > 0)
+        if (savedPatientId > 0)
         {
-            activeTab = "exams";
-            StateHasChanged();
+            var recordDate = DateOnly.FromDateTime(DateTime.Now);
+            await NumberService.SaveNumberAsync(
+                savedPatientId,
+                recordDate, 
+                FormModel.Number.YearlyNum, 
+                FormModel.Number.DailyNum
+            );
         }
+        activeTab = "exams";
+        StateHasChanged();
     }
 }
+

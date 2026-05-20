@@ -27,5 +27,7 @@ namespace XRayJournal.Core.DTOs
         //Флаг удаления
         public bool IsDeleted { get; set; } = false;
 
+        public List<NumberDTO>? Numbers { get; set; } = new List<NumberDTO>();
+
     }
 }

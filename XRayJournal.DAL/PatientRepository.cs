@@ -38,6 +38,7 @@ namespace XRayJournal.DAL
             var result = _dataContext.Patients
                 .Where(p => !p.IsDeleted)
                 .Include(p => p.Exams)
+                .Include(p => p.Numbers)
                 .OrderBy(p => p.Id)
                 .ToList();
             return result;

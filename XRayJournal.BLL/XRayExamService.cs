@@ -88,13 +88,13 @@ namespace XRayJournal.BLL
                 var success = _xRayExamRepository.Delete(id);
                 if (!success)
                 {
-                    return OperationResult.Fail("Исследвоание не найдено");
+                    return OperationResult.Fail("Исследование не найдено");
                 }
                 return OperationResult.Ok();
             }
             catch (Exception ex)
             {
-                return OperationResult.Fail($"Ошибка при удалении исследвоания: {ex.Message}");
+                return OperationResult.Fail($"Ошибка при удалении исследования: {ex.Message}");
             }
         }
 
@@ -113,7 +113,7 @@ namespace XRayJournal.BLL
             }
             catch (Exception ex)
             {
-                return OperationResult<XRayExamOutputModel>.Fail($"Ошибка при получении исследвоания: {ex.Message}");
+                return OperationResult<XRayExamOutputModel>.Fail($"Ошибка при получении исследования: {ex.Message}");
             }
         }
     }

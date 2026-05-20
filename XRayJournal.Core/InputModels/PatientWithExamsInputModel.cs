@@ -11,5 +11,7 @@ namespace XRayJournal.Core.InputModels
         public PatientInputModel Patient { get; set; } = new PatientInputModel();
 
         public List<XRayExamInputModel> Exams { get; set; } = new List<XRayExamInputModel>();
+
+        public NumberInputModel Number { get; set; } = new NumberInputModel();
     }
 }

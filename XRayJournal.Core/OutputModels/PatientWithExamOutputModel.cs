@@ -23,5 +23,7 @@ namespace XRayJournal.Core.OutputModels
         public string MedNumber { get; set; }
 
         public List<XRayExamOutputModel> Exams { get; set; } = new List<XRayExamOutputModel>();
+
+        public NumberOutputModel Number {get; set; } = new NumberOutputModel();
     }
 }

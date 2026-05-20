@@ -15,6 +15,8 @@ namespace XRayJournal.Core.DTOs
 
         public string? Password { get; set; }
 
+        //public string FIO {  get; set; }
+
         public UserRole Role { get; set; }
 
         public List<PatientDTO> Patients { get; set; } // Кажется, это здесь лишнее

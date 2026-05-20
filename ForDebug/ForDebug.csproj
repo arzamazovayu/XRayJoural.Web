@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\WRayJournal.Core\XRayJournal.Core.csproj" />
+    <ProjectReference Include="..\XRayJournal.Core\XRayJournal.Core.csproj" />
     <ProjectReference Include="..\XRayJournal.BLL\XRayJournal.BLL.csproj" />
     <ProjectReference Include="..\XRayJournal.DAL\XRayJournal.DAL.csproj" />
   </ItemGroup>

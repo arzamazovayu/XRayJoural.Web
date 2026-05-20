@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\WRayJournal.Core\XRayJournal.Core.csproj" />
+    <ProjectReference Include="..\..\XRayJournal.Core\XRayJournal.Core.csproj" />
     <ProjectReference Include="..\..\XRayJournal.BLL\XRayJournal.BLL.csproj" />
   </ItemGroup>
 

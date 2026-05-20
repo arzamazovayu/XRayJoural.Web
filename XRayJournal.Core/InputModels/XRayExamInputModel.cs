@@ -53,11 +53,11 @@ namespace XRayJournal.Core.InputModels
         [Range(1, int.MaxValue, ErrorMessage = "Некорректный идентификатор пациента")]
         public int PatientId { get; set; }
 
-        [StringLength(200, ErrorMessage = "Название клиники не может превышать 200 символов")]
-        public string Clinic { get; set; }
+        //[StringLength(200, ErrorMessage = "Название клиники не может превышать 200 символов")]
+        //public string Clinic { get; set; }
 
-        [StringLength(200, ErrorMessage = "Название отделения не может превышать 200 символов")]
-        public string Department { get; set; }
+        //[StringLength(200, ErrorMessage = "Название отделения не может превышать 200 символов")]
+        //public string Department { get; set; }
 
     }
 }

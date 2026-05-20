@@ -57,7 +57,7 @@ namespace XRayJournal.BLL
             }
         }
 
-        public List<PatientWithExamOutputModel> GetAllWithExams()
+        public  List<PatientWithExamOutputModel> GetAllWithExams()
         {
             var tmp = _patientRepository.GetAllWithExams();
             var result = tmp.Adapt<List<PatientWithExamOutputModel>>();
@@ -86,7 +86,7 @@ namespace XRayJournal.BLL
             }
             catch (Exception ex)
             {
-                return OperationResult<PatientOutputModel>.Fail($"Ошибка при добавленииии пациента: {ex.Message}");
+                return OperationResult<PatientOutputModel>.Fail($"Ошибка при добавлении пациента: {ex.Message}");
             }
         }
 
