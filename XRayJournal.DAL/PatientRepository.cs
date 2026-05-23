@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Mapster;
+using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using XRayJournal.Core;
 using XRayJournal.Core.DTOs;
 using XRayJournal.Core.IRepositories;
@@ -94,6 +96,37 @@ namespace XRayJournal.DAL
             patient.IsDeleted = false;
             _dataContext.SaveChanges();
             return true;
+        }
+
+        public PatientDTO GetPatientWithExamsAndNumbersById(int id)
+        {
+            var patient = _dataContext.Patients
+                .Where(p => p.Id == id && !p.IsDeleted)
+                .Include(p => p.Exams)
+                .Include(p => p.Numbers)
+                //.OrderByDescending(p => p.Exams.Max(e => e.XRayDate))
+                .FirstOrDefault();
+                
+            return patient;
+        }
+
+        public DateOnly GetPatientsLastExamDate(int id)
+        {
+            if(id <= 0) 
+            {
+                return DateOnly.FromDateTime(DateTime.Now);
+            }
+            
+            var patient = GetPatientWithExamsAndNumbersById(id);
+
+            if (patient == null || patient.Exams == null || !patient.Exams.Any())
+            {
+                return DateOnly.FromDateTime(DateTime.Now);
+            }
+            else
+            {
+                return patient.Exams.Max(e => e.XRayDate);
+            }
         }
     }
 }

@@ -9,6 +9,8 @@ namespace XRayJournal.Core.InputModels
 {
     public class NumberInputModel
     {
+        public int Id { get; set; }
+
         [Required(ErrorMessage = "Порядковый номер обязателен!")]
         [Range(1, 99999, ErrorMessage = "Порядковый номер должен быть от 1 до 99 999")]
         public int YearlyNum { get; set; }

@@ -310,23 +310,30 @@
     private bool showDeletePatientDialog = false;
     private bool confirmPatientDelete = false;
 
-    // Поля для номера записи
-    // private int yearlyNum = 1;
-    // private int dailyNum = 1;
+    //Поле сегодняшней даты
+    private DateOnly today = DateOnly.FromDateTime(DateTime.Now);
 
     private string Title => Patient == null ? "Добавить пациента" : "Редактировать пациента";
 
     protected override async Task OnInitializedAsync()
     {
+        DateOnly lastDate;
+
         if (Patient == null)
         {
             // Режим добавления нового пациента
             FormModel.Patient = new PatientInputModel
                 {
                     Sex = "Иное",
-                    BirthDate = DateOnly.FromDateTime(DateTime.Now)
+                    BirthDate = today
                 };
-            var recommendNumber = await NumberService.CalculateNextNumberAsync(DateOnly.FromDateTime(DateTime.Now));
+
+            // if (PatientService.GetPatientsLastExamDate(Patient.Id) != null)
+            // {
+            //     lastDate = PatientService.GetPatientsLastExamDate(Patient.Id);
+            // }
+
+            var recommendNumber = await NumberService.CalculateNextNumberAsync(today);
             FormModel.Number = new NumberInputModel
             {
                 YearlyNum = recommendNumber.Yearly,
@@ -346,17 +353,22 @@
                     Sex = Patient.Sex,
                     MedNumber = Patient.MedNumber
                 };
-            if (Patient.Number != null)
+
+            var currentNumber = Patient.Numbers?.FirstOrDefault(n => n.XRayDate == today);
+
+            if (Patient.Numbers != null) //если номера нет, то предложить ему номер из базы? но его же нет!
             {
                 FormModel.Number = new NumberInputModel
                     {
-                        YearlyNum = Patient.Number.YearlyNum,
-                        DailyNum = Patient.Number.DailyNum
+                        Id = currentNumber.Id,
+                        YearlyNum = currentNumber.YearlyNum,
+                        DailyNum = currentNumber.DailyNum
                     };
             }
             else
             {
-                var recommendNumber = await NumberService.CalculateNextNumberAsync(DateOnly.FromDateTime(DateTime.Now));
+                lastDate = PatientService.GetPatientsLastExamDate(Patient.Id);
+                var recommendNumber = await NumberService.CalculateNextNumberAsync(lastDate);
                 FormModel.Number = new NumberInputModel
                     {
                         YearlyNum = recommendNumber.Yearly,
@@ -547,21 +559,23 @@
         await OnSave.InvokeAsync(new PatientWithExamsInputModel
         {
             Patient = FormModel.Patient,
+            Number = FormModel.Number
         });
 
-        int savedPatientId = Patient?.Id ?? FormModel.Patient.Id;
+        // int savedPatientId = Patient?.Id ?? FormModel.Patient.Id;
+
+        // if (savedPatientId > 0)
+        // {
+        //     var recordDate = DateOnly.FromDateTime(DateTime.Now);
+        //     await NumberService.SaveNumberAsync(
+        //         savedPatientId,
+        //         recordDate, 
+        //         FormModel.Number.YearlyNum, 
+        //         FormModel.Number.DailyNum
+        //     );
+        // }        
 
         // После успешного сохранения пациента, переключаемся на исследования
-        if (savedPatientId > 0)
-        {
-            var recordDate = DateOnly.FromDateTime(DateTime.Now);
-            await NumberService.SaveNumberAsync(
-                savedPatientId,
-                recordDate, 
-                FormModel.Number.YearlyNum, 
-                FormModel.Number.DailyNum
-            );
-        }
         activeTab = "exams";
         StateHasChanged();
     }

@@ -70,7 +70,7 @@ namespace XRayJournal.BLL
             {
                 if (patient.Id == 0)
                 {
-                    return OperationResult<PatientOutputModel>.Fail("Id пациента не указа");
+                    return OperationResult<PatientOutputModel>.Fail("Id пациента не указан");
                 }
 
                 var patientDto = patient.Adapt<PatientDTO>();
@@ -124,6 +124,29 @@ namespace XRayJournal.BLL
             {
                 return OperationResult.Fail($"Ошибка при удалении пациента: {ex.Message}");
             }
+        }
+
+        public OperationResult<PatientWithExamOutputModel> GetPatientWithExamsAndNumbersById(int id)
+        {
+            try
+            {
+                var result = _patientRepository.GetPatientWithExamsAndNumbersById(id);
+                if (result == null)
+                {
+                    return OperationResult<PatientWithExamOutputModel>.Fail("Пациент не найден");
+                }
+                var outputModel = result.Adapt<PatientWithExamOutputModel>();
+                return OperationResult<PatientWithExamOutputModel>.Ok(outputModel);
+            }
+            catch (Exception ex)
+            {
+                return OperationResult<PatientWithExamOutputModel>.Fail($"Ошибка при получении пациента: {ex.Message}");
+            }
+        }
+
+        public DateOnly GetPatientsLastExamDate(int id)
+        {            
+            return _patientRepository.GetPatientsLastExamDate(id);
         }
     }
 }

@@ -17,7 +17,8 @@ namespace XRayJournal.Core
             config.NewConfig<PatientDTO, PatientOutputModel>();
 
             config.NewConfig<PatientDTO, PatientWithExamOutputModel>()
-                .Map(dest => dest.Exams, src => src.Exams.Adapt<List<XRayExamOutputModel>>());
+                .Map(dest => dest.Exams, src => src.Exams.Adapt<List<XRayExamOutputModel>>())
+                .Map(dest => dest.Numbers, src => src.Numbers.Adapt<List<NumberOutputModel>>());
 
             config.NewConfig<XRayExamDTO, XRayExamOutputModel>();
 
@@ -29,7 +30,13 @@ namespace XRayJournal.Core
 
             config.NewConfig<XRayExamDTO, XrayExamNecessaryInfoOutputModel>();
 
-            config.NewConfig<NumberDTO, NumberOutputModel>();
+            config.NewConfig<NumberDTO, NumberOutputModel>()
+                .Map(dest => dest.YearlyNum, src => src.YearlyNum)
+                .Map(dest => dest.DailyNum, src => src.DailyNum);
+
+            config.NewConfig<NumberInputModel, NumberDTO>()
+                .Map(dest => dest.YearlyNum, src => src.YearlyNum)
+                .Map(dest => dest.DailyNum, src => src.DailyNum);
         }
     }
 }

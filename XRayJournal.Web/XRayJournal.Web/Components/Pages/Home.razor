@@ -69,9 +69,10 @@
                         {
                             @foreach (var exam in patient.Exams)
                             {
+                                var number = patient.Numbers?.FirstOrDefault(n => n.XRayDate == exam.XRayDate);
+                                var displayNumber = number?.DisplayNumber ?? "-/-";
                                 <tr @ondblclick="() => EditPatient(patient)">
-                                    <td>@(patient.Number.DisplayNumber ?? "-/-")</td>
-                                    @* <td>@patient.Id</td> *@
+                                    <td>@displayNumber</td>
                                     <td>@patient.SecondName</td>
                                     <td>@patient.FirstName</td>
                                     <td>@patient.ThirdName</td>
@@ -97,8 +98,7 @@
                         else
                         {
                             <tr @ondblclick="() => EditPatient(patient)">
-                                <td>@(patient.Number.DisplayNumber ?? "-/-")</td>
-                                @* <td>@patient.Id</td> *@
+                                <td>-/-</td> @* ??? *@
                                 <td>@patient.SecondName</td>
                                 <td>@patient.FirstName</td>
                                 <td>@patient.ThirdName</td>
@@ -150,6 +150,8 @@
 
     private PatientWithExamOutputModel? editingPatient = null;
 
+    private DateOnly today = DateOnly.FromDateTime(DateTime.Now);
+
     protected override void OnInitialized()
     {
         LoadPatients();
@@ -159,7 +161,7 @@
     {
         patients = PatientService.GetAllWithExams();
 
-        selectedPatients = patients;
+        selectedPatients = patients.ToList();
     }
 
     private void OnFilter()
@@ -208,14 +210,15 @@
     {
         try
         {
-            if (editingPatient == null)
+            if (editingPatient == null) // новый пациент
             {
                 var resultPatient = PatientService.Add(formModel.Patient);
                 var newPatient = resultPatient.Data;
+                DateOnly date = PatientService.GetPatientsLastExamDate(formModel.Patient.Id);
 
                 var resultNumber = await NumberService.SaveNumberAsync(
                     newPatient.Id,
-                    DateOnly.FromDateTime(DateTime.Now), //использована текущая дата
+                    date, 
                     formModel.Number.YearlyNum,
                     formModel.Number.DailyNum
                 );
@@ -230,24 +233,65 @@
                     Sex = newPatient.Sex,
                     MedNumber = newPatient.MedNumber,
                     Exams = new List<XRayExamOutputModel>(),
-                    Number = new NumberOutputModel
-                    {
-                        YearlyNum = formModel.Number.YearlyNum,
-                        DailyNum = formModel.Number.DailyNum
-                    }
+                    Numbers = new List<NumberOutputModel>()
+                    // {
+                    //     YearlyNum = formModel.Number.YearlyNum,
+                    //     DailyNum = formModel.Number.DailyNum
+                    // }
 
                 };
+                newPatientWithExams.Numbers.Add(new NumberOutputModel
+                    {
+                        YearlyNum = formModel.Number.YearlyNum,
+                        DailyNum = formModel.Number.DailyNum,
+                        XRayDate = today
+                    });
+
                 patients.Add(newPatientWithExams);
             }
-            else
+            else //существующий пациент
             {
                 formModel.Patient.Id = editingPatient.Id;
-
                 var result = PatientService.Update(formModel.Patient);
+
+                var existingPatient = patients.FirstOrDefault(p => p.Id == editingPatient.Id);
+
+                var existingNumber = existingPatient?.Numbers?.FirstOrDefault(n => n.XRayDate == today);
+
+                if(existingNumber != null) //если номер есть, обновляем
+                {
+                    existingNumber.YearlyNum = formModel.Number.YearlyNum;
+                    existingNumber.DailyNum = formModel.Number.DailyNum;
+                    await NumberService.UpdateNumberAsync(formModel.Number);
+                }
+                else
+                {
+                    DateOnly date = PatientService.GetPatientsLastExamDate(formModel.Patient.Id);//потанцевально ошибка null
+
+                    var newNumber = await NumberService.SaveNumberAsync(
+                        editingPatient.Id,
+                        date,
+                        formModel.Number.YearlyNum,
+                        formModel.Number.DailyNum
+                    );
+
+                    if (existingPatient?.Numbers == null)
+                    {
+                        existingPatient.Numbers = new List<NumberOutputModel>();
+                    }
+
+                    existingPatient?.Numbers.Add(new NumberOutputModel
+                    {
+                        Id = newNumber.Data.Id,
+                        YearlyNum = formModel.Number.YearlyNum,
+                        DailyNum = formModel.Number.DailyNum,
+                        XRayDate = date
+                    });
+                }
+                
 
                 var updatedPatient = result.Data;
 
-                var existingPatient = patients.FirstOrDefault(p => p.Id == editingPatient.Id);
                 if(existingPatient != null)
                 {
                     existingPatient.SecondName = updatedPatient.SecondName;
@@ -256,8 +300,16 @@
                     existingPatient.BirthDate = updatedPatient.BirthDate;
                     existingPatient.Sex = updatedPatient.Sex;
                     existingPatient.MedNumber = updatedPatient.MedNumber;
+                    // if (existingPatient.Number == null)
+                    // {
+                    //     existingPatient.Number = new NumberOutputModel();
+                    // }
+                    // existingPatient.Number.YearlyNum = formModel.Number.YearlyNum;
+                    // existingPatient.Number.DailyNum = formModel.Number.DailyNum;
                 }
+
             }
+
             LoadPatients();
             HideModal();
             StateHasChanged();
