@@ -328,11 +328,6 @@
                     BirthDate = today
                 };
 
-            // if (PatientService.GetPatientsLastExamDate(Patient.Id) != null)
-            // {
-            //     lastDate = PatientService.GetPatientsLastExamDate(Patient.Id);
-            // }
-
             var recommendNumber = await NumberService.CalculateNextNumberAsync(today);
             FormModel.Number = new NumberInputModel
             {
@@ -356,14 +351,14 @@
 
             var currentNumber = Patient.Numbers?.FirstOrDefault(n => n.XRayDate == today);
 
-            if (Patient.Numbers != null) //если номера нет, то предложить ему номер из базы? но его же нет!
+            if (Patient.Numbers != null)
             {
                 FormModel.Number = new NumberInputModel
                     {
                         Id = currentNumber.Id,
                         YearlyNum = currentNumber.YearlyNum,
                         DailyNum = currentNumber.DailyNum
-                    };
+                    };//ошибка
             }
             else
             {
@@ -576,6 +571,7 @@
         // }        
 
         // После успешного сохранения пациента, переключаемся на исследования
+        showExamForm = true;
         activeTab = "exams";
         StateHasChanged();
     }

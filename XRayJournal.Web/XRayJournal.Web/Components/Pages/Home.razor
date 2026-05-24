@@ -62,10 +62,52 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var patient in selectedPatients)
+                    @foreach (var row in journalRows)
                     {
-
-                        @if (patient.Exams?.Count > 0)
+                        if (row.Patient.Exams?.Count > 0)
+                        {
+                            @* @foreach (var exam in row.Patient.Exams)
+                            { *@
+                                <tr @ondblclick="() => EditPatient(row.Patient)">
+                                    <td>@row.DisplayNumber</td>
+                                    <td>@row.Patient.SecondName</td>
+                                    <td>@row.Patient.FirstName</td>
+                                    <td>@row.Patient.ThirdName</td>
+                                    <td>@row.Patient.Sex</td>
+                                    <td>@row.Patient.BirthDate</td>
+                                    <td>@row.Patient.MedNumber</td>  
+                                    <td>@(row.Exam?.XRayName ?? "-")</td>
+                                    <td>@(row.Exam?.XRayDose.ToString() ?? "-")</td>
+                                    <td>@(row.Exam?.XRayShots.ToString() ?? "-")</td>
+                                    <td>@(row.Exam?.XRayDate.ToString() ?? "-")</td>
+                                    <td>@(row.Exam?.Category ?? "-")</td>
+                                    <td>@(row.Exam?.XRayDiagnose ?? "-")</td>
+                                    <td>@GetPatologyDisplay(row.Exam?.XRayPatology)</td>
+                                    <td>@(row.Exam?.XRayCost.ToString() ?? "-")</td>
+                                    <td>@(row.Exam?.Doctor ?? "-")</td>
+                                    <td>@(row.Exam?.Laborant ?? "-")</td>
+                                    <td>@(row.Exam?.XRayModality ?? "-")</td>
+                                    <td>@GetInOperationDisplay(row.Exam?.InOperation)</td>
+                                    <td>@GetContrastDisplay(row.Exam?.Contrast)</td>     
+                                </tr>
+                            @* } *@
+                        }
+                        else
+                        {
+                            <tr @ondblclick="() => EditPatient(row.Patient)">
+                                <td>-/-</td>
+                                <td>@row.Patient.SecondName</td>
+                                <td>@row.Patient.FirstName</td>
+                                <td>@row.Patient.ThirdName</td>
+                                <td>@row.Patient.Sex</td>
+                                <td>@row.Patient.BirthDate</td>
+                                <td>@row.Patient.MedNumber</td>  
+                                <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
+                                <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
+                                <td>-</td><td>-</td><td>-</td>
+                            </tr>
+                        }
+                        @* @if (patient.Exams?.Count > 0)
                         {
                             @foreach (var exam in patient.Exams)
                             {
@@ -98,7 +140,7 @@
                         else
                         {
                             <tr @ondblclick="() => EditPatient(patient)">
-                                <td>-/-</td> @* ??? *@
+                                <td>-/-</td>
                                 <td>@patient.SecondName</td>
                                 <td>@patient.FirstName</td>
                                 <td>@patient.ThirdName</td>
@@ -109,7 +151,7 @@
                                 <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
                                 <td>-</td><td>-</td><td>-</td>
                             </tr>
-                        }
+                        } *@
                     }
                 </tbody>
             </table>
@@ -152,38 +194,78 @@
 
     private DateOnly today = DateOnly.FromDateTime(DateTime.Now);
 
+    private List<JournalRow> journalRows = new();
+
     protected override void OnInitialized()
     {
         LoadPatients();
     }
 
+    private class JournalRow
+    {
+        public PatientWithExamOutputModel Patient { get; set; }
+        public XRayExamOutputModel Exam { get; set; }
+        public NumberOutputModel Number { get; set; }
+        public DateOnly ExamDate { get; set; }
+        public int DailyNum { get; set; }
+        public string DisplayNumber => Number?.DisplayNumber ?? "-/-";
+    }
+
     private void LoadPatients()
     {
-        patients = PatientService.GetAllWithExams();
+        var allPatients = PatientService.GetAllWithExams();
 
-        selectedPatients = patients.ToList();
+        journalRows.Clear();
+
+        foreach (var patient in allPatients)
+        {
+            if (patient.Exams != null)
+            {
+                foreach (var exam in patient.Exams)
+                {
+                    var number = patient.Numbers?.FirstOrDefault(n => n.XRayDate == exam.XRayDate);
+
+                    journalRows.Add(new JournalRow
+                    {
+                        Patient = patient,
+                        Exam = exam,
+                        Number = number,
+                        ExamDate = exam.XRayDate,
+                        DailyNum = number?.DailyNum ?? 1
+                    });
+                }
+            }
+        }
+
+        journalRows = journalRows
+        .OrderBy(r => r.ExamDate)
+        .ThenBy(r => r.DailyNum)
+        .ToList();
+
+        StateHasChanged();
+        // selectedPatients = patients.ToList();
     }
 
     private void OnFilter()
     {
         if (string.IsNullOrWhiteSpace(searchText))
         {
-            selectedPatients = patients;
+            journalRows = journalRows.ToList();
         }
         else
         {
             string tmp = searchText.Trim().ToLower();
-            selectedPatients = patients.Where(p => 
-                p.SecondName.ToLower().Contains(tmp) ||
-                p.FirstName.ToLower().Contains(tmp) ||
-                (p.ThirdName !=null && p.ThirdName.ToLower().Contains(tmp)) ||
-                p.MedNumber.ToLower().Contains(tmp)
+            journalRows = journalRows.Where(r => 
+                r.Patient.SecondName.ToLower().Contains(tmp) ||
+                r.Patient.FirstName.ToLower().Contains(tmp) ||
+                (r.Patient.ThirdName !=null && r.Patient.ThirdName.ToLower().Contains(tmp)) ||
+                r.Patient.MedNumber.ToLower().Contains(tmp)
             ).ToList();
         }
 
         if (!string.IsNullOrEmpty(searchSex))
         {
-            selectedPatients = selectedPatients.Where(p => p.Sex == searchSex).ToList();
+            journalRows = journalRows.Where(r => r.Patient.Sex == searchSex).ToList();
         }
 
         StateHasChanged();
@@ -212,6 +294,38 @@
         {
             if (editingPatient == null) // новый пациент
             {
+                //проверка на существование пациента
+                var existingPatient = patients.FirstOrDefault(p => p.MedNumber == formModel.Patient.MedNumber);
+                if(existingPatient != null) //старый есть, открываем его
+                {
+                    var recommendedNumber = await NumberService.CalculateNextNumberAsync(today);
+                    var savedNumber = await NumberService.SaveNumberAsync(
+                        existingPatient.Id,
+                        today,
+                        recommendedNumber.Yearly,
+                        recommendedNumber.Daily
+                    );
+
+                    if (existingPatient.Numbers == null)
+                    {
+                        existingPatient.Numbers = new List<NumberOutputModel>();
+                    }
+
+                    existingPatient.Numbers.Add(new NumberOutputModel
+                        {
+                            Id = savedNumber.Data.Id,
+                            YearlyNum = recommendedNumber.Yearly,
+                            DailyNum = recommendedNumber.Daily,
+                            XRayDate = today
+                        });
+
+                    EditPatient(existingPatient);
+                    //HideModal();
+                    StateHasChanged();
+                    return;
+                }
+
+                //старого нет, создаём нового
                 var resultPatient = PatientService.Add(formModel.Patient);
                 var newPatient = resultPatient.Data;
                 DateOnly date = PatientService.GetPatientsLastExamDate(formModel.Patient.Id);
@@ -234,11 +348,6 @@
                     MedNumber = newPatient.MedNumber,
                     Exams = new List<XRayExamOutputModel>(),
                     Numbers = new List<NumberOutputModel>()
-                    // {
-                    //     YearlyNum = formModel.Number.YearlyNum,
-                    //     DailyNum = formModel.Number.DailyNum
-                    // }
-
                 };
                 newPatientWithExams.Numbers.Add(new NumberOutputModel
                     {
@@ -300,14 +409,7 @@
                     existingPatient.BirthDate = updatedPatient.BirthDate;
                     existingPatient.Sex = updatedPatient.Sex;
                     existingPatient.MedNumber = updatedPatient.MedNumber;
-                    // if (existingPatient.Number == null)
-                    // {
-                    //     existingPatient.Number = new NumberOutputModel();
-                    // }
-                    // existingPatient.Number.YearlyNum = formModel.Number.YearlyNum;
-                    // existingPatient.Number.DailyNum = formModel.Number.DailyNum;
                 }
-
             }
 
             LoadPatients();
