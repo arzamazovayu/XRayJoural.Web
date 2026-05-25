@@ -197,6 +197,9 @@
                                 <button type="button" class="btn btn-outline-primary" @onclick="AddNewExam">
                                     Добавить новое исследование
                                 </button>
+                                <button type="button" class="btn btn-outline-secondary ms-2" @onclick="CloseModal">
+                                    Закрыть
+                                </button>
                             }
                         </div>
                     }
@@ -297,6 +300,8 @@
     private PatientWithExamsInputModel FormModel { get; set; } = new PatientWithExamsInputModel();
     private string activeTab = "patient";
 
+    private List<PatientWithExamOutputModel> patients = new();
+
     // Поля для управления формой исследования
     private bool showExamForm = false;
     private XRayExamInputModel currentExam = new XRayExamInputModel();
@@ -388,9 +393,9 @@
         currentExam = new XRayExamInputModel
         {
             PatientId = Patient.Id,
-            XRayDate = DateOnly.FromDateTime(DateTime.Now)
+            XRayDate = today
         };
-        showExamForm = true;
+        showExamForm = true;    
     }
 
     private void EditExistingExam(XRayExamOutputModel exam)
@@ -425,6 +430,17 @@
 
     private async Task HandleExamSave(XRayExamInputModel exam)
     {
+        if (exam.PatientId == 0 && Patient != null)
+        {
+            exam.PatientId = Patient.Id;
+        }
+
+        if (exam.PatientId == 0)
+        {
+            Console.WriteLine("Ошибка: PatientId не установлен!");
+            return;
+        }
+
         OperationResult<XRayExamOutputModel> result;
 
         // Обновляем список исследований пациента
@@ -449,18 +465,16 @@
         {
             // Добавление нового исследования
             result = XRayExamService.Add(exam);
-            if (result.Success)
+            if (result.Success && Patient != null)
             {
                 // Добавляем исследование в список пациента
-                if (Patient != null)
-                {
-                    Patient.Exams ??= new List<XRayExamOutputModel>();
-                    Patient.Exams.Add(result.Data);
-                }
+                Patient.Exams ??= new List<XRayExamOutputModel>();
+                Patient.Exams.Add(result.Data);
             }
         }
         showExamForm = false;
         currentExam = new XRayExamInputModel();
+        
         StateHasChanged();
     }
 
@@ -557,21 +571,29 @@
             Number = FormModel.Number
         });
 
-        // int savedPatientId = Patient?.Id ?? FormModel.Patient.Id;
+        int savedPatientId = Patient?.Id ?? FormModel.Patient.Id;
 
-        // if (savedPatientId > 0)
-        // {
-        //     var recordDate = DateOnly.FromDateTime(DateTime.Now);
-        //     await NumberService.SaveNumberAsync(
-        //         savedPatientId,
-        //         recordDate, 
-        //         FormModel.Number.YearlyNum, 
-        //         FormModel.Number.DailyNum
-        //     );
-        // }        
+        if (savedPatientId > 0)
+        {
+            if (Patient == null)
+            {
+                var savedPatient = patients.FirstOrDefault(p => p.Id == savedPatientId);
+                if (savedPatient != null)
+                {
+                    Patient = savedPatient;
+                }
+            }
+            // var recordDate = DateOnly.FromDateTime(DateTime.Now);
+            // await NumberService.SaveNumberAsync(
+            //     savedPatientId,
+            //     recordDate, 
+            //     FormModel.Number.YearlyNum, 
+            //     FormModel.Number.DailyNum
+            // );
+        }        
 
         // После успешного сохранения пациента, переключаемся на исследования
-        showExamForm = true;
+        //showExamForm = true;
         activeTab = "exams";
         StateHasChanged();
     }

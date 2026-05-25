@@ -66,8 +66,8 @@
                     {
                         if (row.Patient.Exams?.Count > 0)
                         {
-                            @* @foreach (var exam in row.Patient.Exams)
-                            { *@
+                            @foreach (var exam in row.Patient.Exams)
+                            {
                                 <tr @ondblclick="() => EditPatient(row.Patient)">
                                     <td>@row.DisplayNumber</td>
                                     <td>@row.Patient.SecondName</td>
@@ -90,12 +90,12 @@
                                     <td>@GetInOperationDisplay(row.Exam?.InOperation)</td>
                                     <td>@GetContrastDisplay(row.Exam?.Contrast)</td>     
                                 </tr>
-                            @* } *@
+                            }
                         }
                         else
                         {
                             <tr @ondblclick="() => EditPatient(row.Patient)">
-                                <td>-/-</td>
+                                <td>@row.DisplayNumber</td>
                                 <td>@row.Patient.SecondName</td>
                                 <td>@row.Patient.FirstName</td>
                                 <td>@row.Patient.ThirdName</td>
@@ -235,10 +235,23 @@
                     });
                 }
             }
+            else
+            {
+                
+                journalRows.Add(new JournalRow
+                    {
+                        Patient = patient,
+                        Exam = null,
+                        Number = null,
+                        ExamDate = today,
+                        DailyNum = 1
+                    });
+            }
         }
 
         journalRows = journalRows
-        .OrderBy(r => r.ExamDate)
+        .OrderBy(r => r.Exam == null ? 1 : 0)
+        .ThenBy(r => r.ExamDate)
         .ThenBy(r => r.DailyNum)
         .ToList();
 
@@ -296,28 +309,29 @@
             {
                 //проверка на существование пациента
                 var existingPatient = patients.FirstOrDefault(p => p.MedNumber == formModel.Patient.MedNumber);
+
                 if(existingPatient != null) //старый есть, открываем его
                 {
-                    var recommendedNumber = await NumberService.CalculateNextNumberAsync(today);
-                    var savedNumber = await NumberService.SaveNumberAsync(
-                        existingPatient.Id,
-                        today,
-                        recommendedNumber.Yearly,
-                        recommendedNumber.Daily
-                    );
+                    // var recommendedNumber = await NumberService.CalculateNextNumberAsync(today);
+                    // var savedNumber = await NumberService.SaveNumberAsync(
+                    //     existingPatient.Id,
+                    //     today,
+                    //     recommendedNumber.Yearly,
+                    //     recommendedNumber.Daily
+                    // );
 
-                    if (existingPatient.Numbers == null)
-                    {
-                        existingPatient.Numbers = new List<NumberOutputModel>();
-                    }
+                    // if (existingPatient.Numbers == null)
+                    // {
+                    //     existingPatient.Numbers = new List<NumberOutputModel>();
+                    // }
 
-                    existingPatient.Numbers.Add(new NumberOutputModel
-                        {
-                            Id = savedNumber.Data.Id,
-                            YearlyNum = recommendedNumber.Yearly,
-                            DailyNum = recommendedNumber.Daily,
-                            XRayDate = today
-                        });
+                    // existingPatient.Numbers.Add(new NumberOutputModel
+                    //     {
+                    //         Id = savedNumber.Data.Id,
+                    //         YearlyNum = recommendedNumber.Yearly,
+                    //         DailyNum = recommendedNumber.Daily,
+                    //         XRayDate = today
+                    //     });
 
                     EditPatient(existingPatient);
                     //HideModal();
@@ -328,13 +342,16 @@
                 //старого нет, создаём нового
                 var resultPatient = PatientService.Add(formModel.Patient);
                 var newPatient = resultPatient.Data;
-                DateOnly date = PatientService.GetPatientsLastExamDate(formModel.Patient.Id);
 
+                //DateOnly date = PatientService.GetPatientsLastExamDate(formModel.Patient.Id);
+
+                //новому пациенту новый номер
+                var recommendedNumber = await NumberService.CalculateNextNumberAsync(today);
                 var resultNumber = await NumberService.SaveNumberAsync(
                     newPatient.Id,
-                    date, 
-                    formModel.Number.YearlyNum,
-                    formModel.Number.DailyNum
+                    today,//date, 
+                    recommendedNumber.Yearly,
+                    recommendedNumber.Daily
                 );
 
                 var newPatientWithExams = new PatientWithExamOutputModel
@@ -349,14 +366,18 @@
                     Exams = new List<XRayExamOutputModel>(),
                     Numbers = new List<NumberOutputModel>()
                 };
+
                 newPatientWithExams.Numbers.Add(new NumberOutputModel
                     {
-                        YearlyNum = formModel.Number.YearlyNum,
-                        DailyNum = formModel.Number.DailyNum,
+                        YearlyNum = recommendedNumber.Yearly,
+                        DailyNum = recommendedNumber.Daily,
                         XRayDate = today
                     });
 
                 patients.Add(newPatientWithExams);
+
+                editingPatient = newPatientWithExams;
+                StateHasChanged();
             }
             else //существующий пациент
             {
@@ -365,38 +386,38 @@
 
                 var existingPatient = patients.FirstOrDefault(p => p.Id == editingPatient.Id);
 
-                var existingNumber = existingPatient?.Numbers?.FirstOrDefault(n => n.XRayDate == today);
+                // var existingNumber = existingPatient?.Numbers?.FirstOrDefault(n => n.XRayDate == today);
 
-                if(existingNumber != null) //если номер есть, обновляем
-                {
-                    existingNumber.YearlyNum = formModel.Number.YearlyNum;
-                    existingNumber.DailyNum = formModel.Number.DailyNum;
-                    await NumberService.UpdateNumberAsync(formModel.Number);
-                }
-                else
-                {
-                    DateOnly date = PatientService.GetPatientsLastExamDate(formModel.Patient.Id);//потанцевально ошибка null
+                // if(existingNumber != null) //если номер есть, обновляем
+                // {
+                //     existingNumber.YearlyNum = formModel.Number.YearlyNum;
+                //     existingNumber.DailyNum = formModel.Number.DailyNum;
+                //     await NumberService.UpdateNumberAsync(formModel.Number);
+                // }
+                // else
+                // {
+                //     DateOnly date = PatientService.GetPatientsLastExamDate(formModel.Patient.Id);//потанцевально ошибка null
 
-                    var newNumber = await NumberService.SaveNumberAsync(
-                        editingPatient.Id,
-                        date,
-                        formModel.Number.YearlyNum,
-                        formModel.Number.DailyNum
-                    );
+                //     var newNumber = await NumberService.SaveNumberAsync(
+                //         editingPatient.Id,
+                //         date,
+                //         formModel.Number.YearlyNum,
+                //         formModel.Number.DailyNum
+                //     );
 
-                    if (existingPatient?.Numbers == null)
-                    {
-                        existingPatient.Numbers = new List<NumberOutputModel>();
-                    }
+                //     if (existingPatient?.Numbers == null)
+                //     {
+                //         existingPatient.Numbers = new List<NumberOutputModel>();
+                //     }
 
-                    existingPatient?.Numbers.Add(new NumberOutputModel
-                    {
-                        Id = newNumber.Data.Id,
-                        YearlyNum = formModel.Number.YearlyNum,
-                        DailyNum = formModel.Number.DailyNum,
-                        XRayDate = date
-                    });
-                }
+                //     existingPatient?.Numbers.Add(new NumberOutputModel
+                //     {
+                //         Id = newNumber.Data.Id,
+                //         YearlyNum = formModel.Number.YearlyNum,
+                //         DailyNum = formModel.Number.DailyNum,
+                //         XRayDate = date
+                //     });
+                // }
                 
 
                 var updatedPatient = result.Data;
@@ -412,8 +433,8 @@
                 }
             }
 
-            LoadPatients();
-            HideModal();
+            //LoadPatients();
+            //HideModal();
             StateHasChanged();
         }
         catch (Exception ex)
