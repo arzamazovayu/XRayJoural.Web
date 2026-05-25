@@ -222,6 +222,7 @@
                     formModel.Number.YearlyNum,
                     formModel.Number.DailyNum
                 );
+                var newNumber = resultNumber.Data;
 
                 var newPatientWithExams = new PatientWithExamOutputModel
                 {
@@ -234,14 +235,11 @@
                     MedNumber = newPatient.MedNumber,
                     Exams = new List<XRayExamOutputModel>(),
                     Numbers = new List<NumberOutputModel>()
-                    // {
-                    //     YearlyNum = formModel.Number.YearlyNum,
-                    //     DailyNum = formModel.Number.DailyNum
-                    // }
-
                 };
+
                 newPatientWithExams.Numbers.Add(new NumberOutputModel
                     {
+                        Id = newNumber.Id,
                         YearlyNum = formModel.Number.YearlyNum,
                         DailyNum = formModel.Number.DailyNum,
                         XRayDate = today
@@ -262,7 +260,7 @@
                 {
                     existingNumber.YearlyNum = formModel.Number.YearlyNum;
                     existingNumber.DailyNum = formModel.Number.DailyNum;
-                    await NumberService.UpdateNumberAsync(formModel.Number);
+                    await NumberService.UpdateNumberAsync(formModel.Number);//ошибка преобразования 
                 }
                 else
                 {
@@ -300,12 +298,6 @@
                     existingPatient.BirthDate = updatedPatient.BirthDate;
                     existingPatient.Sex = updatedPatient.Sex;
                     existingPatient.MedNumber = updatedPatient.MedNumber;
-                    // if (existingPatient.Number == null)
-                    // {
-                    //     existingPatient.Number = new NumberOutputModel();
-                    // }
-                    // existingPatient.Number.YearlyNum = formModel.Number.YearlyNum;
-                    // existingPatient.Number.DailyNum = formModel.Number.DailyNum;
                 }
 
             }

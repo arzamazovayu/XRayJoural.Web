@@ -327,13 +327,8 @@
                     Sex = "Иное",
                     BirthDate = today
                 };
-
-            // if (PatientService.GetPatientsLastExamDate(Patient.Id) != null)
-            // {
-            //     lastDate = PatientService.GetPatientsLastExamDate(Patient.Id);
-            // }
-
-            var recommendNumber = await NumberService.CalculateNextNumberAsync(today);
+            //подсказываем номер
+            var recommendNumber = await NumberService.GetNextNumberHintAsync();
             FormModel.Number = new NumberInputModel
             {
                 YearlyNum = recommendNumber.Yearly,
@@ -354,21 +349,19 @@
                     MedNumber = Patient.MedNumber
                 };
 
-            var currentNumber = Patient.Numbers?.FirstOrDefault(n => n.XRayDate == today);
+            var currentNumber = Patient.Numbers?.FirstOrDefault();
 
-            if (Patient.Numbers != null) //если номера нет, то предложить ему номер из базы? но его же нет!
+            if (currentNumber != null) //если номер есть, то предложить ему номер из базы
             {
                 FormModel.Number = new NumberInputModel
                     {
-                        Id = currentNumber.Id,
                         YearlyNum = currentNumber.YearlyNum,
                         DailyNum = currentNumber.DailyNum
                     };
             }
             else
             {
-                lastDate = PatientService.GetPatientsLastExamDate(Patient.Id);
-                var recommendNumber = await NumberService.CalculateNextNumberAsync(lastDate);
+                var recommendNumber = await NumberService.GetNextNumberHintAsync();
                 FormModel.Number = new NumberInputModel
                     {
                         YearlyNum = recommendNumber.Yearly,
@@ -561,19 +554,6 @@
             Patient = FormModel.Patient,
             Number = FormModel.Number
         });
-
-        // int savedPatientId = Patient?.Id ?? FormModel.Patient.Id;
-
-        // if (savedPatientId > 0)
-        // {
-        //     var recordDate = DateOnly.FromDateTime(DateTime.Now);
-        //     await NumberService.SaveNumberAsync(
-        //         savedPatientId,
-        //         recordDate, 
-        //         FormModel.Number.YearlyNum, 
-        //         FormModel.Number.DailyNum
-        //     );
-        // }        
 
         // После успешного сохранения пациента, переключаемся на исследования
         activeTab = "exams";

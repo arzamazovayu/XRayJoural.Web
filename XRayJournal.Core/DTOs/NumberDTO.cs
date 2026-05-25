@@ -14,8 +14,6 @@ namespace XRayJournal.Core.DTOs
 
         public int DailyNum { get; set; }
 
-        //public List<XRayExamDTO>? Exams { get; set; } = new List<XRayExamDTO>();
-
         public DateOnly XRayDate { get; set; }
 
         public virtual  PatientDTO? Patient { get; set; }

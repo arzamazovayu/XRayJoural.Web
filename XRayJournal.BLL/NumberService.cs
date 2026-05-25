@@ -90,17 +90,6 @@ namespace XRayJournal.BLL
 
             try
             {
-                var existingNumbers = await _numberRepository.GetByPatientAndExamAsync(patientId, xRayDate);
-
-                if(existingNumbers != null && existingNumbers.Any())
-                {
-                    var existingNumber = existingNumbers.First();
-                    existingNumber.YearlyNum = yearlyNum;
-                    existingNumber.DailyNum = dailyNum;
-                    var updated = await _numberRepository.UpdateAsync(existingNumber);
-                    return OperationResult<NumberDTO>.Ok(updated);
-                }
-
                 var number = new NumberDTO
                 {
                     PatientId = patientId,
@@ -134,6 +123,22 @@ namespace XRayJournal.BLL
         }
 
         /// <summary>
+        /// Получает последний номер, прибавляет по 1 к каждому полю для отображения
+        /// </summary>
+        public async Task<(int Yearly, int Daily)> GetNextNumberHintAsync()
+        {
+            var lastNum = await _numberRepository.GetLastNumberAsync();
+            if (lastNum == null)
+            {
+                return (1, 1);
+            }
+            else
+            {
+                return (lastNum.YearlyNum + 1, lastNum.DailyNum + 1);
+            }
+        }
+
+        /// <summary>
         /// Получает номер для записи пациента
         /// </summary>
         public async Task<List<NumberDTO>> GetNumberForRecordAsync(int patientId, DateOnly xRayDate)
@@ -144,18 +149,18 @@ namespace XRayJournal.BLL
         /// <summary>
         /// Обновляет номер пациента
         /// </summary>
-        //public async Task<OperationResult<NumberDTO>> UpdateNumberAsync(NumberDTO number)
-        //{
-        //    try
-        //    {
-        //        var result = await _numberRepository.UpdateAsync(number);
-        //        return OperationResult<NumberDTO>.Ok(number);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return OperationResult<NumberDTO>.Fail($"Ошибка обновления номера: {ex.Message}");
-        //    }
-        //}
+        public async Task<OperationResult<NumberDTO>> UpdateNumberAsync(NumberDTO number)
+        {
+            try
+            {
+                var result = await _numberRepository.UpdateAsync(number);
+                return OperationResult<NumberDTO>.Ok(number);
+            }
+            catch (Exception ex)
+            {
+                return OperationResult<NumberDTO>.Fail($"Ошибка обновления номера: {ex.Message}");
+            }
+        }
 
         public async Task<OperationResult<NumberOutputModel>> UpdateNumberAsync(NumberInputModel number)
         {
@@ -177,7 +182,7 @@ namespace XRayJournal.BLL
                 var outputModel = updatedNumber.Adapt<NumberOutputModel>();
                 return OperationResult<NumberOutputModel>.Ok(outputModel);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return OperationResult<NumberOutputModel>.Fail($"Ошибка при добавлении номера: {ex.Message}");
             }
