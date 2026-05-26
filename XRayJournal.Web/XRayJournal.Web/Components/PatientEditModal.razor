@@ -294,6 +294,9 @@
     [Parameter]
     public NumberOutputModel? Number { get; set; }
 
+    [Parameter]
+    public DateOnly? SelectedExamDate { get; set; }
+
     private PatientWithExamsInputModel FormModel { get; set; } = new PatientWithExamsInputModel();
     private string activeTab = "patient";
 
@@ -313,6 +316,7 @@
     //Поле сегодняшней даты
     private DateOnly today = DateOnly.FromDateTime(DateTime.Now);
 
+
     private string Title => Patient == null ? "Добавить пациента" : "Редактировать пациента";
 
     protected override async Task OnInitializedAsync()
@@ -331,8 +335,10 @@
             var recommendNumber = await NumberService.GetNextNumberHintAsync();
             FormModel.Number = new NumberInputModel
             {
+                Id = 0,
                 YearlyNum = recommendNumber.Yearly,
-                DailyNum = recommendNumber.Daily
+                DailyNum = recommendNumber.Daily,
+                XRayDate = SelectedExamDate ?? today
             };
         }
         else
@@ -349,7 +355,16 @@
                     MedNumber = Patient.MedNumber
                 };
 
-            var currentNumber = Patient.Numbers?.FirstOrDefault();
+            if (SelectedExamDate.HasValue)
+            {
+                lastDate = SelectedExamDate.Value;
+            }
+            else
+            {
+                lastDate = Patient.Exams?.FirstOrDefault()?.XRayDate ?? today;
+            }
+
+            var currentNumber = Patient.Numbers?.FirstOrDefault(n => n.XRayDate == lastDate);
 
             if (currentNumber != null) //если номер есть, то предложить ему номер из базы
             {
@@ -357,7 +372,8 @@
                     {
                         Id = currentNumber.Id,
                         YearlyNum = currentNumber.YearlyNum,
-                        DailyNum = currentNumber.DailyNum
+                        DailyNum = currentNumber.DailyNum,
+                        XRayDate = currentNumber.XRayDate
                     };
             }
             else

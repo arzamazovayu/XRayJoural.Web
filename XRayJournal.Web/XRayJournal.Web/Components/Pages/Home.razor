@@ -71,7 +71,7 @@
                             {
                                 var number = patient.Numbers?.FirstOrDefault(n => n.XRayDate == exam.XRayDate);
                                 var displayNumber = number?.DisplayNumber ?? "-/-";
-                                <tr @ondblclick="() => EditPatient(patient)">
+                                <tr @ondblclick="() => EditPatient(patient, exam?.XRayDate)">
                                     <td>@displayNumber</td>
                                     <td>@patient.SecondName</td>
                                     <td>@patient.FirstName</td>
@@ -118,6 +118,7 @@
         @if (showPatientModal)
         {
             <PatientEditModal Patient="editingPatient"
+            SelectedExamDate="selectedExamDate"
             OnSave="HandleSavePatient"
             OnCancel="HideModal"/>
         }
@@ -151,6 +152,8 @@
     private PatientWithExamOutputModel? editingPatient = null;
 
     private DateOnly today = DateOnly.FromDateTime(DateTime.Now);
+
+    private DateOnly? selectedExamDate;
 
     protected override void OnInitialized()
     {
@@ -192,12 +195,14 @@
     private void ShowAddModal()
     {
         editingPatient = null;
+        selectedExamDate = null;
         showPatientModal = true;
     }
 
-    private void EditPatient(PatientWithExamOutputModel patient)
+    private void EditPatient(PatientWithExamOutputModel patient, DateOnly? examDate = null)
     {
         editingPatient = patient;
+        selectedExamDate = examDate;
         showPatientModal = true;
     }
     private void HideModal()
@@ -254,18 +259,21 @@
 
                 var existingPatient = patients.FirstOrDefault(p => p.Id == editingPatient.Id);
 
-                var existingNumber = existingPatient?.Numbers?.FirstOrDefault(n => n.XRayDate == today);
+                var existingNumber = existingPatient?.Numbers?.FirstOrDefault(n => n.Id == formModel.Number.Id);
 
-                if(existingNumber != null) //если номер есть, обновляем
+                if (existingNumber != null) // Обновляем существующий номер
                 {
                     formModel.Number.Id = existingNumber.Id;
-                    existingNumber.YearlyNum = formModel.Number.YearlyNum;
-                    existingNumber.DailyNum = formModel.Number.DailyNum;
-                    await NumberService.UpdateNumberAsync(formModel.Number); 
+                    formModel.Number.XRayDate = existingNumber.XRayDate;
+
+                    var updateResult = await NumberService.UpdateNumberAsync(formModel.Number);
+
+                    existingNumber.YearlyNum = updateResult.Data.YearlyNum;
+                    existingNumber.DailyNum = updateResult.Data.DailyNum;
                 }
                 else
                 {
-                    DateOnly date = PatientService.GetPatientsLastExamDate(editingPatient.Id);//потанцевально ошибка null
+                    DateOnly date = PatientService.GetPatientsLastExamDate(editingPatient.Id);
 
                     var newNumber = await NumberService.SaveNumberAsync(
                         editingPatient.Id,
@@ -309,7 +317,7 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[DEBUG] Исключение в HandleSavePatient: {ex}");
+            Console.WriteLine($"Исключение в HandleSavePatient: {ex}");
         }
     }
 

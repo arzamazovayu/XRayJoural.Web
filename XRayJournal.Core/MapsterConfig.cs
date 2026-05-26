@@ -36,7 +36,9 @@ namespace XRayJournal.Core
 
             config.NewConfig<NumberInputModel, NumberDTO>()
                 .Map(dest => dest.YearlyNum, src => src.YearlyNum)
-                .Map(dest => dest.DailyNum, src => src.DailyNum);
+                .Map(dest => dest.DailyNum, src => src.DailyNum)
+                .Map(dest => dest.XRayDate, src => src.XRayDate)
+                .Map(dest => dest.Id, src => src.Id);
         }
     }
 }

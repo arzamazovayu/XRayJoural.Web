@@ -19,6 +19,7 @@ namespace XRayJournal.Core.InputModels
         [Range(1, 999, ErrorMessage = "Ежедневный номер должен быть от 1 до 999")]
         public int DailyNum { get; set; }
 
-        //public string DisplayNumber => $"{YearlyNum}/{DailyNum}";
+        public DateOnly XRayDate {  get; set; }
+
     }
 }
