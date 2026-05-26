@@ -46,11 +46,20 @@ namespace XRayJournal.DAL
             return await _dataContext.Numbers
                 .Where(n => n.PatientId == patientId && n.XRayDate == xRayDate).ToListAsync();
         }
-        public async Task<NumberDTO> UpdateAsync(NumberDTO number)
+        public async Task<NumberDTO?> UpdateAsync(NumberDTO number)
         {
-            _dataContext.Numbers.Update(number);
+            var existing = await _dataContext.Numbers.FindAsync(number.Id);
+            if (existing == null)
+            {
+                return null;
+            }
+
+            existing.YearlyNum = number.YearlyNum;
+            existing.DailyNum = number.DailyNum;
+            existing.XRayDate = number.XRayDate;
+
             await _dataContext.SaveChangesAsync();
-            return number;
+            return existing;
         }
 
         public bool Delete(int id)

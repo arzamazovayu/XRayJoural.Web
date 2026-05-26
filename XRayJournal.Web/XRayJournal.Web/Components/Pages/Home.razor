@@ -258,13 +258,14 @@
 
                 if(existingNumber != null) //если номер есть, обновляем
                 {
+                    formModel.Number.Id = existingNumber.Id;
                     existingNumber.YearlyNum = formModel.Number.YearlyNum;
                     existingNumber.DailyNum = formModel.Number.DailyNum;
-                    await NumberService.UpdateNumberAsync(formModel.Number);//ошибка преобразования 
+                    await NumberService.UpdateNumberAsync(formModel.Number); 
                 }
                 else
                 {
-                    DateOnly date = PatientService.GetPatientsLastExamDate(formModel.Patient.Id);//потанцевально ошибка null
+                    DateOnly date = PatientService.GetPatientsLastExamDate(editingPatient.Id);//потанцевально ошибка null
 
                     var newNumber = await NumberService.SaveNumberAsync(
                         editingPatient.Id,

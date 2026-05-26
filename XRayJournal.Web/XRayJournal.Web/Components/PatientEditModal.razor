@@ -355,6 +355,7 @@
             {
                 FormModel.Number = new NumberInputModel
                     {
+                        Id = currentNumber.Id,
                         YearlyNum = currentNumber.YearlyNum,
                         DailyNum = currentNumber.DailyNum
                     };
@@ -364,6 +365,7 @@
                 var recommendNumber = await NumberService.GetNextNumberHintAsync();
                 FormModel.Number = new NumberInputModel
                     {
+                        Id = 0, //вместо 0 создастся новый Id
                         YearlyNum = recommendNumber.Yearly,
                         DailyNum = recommendNumber.Daily
                     };

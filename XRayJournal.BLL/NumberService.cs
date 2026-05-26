@@ -149,18 +149,18 @@ namespace XRayJournal.BLL
         /// <summary>
         /// Обновляет номер пациента
         /// </summary>
-        public async Task<OperationResult<NumberDTO>> UpdateNumberAsync(NumberDTO number)
-        {
-            try
-            {
-                var result = await _numberRepository.UpdateAsync(number);
-                return OperationResult<NumberDTO>.Ok(number);
-            }
-            catch (Exception ex)
-            {
-                return OperationResult<NumberDTO>.Fail($"Ошибка обновления номера: {ex.Message}");
-            }
-        }
+        //public async Task<OperationResult<NumberDTO>> UpdateNumberAsync(NumberDTO number)
+        //{
+        //    try
+        //    {
+        //        var result = await _numberRepository.UpdateAsync(number);
+        //        return OperationResult<NumberDTO>.Ok(number);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return OperationResult<NumberDTO>.Fail($"Ошибка обновления номера: {ex.Message}");
+        //    }
+        //}
 
         public async Task<OperationResult<NumberOutputModel>> UpdateNumberAsync(NumberInputModel number)
         {
@@ -180,6 +180,7 @@ namespace XRayJournal.BLL
                 }
 
                 var outputModel = updatedNumber.Adapt<NumberOutputModel>();
+
                 return OperationResult<NumberOutputModel>.Ok(outputModel);
             }
             catch (Exception ex)

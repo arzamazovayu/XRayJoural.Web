@@ -18,7 +18,7 @@ namespace XRayJournal.Core.IRepositories
 
         public Task<List<NumberDTO>> GetByPatientAndExamAsync(int patientId, DateOnly xRayDate);
 
-        public Task<NumberDTO> UpdateAsync(NumberDTO number);
+        public Task<NumberDTO?> UpdateAsync(NumberDTO number);
 
         public bool Delete(int id);
     }
