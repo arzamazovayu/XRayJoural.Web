@@ -278,6 +278,7 @@
     @inject PatientService PatientService
     @inject NavigationManager NavigationManager
     @inject NumberService NumberService
+    @inject UserService UserService
 
     [Parameter]
     public PatientWithExamOutputModel? Patient { get; set; }
@@ -296,6 +297,9 @@
 
     [Parameter]
     public DateOnly? SelectedExamDate { get; set; }
+
+    [Parameter]
+    public string? CurrentUserLogin { get; set; }
 
     private PatientWithExamsInputModel FormModel { get; set; } = new PatientWithExamsInputModel();
     private string activeTab = "patient";
@@ -395,16 +399,28 @@
         await OnCancel.InvokeAsync();
     }
 
-    private void AddNewExam()
+    private async Task AddNewExam()
     {
         if (Patient == null || Patient.Id == 0)
         {
             return;
         }
+
+        var userResult = await UserService.GetUserByLoginAsync(CurrentUserLogin);
+
+        if (!userResult.Success)
+        {
+            Console.WriteLine($"Ошибка при получении пользователя: {userResult.ErrorMessage}");
+        }
+
+        var user = userResult;
+
         currentExam = new XRayExamInputModel
         {
             PatientId = Patient.Id,
-            XRayDate = DateOnly.FromDateTime(DateTime.Now)
+            XRayDate = DateOnly.FromDateTime(DateTime.Now),
+            Doctor = user.Data.Role == UserRole.Doctor ? user.Data.FIOshort : null,
+            Laborant = user.Data.Role == UserRole.Laborant ? user.Data.FIOshort : null
         };
         showExamForm = true;
     }

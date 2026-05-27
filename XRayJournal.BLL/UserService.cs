@@ -32,6 +32,8 @@ namespace XRayJournal.BLL
                 {
                     Login = userDto.Login,
                     Role = userDto.Role,
+                    FIO = userDto.FIO,
+                    FIOshort = userDto.FIOshort,
                     IsAuthenticated = true
                 };
 
@@ -48,5 +50,24 @@ namespace XRayJournal.BLL
             var userDto = await _userRepository.GetUserByLoginAsync(login);
             return userDto?.Role ?? UserRole.Laborant; // Проверка на null
         }
+
+        public async Task<OperationResult<UserOutputModel>> GetUserByLoginAsync(string login) {
+            try 
+            {
+                var user = await _userRepository.GetUserByLoginAsync(login);
+                if (user == null)
+                {
+                    return OperationResult<UserOutputModel>.Fail("Пользователь не найден");
+                }
+
+                var outputModel = user.Adapt<UserOutputModel>();
+                return OperationResult<UserOutputModel>.Ok(outputModel);
+            }
+            catch (Exception ex)
+            {
+                return OperationResult<UserOutputModel>.Fail($"Ошибка при получении пользователя: {ex.Message}");
+            }
+        }
+
     }
 }

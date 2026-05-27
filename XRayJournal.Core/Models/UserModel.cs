@@ -14,6 +14,10 @@ namespace XRayJournal.Core.Models
 
         public UserRole Role { get; set; }
 
+        public string FIO { get; set; }
+
+        public string FIOshort { get; set; }
+
         public bool IsAuthenticated { get; set; }
     }
 }

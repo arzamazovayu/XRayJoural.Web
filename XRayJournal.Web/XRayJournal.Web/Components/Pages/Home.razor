@@ -119,6 +119,7 @@
         {
             <PatientEditModal Patient="editingPatient"
             SelectedExamDate="selectedExamDate"
+            CurrentUserLogin="@(authContext.User.Identity?.Name)"
             OnSave="HandleSavePatient"
             OnCancel="HideModal"/>
         }
@@ -154,6 +155,8 @@
     private DateOnly today = DateOnly.FromDateTime(DateTime.Now);
 
     private DateOnly? selectedExamDate;
+
+    private string? currentUserLogin;
 
     protected override void OnInitialized()
     {
@@ -197,6 +200,7 @@
         editingPatient = null;
         selectedExamDate = null;
         showPatientModal = true;
+        //currentUserLogin = authContext.User.Identity?.Name;
     }
 
     private void EditPatient(PatientWithExamOutputModel patient, DateOnly? examDate = null)

@@ -15,7 +15,9 @@ namespace XRayJournal.Core.DTOs
 
         public string? Password { get; set; }
 
-        //public string FIO {  get; set; }
+        public string FIO { get; set; }
+
+        public string FIOshort { get; set; }
 
         public UserRole Role { get; set; }
 
