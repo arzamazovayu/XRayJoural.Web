@@ -10,7 +10,7 @@ namespace XRayJournal.DAL
 {
     public class PatientRepository : IPatientRepository
     {
-        public DataContext _dataContext;
+        private readonly DataContext _dataContext;
         public PatientRepository(DataContext dataContext)
         {
             _dataContext = dataContext;

@@ -8,7 +8,7 @@ namespace XRayJournal.DAL
 {
     public class UserRepository : IUserRepository
     {
-        public DataContext _dataContext;
+        private readonly DataContext _dataContext;
 
         public UserRepository(DataContext dataContext) 
         {

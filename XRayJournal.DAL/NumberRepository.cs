@@ -12,7 +12,7 @@ namespace XRayJournal.DAL
 {
     public class NumberRepository : INumberRepository
     {
-        public DataContext _dataContext;
+        private readonly DataContext _dataContext;
 
         public NumberRepository(DataContext dataContext)
         {

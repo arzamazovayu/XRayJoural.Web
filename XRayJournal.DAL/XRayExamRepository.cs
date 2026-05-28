@@ -12,7 +12,7 @@ namespace XRayJournal.DAL
 {
     public class XRayExamRepository : IXRayExamRepository
     {
-        public DataContext _dataContext;
+        private readonly DataContext _dataContext;
 
         public XRayExamRepository(DataContext dataContext)
         {
