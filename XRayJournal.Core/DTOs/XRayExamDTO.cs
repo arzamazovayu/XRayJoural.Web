@@ -40,9 +40,13 @@ namespace XRayJournal.Core.DTOs
 
         public int PatientId { get; set; }
 
-        //public string? Clinic { get; set; }
+        public int? IdCabinet { get; set; }
 
-        //public string? Department { get; set; }
+        public string Side { get; set; }
+
+        public string Area { get; set; }
+
+        public virtual CabinetDTO? Cabinet { get; set; }
 
     }
 }
