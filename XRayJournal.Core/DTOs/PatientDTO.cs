@@ -22,12 +22,15 @@ namespace XRayJournal.Core.DTOs
 
         public string MedNumber { get; set; }
 
-        public List<XRayExamDTO>? Exams { get; set; } = new List<XRayExamDTO>();
+        //public List<XRayExamDTO>? Exams { get; set; } = new List<XRayExamDTO>();
 
         //Флаг удаления
         public bool IsDeleted { get; set; } = false;
 
-        public List<NumberDTO>? Numbers { get; set; } = new List<NumberDTO>();
+        // public List<NumberDTO>? Numbers { get; set; } = new List<NumberDTO>();
+
+        //Навигационные свойства
+        public virtual List<RecordDTO>? Records { get; set; }
 
     }
 }

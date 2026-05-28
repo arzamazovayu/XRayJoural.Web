@@ -48,5 +48,7 @@ namespace XRayJournal.Core.DTOs
 
         public virtual CabinetDTO? Cabinet { get; set; }
 
+        public virtual List<RecordDTO>? Records { get; set; }
+
     }
 }

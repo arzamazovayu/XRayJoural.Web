@@ -22,6 +22,9 @@ namespace XRayJournal.Core.DTOs
 
         public int PatientId { get; set; }
 
+        //Навигационные свойства
+        public virtual List<RecordDTO>? Records { get; set; }
+
     }
 }
 

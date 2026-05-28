@@ -21,6 +21,8 @@ namespace XRayJournal.Core.DTOs
 
         public string FIOshort { get; set; }
 
+        public int? CabinetId { get; set; }
+
         //Навигационные свойства
         public virtual CabinetDTO? Cabinet { get; set; }
 

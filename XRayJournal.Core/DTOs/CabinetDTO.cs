@@ -24,5 +24,9 @@ namespace XRayJournal.Core.DTOs
 
         public HospitalDTO? Hospital { get; set; }
 
+        public virtual List<XRayExamDTO> Exams { get; set; }
+
+        public virtual List<UserDTO> Users { get; set; }
+
     }
 }
