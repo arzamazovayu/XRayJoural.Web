@@ -74,13 +74,9 @@ namespace XRayJournal.Core
                     .WithMany(h => h.Cabinets)
                     .HasForeignKey(c => c.IdClinic);
 
-                entity.HasMany(c => c.Exams) //Исследоание Э- Кабинет
+                entity.HasMany(c => c.Exams) //Исследование Э- Кабинет
                     .WithOne(e => e.Cabinet)
                     .HasForeignKey(e => e.IdCabinet);
-
-                entity.HasMany(c => c.Users) //Пользователь Э- Кабинет
-                    .WithOne(u => u.Cabinet)
-                    .HasForeignKey(u => u.CabinetId);
             });
 
             modelBuilder.Entity<UserDTO>(entity =>
@@ -88,14 +84,15 @@ namespace XRayJournal.Core
                 entity.HasKey(u => u.ID);
                 entity.Property(u => u.ID).ValueGeneratedNever();
 
-                entity.HasOne(u => u.Cabinet) //Кабинет -Е Пользователь
-                    .WithMany(c => c.Users)
-                    .HasForeignKey(u => u.CabinetId);
-
                 entity.HasMany(u => u.Records) //Запись Э- Пользователь
                     .WithOne(r => r.User)
                     .HasForeignKey(r => r.UserId);
             });
+
+            modelBuilder.Entity<UserDTO>()  //Кабинет Э-Е Пользователь
+                .HasMany(u => u.Cabinets)
+                .WithMany(c => c.Users)
+                .UsingEntity(j => j.ToTable("CabinetsUsers"));
 
             modelBuilder.Entity<RecordDTO>(entity =>
             {
@@ -112,7 +109,7 @@ namespace XRayJournal.Core
                 .HasForeignKey(r => r.NumberId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-                entity.HasOne(r => r.Exam) //Исследоание -Е Запись
+                entity.HasOne(r => r.Exam) //Исследование -Е Запись
                 .WithMany(p => p.Records)
                 .HasForeignKey(r => r.ExamId)
                 .OnDelete(DeleteBehavior.Restrict);

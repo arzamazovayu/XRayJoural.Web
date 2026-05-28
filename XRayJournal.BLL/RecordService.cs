@@ -59,7 +59,7 @@ namespace XRayJournal.BLL
 
                 //Создание исследования
                 var examDto = input.Exam.Adapt<XRayExamDTO>();
-                examDto.PatientId = patient.Id;
+                //examDto.PatientId = patient.Id;
                 var exam = _examRepository.Add(examDto);
 
                 //Получение/создание номера

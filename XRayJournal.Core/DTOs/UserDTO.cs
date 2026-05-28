@@ -24,7 +24,7 @@ namespace XRayJournal.Core.DTOs
         public int? CabinetId { get; set; }
 
         //Навигационные свойства
-        public virtual CabinetDTO? Cabinet { get; set; }
+        public virtual List<CabinetDTO> Cabinets { get; set; }
 
         public virtual List<RecordDTO>? Records { get; set; } 
     }

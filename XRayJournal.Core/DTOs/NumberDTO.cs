@@ -18,7 +18,7 @@ namespace XRayJournal.Core.DTOs
 
         public DateOnly XRayDate { get; set; }
 
-        public virtual  PatientDTO? Patient { get; set; }
+        //public virtual  PatientDTO? Patient { get; set; }
 
         public int PatientId { get; set; }
 

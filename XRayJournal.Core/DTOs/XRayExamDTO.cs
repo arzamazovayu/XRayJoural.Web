@@ -36,9 +36,9 @@ namespace XRayJournal.Core.DTOs
 
         public bool? Contrast { get; set; }
 
-        public PatientDTO Patient { get; set; }
+        //public PatientDTO Patient { get; set; }
 
-        public int PatientId { get; set; }
+        //public int PatientId { get; set; }
 
         public int? IdCabinet { get; set; }
 
