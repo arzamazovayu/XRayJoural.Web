@@ -39,8 +39,8 @@ namespace XRayJournal.DAL
         {
             var result = _dataContext.Patients
                 .Where(p => !p.IsDeleted)
-                .Include(p => p.Exams)
-                .Include(p => p.Numbers)
+                //.Include(p => p.Exams)
+                //.Include(p => p.Numbers)
                 .OrderBy(p => p.Id)
                 .ToList();
             return result;
@@ -67,18 +67,13 @@ namespace XRayJournal.DAL
 
         public bool Delete(int id) 
         {
-            var patient = _dataContext.Patients.Include(p => p.Exams).FirstOrDefault(p => p.Id == id && !p.IsDeleted);
+            var patient = _dataContext.Patients.Find(id);
             if (patient == null)
             {
                 return false;
             }
 
             patient.IsDeleted = true;
-
-            if(patient.Exams != null && patient.Exams.Count > 0)
-            {
-                _dataContext.Exams.RemoveRange(patient.Exams);
-            }
             
             _dataContext.SaveChanges();
             return true;
@@ -102,31 +97,37 @@ namespace XRayJournal.DAL
         {
             var patient = _dataContext.Patients
                 .Where(p => p.Id == id && !p.IsDeleted)
-                .Include(p => p.Exams)
-                .Include(p => p.Numbers)
+                //.Include(p => p.Exams)
+                //.Include(p => p.Numbers)
                 //.OrderByDescending(p => p.Exams.Max(e => e.XRayDate))
                 .FirstOrDefault();
                 
             return patient;
         }
 
-        public DateOnly GetPatientsLastExamDate(int id)
+        public PatientDTO GetByMedNumber(string medId)
         {
-            if(id <= 0) 
-            {
-                return DateOnly.FromDateTime(DateTime.Now);
-            }
-            
-            var patient = GetPatientWithExamsAndNumbersById(id);
-
-            if (patient == null || patient.Exams == null || !patient.Exams.Any())
-            {
-                return DateOnly.FromDateTime(DateTime.Now);
-            }
-            else
-            {
-                return patient.Exams.Max(e => e.XRayDate);
-            }
+            var patient = _dataContext.Patients.FirstOrDefault(p => p.MedNumber == medId);
+            return patient;
         }
+
+        //public DateOnly GetPatientsLastExamDate(int id)
+        //{
+        //    if(id <= 0) 
+        //    {
+        //        return DateOnly.FromDateTime(DateTime.Now);
+        //    }
+
+        //    var patient = GetPatientWithExamsAndNumbersById(id);
+
+        //    if (patient == null || patient.Exams == null || !patient.Exams.Any())
+        //    {
+        //        return DateOnly.FromDateTime(DateTime.Now);
+        //    }
+        //    else
+        //    {
+        //        return patient.Exams.Max(e => e.XRayDate);
+        //    }
+        //}
     }
 }

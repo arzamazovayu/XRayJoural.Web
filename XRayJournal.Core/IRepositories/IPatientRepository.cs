@@ -25,6 +25,8 @@ namespace XRayJournal.Core.IRepositories
 
         public PatientDTO GetPatientWithExamsAndNumbersById(int id);
 
-        public DateOnly GetPatientsLastExamDate(int id);
+        public PatientDTO GetByMedNumber(string medId);
+
+        //public DateOnly GetPatientsLastExamDate(int id);
     }
 }

@@ -144,9 +144,9 @@ namespace XRayJournal.BLL
             }
         }
 
-        public DateOnly GetPatientsLastExamDate(int id)
-        {            
-            return _patientRepository.GetPatientsLastExamDate(id);
-        }
+        //public DateOnly GetPatientsLastExamDate(int id)
+        //{            
+        //    return _patientRepository.GetPatientsLastExamDate(id);
+        //}
     }
 }
