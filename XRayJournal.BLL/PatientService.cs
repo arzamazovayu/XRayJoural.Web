@@ -57,12 +57,12 @@ namespace XRayJournal.BLL
             }
         }
 
-        public  List<PatientWithExamOutputModel> GetAllWithExams()
-        {
-            var tmp = _patientRepository.GetAllWithExams();
-            var result = tmp.Adapt<List<PatientWithExamOutputModel>>();
-            return result;
-        }
+        //public  List<PatientWithExamOutputModel> GetAllWithExams()
+        //{
+        //    var tmp = _patientRepository.GetAllWithExams();
+        //    var result = tmp.Adapt<List<PatientWithExamOutputModel>>();
+        //    return result;
+        //}
 
         public OperationResult<PatientOutputModel> Update(PatientInputModel patient)
         {
@@ -126,23 +126,23 @@ namespace XRayJournal.BLL
             }
         }
 
-        public OperationResult<PatientWithExamOutputModel> GetPatientWithExamsAndNumbersById(int id)
-        {
-            try
-            {
-                var result = _patientRepository.GetPatientWithExamsAndNumbersById(id);
-                if (result == null)
-                {
-                    return OperationResult<PatientWithExamOutputModel>.Fail("Пациент не найден");
-                }
-                var outputModel = result.Adapt<PatientWithExamOutputModel>();
-                return OperationResult<PatientWithExamOutputModel>.Ok(outputModel);
-            }
-            catch (Exception ex)
-            {
-                return OperationResult<PatientWithExamOutputModel>.Fail($"Ошибка при получении пациента: {ex.Message}");
-            }
-        }
+        //public OperationResult<PatientWithExamOutputModel> GetPatientWithExamsAndNumbersById(int id)
+        //{
+        //    try
+        //    {
+        //        var result = _patientRepository.GetPatientWithExamsAndNumbersById(id);
+        //        if (result == null)
+        //        {
+        //            return OperationResult<PatientWithExamOutputModel>.Fail("Пациент не найден");
+        //        }
+        //        var outputModel = result.Adapt<PatientWithExamOutputModel>();
+        //        return OperationResult<PatientWithExamOutputModel>.Ok(outputModel);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return OperationResult<PatientWithExamOutputModel>.Fail($"Ошибка при получении пациента: {ex.Message}");
+        //    }
+        //}
 
         //public DateOnly GetPatientsLastExamDate(int id)
         //{            

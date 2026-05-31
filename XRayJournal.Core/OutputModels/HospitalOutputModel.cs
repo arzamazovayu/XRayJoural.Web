@@ -10,7 +10,7 @@ namespace XRayJournal.Core.OutputModels
     {
         public int Id { get; set; }
 
-        public string DepName { get; set; }
+        public string DepName { get; set; } //Краткое имя клиника + отделение
 
         public string Clinic { get; set; }
 

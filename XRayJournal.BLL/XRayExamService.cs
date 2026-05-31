@@ -28,12 +28,12 @@ namespace XRayJournal.BLL
             return result;
         }
 
-        public List<XrayExamNecessaryInfoOutputModel> GetNecessaryExams()
-        {
-            var tmp = _xRayExamRepository.GetNecessaryExams();
-            var result = tmp.Adapt<List<XrayExamNecessaryInfoOutputModel>>();
-            return result;
-        }
+        //public List<XrayExamNecessaryInfoOutputModel> GetNecessaryExams()
+        //{
+        //    var tmp = _xRayExamRepository.GetNecessaryExams();
+        //    var result = tmp.Adapt<List<XrayExamNecessaryInfoOutputModel>>();
+        //    return result;
+        //}
 
         public OperationResult<XRayExamOutputModel> Add(XRayExamInputModel exam)
         {
@@ -54,12 +54,15 @@ namespace XRayJournal.BLL
         {
             try
             {
-                if (!exam.Id.HasValue)
+                var examDto = exam.Adapt<XRayExamDTO>();
+                if (exam.Id.HasValue)
+                {
+                    examDto.Id = exam.Id.Value;
+                }
+                else
                 {
                     OperationResult<XRayExamOutputModel>.Fail("ID исследования не указан!");
                 }
-                var examDto = exam.Adapt<XRayExamDTO>();
-                examDto.Id = exam.Id.Value;
 
                 var success = _xRayExamRepository.Update(examDto);
                 if (!success)
@@ -114,6 +117,24 @@ namespace XRayJournal.BLL
             catch (Exception ex)
             {
                 return OperationResult<XRayExamOutputModel>.Fail($"Ошибка при получении исследования: {ex.Message}");
+            }
+        }
+
+        public async Task<OperationResult<List<XRayExamOutputModel>>> GetByPatientIdAsync(int patientId)
+        {
+            try
+            {
+                var exams = _xRayExamRepository.GetByPatientId(patientId);
+                if (exams == null)
+                {
+                    return OperationResult<List<XRayExamOutputModel>>.Fail("Запись не найдена");
+                }
+                var result = exams.Adapt<List<XRayExamOutputModel>>();
+                return OperationResult<List<XRayExamOutputModel>>.Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return OperationResult<List<XRayExamOutputModel>>.Fail($"Ошибка получения исследований: {ex.Message}");
             }
         }
     }

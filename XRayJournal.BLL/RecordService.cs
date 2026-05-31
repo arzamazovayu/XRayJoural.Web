@@ -37,6 +37,24 @@ namespace XRayJournal.BLL
             _numberService = numberService;
         }
 
+        public async Task<OperationResult<RecordOutputModel>> GetByIdAsync (int id)
+        {
+            try
+            {
+                var record = _recordRepository.GetByIdAsync(id);
+                if (record == null)
+                {
+                    return OperationResult<RecordOutputModel>.Fail("Запись не найдена");
+                }
+                var result = record.Adapt<RecordOutputModel>();
+                return OperationResult<RecordOutputModel>.Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return OperationResult<RecordOutputModel>.Fail($"Ошибка поиска записи: {ex.Message}");
+            }
+        }
+
         private async Task<PatientDTO> GetOrCreatePatientAsync(PatientInputModel input)
         {
             //Поиск по номеру карты
@@ -50,20 +68,20 @@ namespace XRayJournal.BLL
             return _patientRepository.Add(newPatient);
         }
 
-        public async Task<OperationResult<RecordOutputModel>> CreateRecordAsync(RecordInputModel input, int userId)
+        public async Task<OperationResult<RecordOutputModel>> CreateRecordAsync(RecordInputModel input, int userId, int cabinetId)
         {
             try
             {
                 //Получение/создание пациента
                 var patient = await GetOrCreatePatientAsync(input.Patient);
 
-                //Создание исследования
+                //Создание исследования с привязкой к кабинету
                 var examDto = input.Exam.Adapt<XRayExamDTO>();
-                //examDto.PatientId = patient.Id;
+                examDto.IdCabinet = cabinetId;
                 var exam = _examRepository.Add(examDto);
 
                 //Получение/создание номера
-                var (yearly, daily) = await _numberService.CalculateNextNumberAsync(input.Date);
+                var (yearly, daily) = await _numberService.CalculateNextNumberAsync(input.Date, cabinetId);
                 var number = new NumberDTO
                 {
                     YearlyNum = yearly,
@@ -119,6 +137,80 @@ namespace XRayJournal.BLL
             catch (Exception ex)
             {
                 return OperationResult<List<RecordOutputModel>>.Fail($"Ошибка получения записей: {ex.Message}");
+            }
+        }
+
+        public async Task<OperationResult<List<RecordNecessaryOutputModel>>> GetNecessaryRecordsAsync(
+            DateOnly? startDate = null, DateOnly? endDate = null)
+        {
+            try
+            {
+                //Если даты null, то текущий месяц по умолчанию
+                if (!startDate.HasValue && !endDate.HasValue)
+                {
+                    var today = DateOnly.FromDateTime(DateTime.Now);
+                    //startDate = new DateOnly(today.Year, today.Month, 1); //Начало месяца
+                    //endDate = startDate.Value.AddMonths(1).AddDays(-1); // + 1 месяц - 1 день = последний день текущего месяца
+                    endDate = today;
+                    startDate = endDate.Value.AddMonths(-1);
+                }
+
+                var records = await _recordRepository.GetNecessaryRecordsAsync(startDate, endDate);
+                return OperationResult<List<RecordNecessaryOutputModel>>.Ok(records);
+            }
+            catch (Exception ex)
+            {
+                return OperationResult<List<RecordNecessaryOutputModel>>.Fail(
+                    $"Ошибка получения записей: {ex.Message}");
+            }
+        }
+
+        //Метод получения записей с пагинацией (страницированием)
+        public async Task<OperationResult<PagedResult<RecordNecessaryOutputModel>>> GetNecessaryRecordsPagedAsync(
+            int page = 1,
+            int pageSize = 50,
+            DateOnly? startDate = null,
+            DateOnly? endDate = null,
+            string? searchText = null,
+            string? sex = null)
+        {
+            try
+            {
+                var allRecords = await _recordRepository.GetNecessaryRecordsAsync(startDate, endDate);
+
+                // Фильтрация
+                if (!string.IsNullOrWhiteSpace(searchText))
+                {
+                    var search = searchText.Trim().ToLower();
+                    allRecords = allRecords.Where(r =>
+                        r.SecondName.ToLower().Contains(search) ||
+                        r.FirstName.ToLower().Contains(search) ||
+                        (r.ThirdName != null && r.ThirdName.ToLower().Contains(search)) ||
+                        r.MedNumber.ToLower().Contains(search)
+                    ).ToList();
+                }
+
+                var totalCount = allRecords.Count;
+                var pagedRecords = allRecords
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList();
+
+                var result = new PagedResult<RecordNecessaryOutputModel>
+                {
+                    Items = pagedRecords,
+                    TotalCount = totalCount,
+                    Page = page,
+                    PageSize = pageSize,
+                    TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize)
+                };
+
+                return OperationResult<PagedResult<RecordNecessaryOutputModel>>.Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return OperationResult<PagedResult<RecordNecessaryOutputModel>>.Fail(
+                    $"Ошибка получения записей: {ex.Message}");
             }
         }
     }

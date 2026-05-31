@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -36,8 +37,10 @@ namespace XRayJournal.Core.OutputModels
 
         public bool Contrast { get; set; }
 
-        //public string Clinic { get; set; }
+        public int CabinetId { get; set; }
 
-        //public string Department {  get; set; }
+        public string Side { get; set; }
+
+        public int Area { get; set; }
     }
 }

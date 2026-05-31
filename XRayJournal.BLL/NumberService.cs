@@ -22,11 +22,11 @@ namespace XRayJournal.BLL
         }
 
         /// <summary>
-        /// Рассчитывает следующий номер на основе последнего. Принимает дату, возвращает два номера.
+        /// Рассчитывает следующий номер на основе последнего. Принимает дату и Id кабинета, возвращает два номера.
         /// </summary>
-        public async Task<(int Yearly, int Daily)> CalculateNextNumberAsync(DateOnly XRayDate)
+        public async Task<(int Yearly, int Daily)> CalculateNextNumberAsync(DateOnly XRayDate, int cabinetId)
         {
-            var lastNum = await _numberRepository.GetLastNumberAsync();
+            var lastNum = await _numberRepository.GetLastNumberForCabinetAsync(cabinetId);
 
             //Если последнего номера нет, то предлагаем 1/1 как первый
             if (lastNum == null) 
@@ -144,19 +144,6 @@ namespace XRayJournal.BLL
         /// <summary>
         /// Обновляет номер пациента
         /// </summary>
-        //public async Task<OperationResult<NumberDTO>> UpdateNumberAsync(NumberDTO number)
-        //{
-        //    try
-        //    {
-        //        var result = await _numberRepository.UpdateAsync(number);
-        //        return OperationResult<NumberDTO>.Ok(number);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return OperationResult<NumberDTO>.Fail($"Ошибка обновления номера: {ex.Message}");
-        //    }
-        //}
-
         public async Task<OperationResult<NumberOutputModel>> UpdateNumberAsync(NumberInputModel number)
         {
             try

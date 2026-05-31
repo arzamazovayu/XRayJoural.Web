@@ -94,7 +94,9 @@
         {
             new Claim(ClaimTypes.Name, userModel.Name),
             new Claim(ClaimTypes.Role, currentUser.Role.ToString()),
-            new Claim("RoleId", ((int)currentUser.Role).ToString())
+            new Claim("UserId", ((int)currentUser.ID).ToString()),
+            new Claim("RoleId", ((int)currentUser.Role).ToString()),
+            new Claim("CabinetId", ((int)currentUser.CabinetId).ToString())
         };
 
         var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);

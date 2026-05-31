@@ -7,7 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="InputModels\PatientWithExamsInputModel.cs" />
     <Compile Remove="InputModels\XRayExamOldInputModel.cs" />
+    <Compile Remove="OutputModels\PatientWithExamOutputModel.cs" />
+    <Compile Remove="OutputModels\XRayExamNecessaryInfoOutputModel.cs" />
   </ItemGroup>
 
   <ItemGroup>

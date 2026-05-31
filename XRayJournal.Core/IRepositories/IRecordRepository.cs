@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using XRayJournal.Core.DTOs;
+using XRayJournal.Core.OutputModels;
 
 namespace XRayJournal.Core.IRepositories
 {
@@ -26,5 +27,8 @@ namespace XRayJournal.Core.IRepositories
         public Task<List<RecordDTO>> GetByCabinetIdAsync(int cabinetId);
 
         public Task<List<RecordDTO>> GetByDateAndCabinetAsync(DateOnly date, int cabinetId);
+
+        public Task<List<RecordNecessaryOutputModel>> GetNecessaryRecordsAsync(
+            DateOnly? startDate = null, DateOnly? endDate = null, int? cabinetId = null);
     }
 }

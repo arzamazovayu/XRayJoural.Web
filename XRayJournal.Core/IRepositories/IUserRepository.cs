@@ -16,5 +16,7 @@ namespace XRayJournal.Core.IRepositories
         public Task<List<UserDTO>> GetAllAsync();
 
         public Task<UserDTO?> GetUserByLoginAsync(string login);
+
+        public Task<UserDTO?> GetByIdWithCabinetsAsync(int id);
     }
 }

@@ -49,15 +49,14 @@ namespace XRayJournal.Core.InputModels
 
         public bool Contrast { get; set; }
 
-        [Required(ErrorMessage ="Пациент обязателен!")]
-        [Range(1, int.MaxValue, ErrorMessage = "Некорректный идентификатор пациента")]
-        public int PatientId { get; set; }
+        [Required(ErrorMessage ="Кабинет обязателен!")]
+        [Range(1, int.MaxValue, ErrorMessage = "Некорректный идентификатор кабинета")]
+        public int CabinetId { get; set; }
 
-        //[StringLength(200, ErrorMessage = "Название клиники не может превышать 200 символов")]
-        //public string Clinic { get; set; }
+        public string Side { get; set; }
 
-        //[StringLength(200, ErrorMessage = "Название отделения не может превышать 200 символов")]
-        //public string Department { get; set; }
+        [Required(ErrorMessage = "Область исследования обязательна!")]
+        public int Area { get; set; }
 
     }
 }

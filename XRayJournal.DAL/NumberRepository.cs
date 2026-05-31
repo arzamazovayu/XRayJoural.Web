@@ -64,5 +64,17 @@ namespace XRayJournal.DAL
             _dataContext.SaveChanges();
             return true;
         }
+
+        public async Task<NumberDTO?> GetLastNumberForCabinetAsync(int cabinetId)
+        {
+            var query = from record in _dataContext.Records
+                        join exam in _dataContext.Exams on record.ExamId equals exam.Id
+                        join number in _dataContext.Numbers on record.NumberId equals number.Id
+                        where exam.IdCabinet == cabinetId
+                        orderby number.Id descending
+                        select number;
+
+            return await query.FirstOrDefaultAsync();
+        }
     }
 }

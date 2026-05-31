@@ -7,6 +7,8 @@ using XRayJournal.Core;
 using XRayJournal.Core.DTOs;
 using XRayJournal.Core.IRepositories;
 using Microsoft.EntityFrameworkCore;
+using XRayJournal.Core.OutputModels;
+using Mapster;
 
 
 
@@ -114,6 +116,7 @@ namespace XRayJournal.DAL
                 .ToListAsync();
         }
 
+
         public async Task<RecordDTO?> UpdateAsync(RecordDTO record)
         {
             var exist = await _dataContext.Records.FindAsync(record.Id);
@@ -125,6 +128,43 @@ namespace XRayJournal.DAL
             _dataContext.Entry(exist).CurrentValues.SetValues(record);
             await _dataContext.SaveChangesAsync();
             return exist;
+        }
+        public async Task<List<RecordNecessaryOutputModel>> GetNecessaryRecordsAsync(
+            DateOnly? startDate = null, DateOnly? endDate = null, int? cabinetId = null)
+        {
+            //Сборка таблиц
+            var query = _dataContext.Records
+                .Include(r => r.Patient)
+                .Include(r => r.Number)
+                .Include(r => r.Exam)
+                    .ThenInclude(e => e.Cabinet)
+                        .ThenInclude(c => c.Hospital)
+                .AsQueryable();
+
+            // Фильтрация по кабинету
+            if (cabinetId.HasValue)
+            {
+                query = query.Where(r => r.Exam.IdCabinet == cabinetId.Value);
+            }
+
+            //Фильтрация по дате
+            if (startDate.HasValue)
+                query = query.Where(r => r.Date >= startDate.Value);
+            if (endDate.HasValue)
+                query = query.Where(r => r.Date <= endDate.Value);
+
+            //Сортировка по дате и номеру
+            var records = await query
+                .OrderBy(r => r.Date)
+                .ThenBy(r => r.Number.YearlyNum)
+                .ToListAsync();
+
+            //Группировка по пациенту и дате для определения множественных исследований
+            var grouped = records
+                .GroupBy(r => new { r.PatientId, r.Date })
+                .ToDictionary(g => g.Key, g => g.Count());
+
+            return records.Select(r => r.Adapt<RecordNecessaryOutputModel>()).ToList();
         }
     }
 }

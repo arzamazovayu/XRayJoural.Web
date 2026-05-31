@@ -32,6 +32,8 @@ namespace XRayJournal.BLL
                 {
                     Login = userDto.Login,
                     Role = userDto.Role,
+                    ID = userDto.ID,
+                    CabinetId = userDto.CabinetId,
                     IsAuthenticated = true
                 };
 
@@ -47,6 +49,13 @@ namespace XRayJournal.BLL
         {
             var userDto = await _userRepository.GetUserByLoginAsync(login);
             return userDto?.Role ?? UserRole.Laborant; // Проверка на null
+        }
+
+        public async Task<int> GetUserCabinetIdAsync(int userId)
+        {
+            var user = await _userRepository.GetByIdWithCabinetsAsync(userId);
+            // Если у пользователя несколько кабинетов, можно вернуть первый или текущий
+            return user?.Cabinets?.FirstOrDefault()?.Id ?? 0;
         }
     }
 }

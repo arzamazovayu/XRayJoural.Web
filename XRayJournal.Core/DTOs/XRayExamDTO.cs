@@ -36,15 +36,11 @@ namespace XRayJournal.Core.DTOs
 
         public bool? Contrast { get; set; }
 
-        //public PatientDTO Patient { get; set; }
-
-        //public int PatientId { get; set; }
-
         public int? IdCabinet { get; set; }
 
-        public string Side { get; set; }
+        public string? Side { get; set; }
 
-        public string Area { get; set; }
+        public int Area { get; set; }
 
         public virtual CabinetDTO? Cabinet { get; set; }
 

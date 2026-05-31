@@ -1,0 +1,257 @@
+﻿@page "/home"
+@using XRayJournal.Core.Results
+@using XRayJournal.Core.OutputModels
+@using System.Security.Claims
+@rendermode InteractiveServer
+@inject RecordService RecordService
+@inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject UserService UserService
+
+<PageTitle>Журнал рентгенологических исследований</PageTitle>
+
+<AuthorizeView>
+    <Authorized>
+        <div class="container-fluid">
+            @* Панель фильтров *@
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label">Период с</label>
+                            <InputDate @bind-Value="filterStartDate" class="form-control" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">по</label>
+                            <InputDate @bind-Value="filterEndDate" class="form-control" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Поиск</label>
+                            <InputText @bind-Value="searchText" class="form-control" 
+                                        placeholder="Фамилия, имя, номер карты..." />
+                        </div>
+                        <div class="col-md-1">
+                            <button class="btn btn-primary w-100" @onclick="ApplyFilters">
+                                <i class="bi bi-search"></i> Поиск
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                @* Кнопка добавления *@
+                <div class="mb-3">
+                    <button class="btn btn-success" @onclick="ShowAddRecordModal">
+                        <i class="bi bi-plus-circle"></i> Добавить пациента
+                    </button>
+                </div>
+                @* Таблица записей *@
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover  table-bordered">
+                        <thead class="table-dark">
+                            <tr>
+                                <th scope="col">№ п/п</th>
+                                <th scope="col">Фамилия</th>
+                                <th scope="col">Имя</th>
+                                <th scope="col">Отчество</th>
+                                <th scope="col">Дата рождения</th>
+                                <th scope="col">Номер карты</th>
+                                <th scope="col">Категория</th>
+                                <th scope="col">Дата исс-я</th>
+                                <th scope="col">Исследование</th>
+                                <th scope="col">Снимков/серий</th>
+                                <th scope="col">Доза</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (isLoading)
+                            {
+                            <tr>
+                                <td colspan="10" class="text-center">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Загрузка...</span>
+                                    </div>
+                                </td>
+                            </tr>
+                            }
+                            else if (records?.Items != null && records.Items.Any())
+                            {
+                                @foreach (var record in records.Items)
+                                {
+                                    <tr @ondblclick="() => EditRecord(record.Id)">
+                                        <td>@record.DisplayNumber</td>
+                                        <td>@record.SecondName</td>
+                                        <td>@record.FirstName</td>
+                                        <td>@record.ThirdName</td>
+                                        <td>@record.BirthDate.ToString("dd.MM.yyyy")</td>
+                                        <td>@record.MedNumber</td> 
+                                        <td>@record.Category</td>
+                                        <td>@record.XRayDate.ToString("dd.MM.yyyy")</td> 
+                                        <td>@record.XRayName</td>
+                                        <td>@record.XRayShots</td>
+                                        <td>@record.XRayDose.ToString("0.###")</td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="10" class="text-center text-muted">
+                                        Нет записей за выбранный период
+                                    </td>
+                                </tr>
+                            }
+                        }
+						</tbody>
+					</table>
+				</div>
+			</div>
+		
+	
+    @* Пагинация *@
+    @if (records != null && records.TotalPages > 1)
+        {
+            <nav>
+                <ul class="pagination justify-content-center">
+                    <li class="page-item @(records.HasPreviousPage ? "" : "disabled")">
+                        <button class="page-link" @onclick="() => GoToPage(records.Page - 1)">Назад</button>
+                    </li>
+                    @for (int i = 1; i <= records.TotalPages; i++)
+                    {
+                        <li class="page-item @(i == records.Page ? "active" : "")">
+                            <button class="page-link" @onclick="() => GoToPage(i)">@i</button>
+                        </li>
+                    }
+                    <li class="page-item @(records.HasNextPage ? "" : "disabled")">
+                        <button class="page-link" @onclick="() => GoToPage(records.Page + 1)">Вперёд</button>
+                    </li>
+                </ul>
+            </nav>
+        }
+    </div>
+        @if (showRecordModal)
+        {
+            <RecordEditModal RecordId="@editingRecordId"
+                            CurrentCabinetId="@currentCabinetId"
+                            OnSave="HandleSaveRecord"
+                            OnCancel="HideRecordModal"/>
+        }
+    </Authorized>
+    <NotAuthorized>
+        <div class="text-center mt-5">
+            <div class="alert alert-warning">
+                <h4>Требуется авторизация</h4>
+                <p>Для доступа к системе необходимо войти в систему.</p>
+                <a href="/login" class="btn btn-primary">Войти</a>
+            </div>
+        </div>
+    </NotAuthorized>
+</AuthorizeView>
+@code{
+    // [Inject]
+    // private RecordService RecordService { get; set; }
+
+    private PagedResult<RecordNecessaryOutputModel>? records;
+    private bool isLoading = false;
+    private bool showRecordModal = false;
+    private int? editingRecordId = null;
+
+    //Фильтры
+    private DateOnly filterStartDate = new(DateOnly.FromDateTime(DateTime.Now).Year,
+                                       DateOnly.FromDateTime(DateTime.Now).Month, 1);
+    private DateOnly filterEndDate = DateOnly.FromDateTime(DateTime.Now);
+
+    private string searchText = "";
+    private string searchSex = "";
+
+    //Пагинация
+    private int currentPage = 1;
+    private const int pageSize = 50;
+
+    private DateOnly today = DateOnly.FromDateTime(DateTime.Now);
+
+    private int currentCabinetId = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Получить кабинет текущего пользователя
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var userId = GetUserIdFromClaims(authState.User);
+        currentCabinetId = await UserService.GetUserCabinetIdAsync(userId);
+
+        await LoadRecords();
+    }
+
+    private int GetUserIdFromClaims(ClaimsPrincipal user)
+    {
+        var customIdClaim = user.FindFirst("UserId");
+        if (customIdClaim != null && int.TryParse(customIdClaim.Value, out int customId))
+        {
+            return customId;
+        }
+        return 0; // Значение по умолчанию
+    }
+
+    private async Task LoadRecords()
+    {
+        isLoading = true;
+        StateHasChanged();
+
+        var result = await RecordService.GetNecessaryRecordsPagedAsync(
+            currentPage,
+            pageSize,
+            filterStartDate,
+            filterEndDate,
+            searchText);
+
+        if (result.Success)
+            {
+                records = result.Data;
+            }
+        else
+            {
+                // Показать ошибку
+                Console.WriteLine($"Ошибка: {result.ErrorMessage}");
+            }
+
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    private async Task ApplyFilters()
+    {
+        currentPage = 1;
+        await LoadRecords();
+    }
+
+    private async Task ShowAddRecordModal()
+    {
+        editingRecordId = null;
+        showRecordModal = true;
+        StateHasChanged();
+    }
+
+    private async Task EditRecord(int recordId)
+    {
+        editingRecordId = recordId;
+        showRecordModal = true;
+        StateHasChanged();
+    }
+    private void HideRecordModal()
+    {
+        showRecordModal = false;
+        editingRecordId = null;
+        StateHasChanged();
+    }
+
+    private async Task HandleSaveRecord()
+    {
+        HideRecordModal();
+        await LoadRecords();
+    }
+
+    private async Task GoToPage(int page)
+    {
+        if (page < 1 || page > records?.TotalPages) return;
+        currentPage = page;
+        await LoadRecords();
+    }
+} 

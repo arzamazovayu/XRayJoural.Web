@@ -12,7 +12,7 @@ namespace XRayJournal.Core.IRepositories
     {
         public List<XRayExamDTO> GetAllExams();
 
-        public List<XRayExamDTO> GetNecessaryExams();
+        //public List<XRayExamDTO> GetNecessaryExams();
 
         public XRayExamDTO Add(XRayExamDTO exam);
 
@@ -20,7 +20,9 @@ namespace XRayJournal.Core.IRepositories
 
         public bool Delete(int id);
 
-        public XRayExamDTO GetById(int id);
+        public XRayExamDTO? GetById(int id);
+
+        public List<XRayExamDTO> GetByPatientId(int patientId);
 
     }
 }

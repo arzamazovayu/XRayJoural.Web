@@ -38,5 +38,13 @@ namespace XRayJournal.DAL
         {
             return await _dataContext.Users.FirstOrDefaultAsync(u => u.Login == login);
         }
+
+        //Получение пользователя с кабинетом
+        public async Task<UserDTO?> GetByIdWithCabinetsAsync(int id)
+        {
+            return await _dataContext.Users
+                .Include(u => u.Cabinets)
+                .FirstOrDefaultAsync(u => u.ID == id);
+        }
     }
 }
