@@ -14,7 +14,7 @@ namespace XRayJournal.Core.DTOs
 
         public int NumberId { get; set; }
 
-        public int ExamId { get; set; }
+        public int? ExamId { get; set; }
 
         public int UserId { get; set; }
 

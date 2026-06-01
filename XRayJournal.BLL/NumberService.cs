@@ -118,6 +118,26 @@ namespace XRayJournal.BLL
             }
         }
 
+        public async Task<OperationResult<NumberOutputModel>> CreateNumberAsync(
+            NumberInputModel numberInput, int patientId, DateOnly xRayDate)
+        {
+            try
+            {
+                var numberDto = numberInput.Adapt<NumberDTO>();
+                numberDto.PatientId = patientId;
+                numberDto.XRayDate = xRayDate;
+
+                var created = await _numberRepository.AddAsync(numberDto);
+                var result = created.Adapt<NumberOutputModel>();
+
+                return OperationResult<NumberOutputModel>.Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return OperationResult<NumberOutputModel>.Fail($"Ошибка создания номера: {ex.Message}");
+            }
+        }
+
         /// <summary>
         /// Получает последний номер для отображения
         /// </summary>

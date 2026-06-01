@@ -23,5 +23,7 @@ namespace XRayJournal.Core.IRepositories
         public Task<NumberDTO> UpdateAsync(NumberDTO number);
 
         public bool Delete(int id);
+
+        public Task<NumberDTO?> GetByIdAsync(int id);
     }
 }

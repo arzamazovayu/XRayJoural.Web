@@ -9,6 +9,7 @@ using XRayJournal.Core.InputModels;
 using Mapster;
 using XRayJournal.Core.DTOs;
 using XRayJournal.Core.Results;
+using Microsoft.EntityFrameworkCore;
 
 namespace XRayJournal.BLL
 {
@@ -85,8 +86,8 @@ namespace XRayJournal.BLL
                 Console.WriteLine($"[DEBUG] Calculated number: {yearly}/{daily} for cabinet {cabinetId}"); //ОТЛАДКА
                 var number = new NumberDTO
                 {
-                    YearlyNum = yearly,
-                    DailyNum = daily,
+                    YearlyNum = input.Number.YearlyNum,
+                    DailyNum = input.Number.DailyNum,
                     XRayDate = input.Date,
                     PatientId = patient.Id
                 };
@@ -212,6 +213,95 @@ namespace XRayJournal.BLL
             {
                 return OperationResult<PagedResult<RecordNecessaryOutputModel>>.Fail(
                     $"Ошибка получения записей: {ex.Message}");
+            }
+        }
+
+        public async Task<OperationResult<RecordOutputModel>> UpdateRecordAsync(
+            int recordId, int patientId, int numberId, int userId, DateOnly date)
+        {
+            try
+            {
+                var record = new RecordDTO
+                {
+                    Id = recordId,
+                    PatientId = patientId,
+                    NumberId = numberId,
+                    UserId = userId,
+                    Date = date
+                };
+
+                var updated = await _recordRepository.UpdateAsync(record);
+                if (updated == null)
+                    return OperationResult<RecordOutputModel>.Fail("Запись не найдена");
+
+                var result = updated.Adapt<RecordOutputModel>();
+                return OperationResult<RecordOutputModel>.Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return OperationResult<RecordOutputModel>.Fail($"Ошибка обновления записи: {ex.Message}");
+            }
+        }
+
+        
+        public async Task<OperationResult<RecordOutputModel>> CreateEmptyRecordAsync(
+            int patientId, int numberId, int userId, DateOnly date)
+        {
+            try
+            {
+                // Проверка 1: существует ли пациент
+                var patient = _patientRepository.GetById(patientId);
+                if (patient == null)
+                {
+                    return OperationResult<RecordOutputModel>.Fail($"Пациент с ID {patientId} не найден");
+                }
+
+                // Проверка 2: существует ли номер
+                var number = await _numberRepository.GetByIdAsync(numberId);
+                if (number == null)
+                {
+                    return OperationResult<RecordOutputModel>.Fail($"Номер с ID {numberId} не найден");
+                }
+
+                var record = new RecordDTO
+                {
+                    PatientId = patientId,
+                    NumberId = numberId,
+                    ExamId = null,
+                    UserId = userId,
+                    Date = date
+                };
+
+                var created = await _recordRepository.AddAsync(record);
+                var result = created.Adapt<RecordOutputModel>();
+                return OperationResult<RecordOutputModel>.Ok(result);
+            }
+            catch (DbUpdateException ex)
+            {
+                var innerMessage = ex.InnerException?.Message ?? ex.Message;
+                return OperationResult<RecordOutputModel>.Fail($"Ошибка БД: {innerMessage}");
+            }
+            catch (Exception ex)
+            {
+                return OperationResult<RecordOutputModel>.Fail($"Ошибка создания записи: {ex.Message}");
+            }
+        }
+
+        public async Task<OperationResult<bool>> UpdateRecordExamIdAsync(int recordId, int examId)
+        {
+            try
+            {
+                var success = await _recordRepository.UpdateExamIdAsync(recordId, examId);
+                if (!success)
+                {
+                    return OperationResult<bool>.Fail("Запись не найдена");
+                }
+
+                return OperationResult<bool>.Ok(true);
+            }
+            catch (Exception ex)
+            {
+                return OperationResult<bool>.Fail($"Ошибка: {ex.Message}");
             }
         }
     }

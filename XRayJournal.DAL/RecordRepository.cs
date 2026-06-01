@@ -166,5 +166,18 @@ namespace XRayJournal.DAL
 
             return records.Select(r => r.Adapt<RecordNecessaryOutputModel>()).ToList();
         }
+
+        public async Task<bool> UpdateExamIdAsync(int recordId, int examId)
+        {
+            var record = await _dataContext.Records.FindAsync(recordId);
+            if (record == null)
+            {
+                return false;
+            }
+
+            record.ExamId = examId;
+            await _dataContext.SaveChangesAsync();
+            return true;
+        }
     }
 }

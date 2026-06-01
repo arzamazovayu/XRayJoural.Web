@@ -40,24 +40,34 @@
                     @if (activeTab == "patient")
                     {
                         <div class="tab-pane fade show active">
-                            <EditForm Model="FormModel.Patient" OnValidSubmit="SavePatientOnly" FormName="PatientForm">
+                            <EditForm Model="FormModel.Patient" OnValidSubmit="SaveCascade" FormName="PatientForm">
                                 <DataAnnotationsValidator />
                                 <div class="row">
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
+                                        <div class="mb-3">
+                                            <label class="form-label">№ п/п</label>
+                                            <div class="input-group">
+                                                <InputNumber class="form-control" @bind-Value="FormModel.Number.YearlyNum" min="1" style="width: 80px;" />
+                                                <span class="input-group-text">/</span>
+                                                <InputNumber class="form-control" @bind-Value="FormModel.Number.DailyNum" min="1" style="width: 80px;" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
                                         <div class="mb-3">
                                             <label class="form-label">Фамилия *</label>
                                             <InputText class="form-control" @bind-Value="FormModel.Patient.SecondName" />
                                             <ValidationMessage For="() => FormModel.Patient.SecondName" />
                                         </div>
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <div class="mb-3">
                                             <label class="form-label">Имя *</label>
                                             <InputText class="form-control" @bind-Value="FormModel.Patient.FirstName" />
                                             <ValidationMessage For="() => FormModel.Patient.FirstName" />
                                         </div>
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <div class="mb-3">
                                             <label class="form-label">Отчество</label>
                                             <InputText class="form-control" @bind-Value="FormModel.Patient.ThirdName" />
@@ -94,9 +104,9 @@
                                 <div class="row mt-3">
                                     <div class="col-md-6 d-flex gap-2">
                                         <!-- Кнопка сохранения пациента -->
-                                        <button type="submit" class="btn btn-outline-success" >
+                                        <button type="submit" class="btn btn-outline-success">
                                             <i class="bi bi-save"></i> 
-                                            Добавить пациента
+                                            @(existingPatientId > 0 ? "Обновить" : "Сохранить")
                                         </button>
                                         <!-- Кнопка удаления пациента -->
                                         @if (existingPatientId > 0)
@@ -335,7 +345,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" @onclick="CloseModal">Закрыть</button>
-                @if (existingRecordId > 0)
+                @if (existingPatientId > 0)
                 {
                     <button type="button" class="btn btn-success" @onclick="SaveFullRecord">
                         Сохранить запись
@@ -469,6 +479,21 @@
         FormModel.Patient.BirthDate = today;
 
         await LoadData();
+        await SuggestNumbers();
+    }
+
+    private async Task SuggestNumbers()
+    {
+        if (CurrentCabinetId > 0 && existingRecordId == 0)
+        {
+            var (yearly, daily) = await NumberService.CalculateNextNumberAsync(today, CurrentCabinetId);
+
+            // Предлагаем номера, только если они ещё не установлены
+            if (FormModel.Number.YearlyNum == 0)
+                FormModel.Number.YearlyNum = yearly;
+            if (FormModel.Number.DailyNum == 0)
+                FormModel.Number.DailyNum = daily;
+        }
     }
 
     private async Task LoadData()
@@ -625,26 +650,56 @@
 
     private async Task SaveExam()
     {
+        OperationResult<XRayExamOutputModel> result;
         // Обновляем список исследований пациента
         if (editingExamId.HasValue)
         {
             // Обновление существующего исследования
-            var result = XRayExamService.Update(currentExam);
-            if (result.Success)
-            {
-                await LoadPatientExams(existingPatientId);
-                await JS.InvokeVoidAsync("alert", "Исследование обновлено");
-            }
+            result = XRayExamService.Update(currentExam);
+            // if (result.Success)
+            // {
+            //     await LoadPatientExams(existingPatientId);
+            //     await JS.InvokeVoidAsync("alert", "Исследование обновлено");
+            // }
         }
         else
         {
-            // Добавление нового исследования
-            var result = XRayExamService.Add(currentExam);
-            if (result.Success)
+            currentExam.CabinetId = CurrentCabinetId;
+            result = XRayExamService.Add(currentExam);
+        }
+
+        if (result.Success)
+        {
+            var savedExam = result.Data;
+
+            //Обновляем запись, добавляя ExamId
+            if (existingRecordId > 0)
             {
-                await LoadPatientExams(existingPatientId);
-                await JS.InvokeVoidAsync("alert", "Исследование добавлено");
+                await RecordService.UpdateRecordExamIdAsync(existingRecordId, savedExam.Id);
             }
+
+            await LoadPatientExams(existingPatientId);
+
+            FormModel.Exam.Id = savedExam.Id;
+            FormModel.Exam.XRayName = savedExam.XRayName;
+            FormModel.Exam.XRayDose = savedExam.XRayDose;
+            FormModel.Exam.XRayShots = savedExam.XRayShots;
+            FormModel.Exam.XRayDate = savedExam.XRayDate;
+            FormModel.Exam.Category = savedExam.Category;
+            FormModel.Exam.XRayDiagnose = savedExam.XRayDiagnose;
+            FormModel.Exam.XRayPatology = savedExam.XRayPatology;
+            FormModel.Exam.XRayCost = savedExam.XRayCost;
+            FormModel.Exam.Doctor = savedExam.Doctor;
+            FormModel.Exam.Laborant = savedExam.Laborant;
+            FormModel.Exam.XRayModality = savedExam.XRayModality;
+            FormModel.Exam.InOperation = savedExam.InOperation;
+            FormModel.Exam.Contrast = savedExam.Contrast;
+            FormModel.Exam.CabinetId = savedExam.CabinetId;
+            FormModel.Exam.Side = savedExam.Side;
+            FormModel.Exam.Area = savedExam.Area;
+
+            await JS.InvokeVoidAsync("alert", "Исследование добавлено");
+            StateHasChanged();
         }
         CancelExamEdit();
     }
@@ -745,6 +800,32 @@
             await JS.InvokeVoidAsync("alert", "Сначала сохраните данные пациента!");
             return;
         }
+        //Проверка, что номер введён
+        if (FormModel.Number.YearlyNum <= 0 || FormModel.Number.DailyNum <= 0)
+        {
+            await JS.InvokeVoidAsync("alert", "Укажите номер записи!");
+            return;
+        }
+
+        // Если есть исследования, берём первое (или можно выбирать)
+        if (existingExams != null && existingExams.Any())
+        {
+            var exam = existingExams.First();
+            FormModel.Exam.Id = exam.Id;
+            FormModel.Exam.XRayName = exam.XRayName;
+            FormModel.Exam.XRayDose = exam.XRayDose;
+            FormModel.Exam.XRayShots = exam.XRayShots;
+            FormModel.Exam.XRayDate = exam.XRayDate;
+            FormModel.Exam.Category = exam.Category;
+        }
+        else
+        {
+            // Можно создать запись без исследования
+            // Для этого нужно модифицировать RecordService
+            await JS.InvokeVoidAsync("alert", "Добавьте хотя бы одно исследование");
+            return;
+        }
+
         // Получаем текущего пользователя
         var result = await RecordService.CreateRecordAsync(FormModel, CurrentUserId, CurrentCabinetId);
         if (result.Success)
@@ -762,31 +843,132 @@
         }
     }
 
-    private async Task SavePatientOnly()
+    private async Task<bool> SavePatient()
     {
+        OperationResult<PatientOutputModel> result;
+
         if (existingPatientId > 0)
         {
             // Обновление существующего пациента
-            var result = PatientService.Update(FormModel.Patient);
-            if (result.Success)
-            {
-                existingPatientId = result.Data.Id;
-                await JS.InvokeVoidAsync("alert", "Данные пациента сохранены");
-            }
+            result = PatientService.Update(FormModel.Patient);
         }
         else
         {
             // Создание нового пациента
-            var result = PatientService.Add(FormModel.Patient);
-            if (result.Success)
-            {
-                existingPatientId = result.Data.Id;
-                FormModel.Patient.Id = existingPatientId;
-                await JS.InvokeVoidAsync("alert", "Пациент создан");
-            }
+            result = PatientService.Add(FormModel.Patient);
+        }
+        if (!result.Success)
+        {
+            await JS.InvokeVoidAsync("alert", $"Ошибка сохранения пациента: {result.ErrorMessage}");
+            return false;
         }
 
-        // После успешного сохранения пациента, переключаемся на исследования
+        existingPatientId = result.Data.Id;
+        FormModel.Patient.Id = existingPatientId;
+
+        return true;
+    }
+
+    private async Task<bool> SaveNumber()
+    {
+        if (FormModel.Number.Id > 0)
+        {
+            // Обновление существующего номера
+            var number = await NumberService.UpdateNumberAsync(FormModel.Number);
+            if (!number.Success)
+            {
+                await JS.InvokeVoidAsync("alert", $"Ошибка обновления номера: {number.ErrorMessage}");
+                return false;
+            }
+            return true;
+        }
+        else
+        {
+            var number = await NumberService.CreateNumberAsync( FormModel.Number, existingPatientId, FormModel.Date);
+            if (!number.Success)
+            {
+                await JS.InvokeVoidAsync("alert", $"Ошибка сохранения номера: {number.ErrorMessage}");
+                return false;
+            }
+            FormModel.Number.Id = number.Data.Id;
+            return true;
+        }
+    }
+
+    private async Task<bool> SaveRecord()
+    {
+        try
+        {
+            if (existingRecordId > 0)
+            {
+                // Обновление существующей записи
+                var result = await RecordService.UpdateRecordAsync(
+                    existingRecordId,
+                    existingPatientId,
+                    FormModel.Number.Id,
+                    CurrentUserId,
+                    FormModel.Date);
+
+                if (!result.Success)
+                {
+                    await JS.InvokeVoidAsync("alert", $"Ошибка обновления записи: {result.ErrorMessage}");
+                    return false;
+                }
+                return true;
+            }
+            else
+            {
+                var result = await RecordService.CreateEmptyRecordAsync(
+                    existingPatientId,
+                    FormModel.Number.Id,
+                    CurrentUserId,
+                    FormModel.Date);
+
+                if (!result.Success)
+                {
+                    await JS.InvokeVoidAsync("alert", $"Ошибка создания записи: {result.ErrorMessage}");
+                    return false;
+                }
+
+                existingRecordId = result.Data.Id;
+                Console.WriteLine($"[DEBUG] Запись создана: ID={existingRecordId}, PatientId={existingPatientId}, NumberId={FormModel.Number.Id}");
+                return true;
+            }
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Ошибка в SaveRecordToDb: {ex.Message}");
+            return false;
+        }
+    }
+
+    private async Task SaveCascade()
+    {
+        // 1. Сохраняем пациента
+        if (!await SavePatient()) 
+        {
+            await JS.InvokeVoidAsync("alert", "Ошибка сохранения пациента");
+            Console.WriteLine($"[DEBUG] Проверка на уровне SavePatient(): ID={existingRecordId}, PatientId={existingPatientId}, NumberId={FormModel.Number.Id}");
+            return; 
+        }
+
+        // 2. Сохраняем номер
+        if (!await SaveNumber()) 
+        {
+            await JS.InvokeVoidAsync("alert", "Ошибка сохранения номера");
+            Console.WriteLine($"[DEBUG] Проверка на уровне SaveNumber(): ID={existingRecordId}, PatientId={existingPatientId}, NumberId={FormModel.Number.Id}");
+            return; 
+        }
+
+        // 3. Создаём запись
+        if (!await SaveRecord()) 
+        {
+            await JS.InvokeVoidAsync("alert", "Ошибка создания записи");
+            Console.WriteLine($"[DEBUG] Проверка на уровне SaveRecord(): ID={existingRecordId}, PatientId={existingPatientId}, NumberId={FormModel.Number.Id}");
+            return;
+        }
+
+        await JS.InvokeVoidAsync("alert", "Данные сохранены");
         activeTab = "exams";
         StateHasChanged();
     }

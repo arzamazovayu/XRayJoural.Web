@@ -76,5 +76,10 @@ namespace XRayJournal.DAL
 
             return await query.FirstOrDefaultAsync();
         }
+
+        public async Task<NumberDTO?> GetByIdAsync(int id)
+        {
+            return await _dataContext.Numbers.FindAsync(id);
+        }
     }
 }

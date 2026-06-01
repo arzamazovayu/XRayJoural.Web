@@ -30,5 +30,8 @@ namespace XRayJournal.Core.IRepositories
 
         public Task<List<RecordNecessaryOutputModel>> GetNecessaryRecordsAsync(
             DateOnly? startDate = null, DateOnly? endDate = null, int? cabinetId = null);
+
+        Task<bool> UpdateExamIdAsync(int recordId, int examId);
+
     }
 }
