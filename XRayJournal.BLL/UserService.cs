@@ -57,5 +57,25 @@ namespace XRayJournal.BLL
             // Если у пользователя несколько кабинетов, можно вернуть первый или текущий
             return user?.Cabinets?.FirstOrDefault()?.Id ?? 0;
         }
+
+        public async Task<OperationResult<UserOutputModel>> GetByIdAsync (int id)
+        {
+            try
+            {
+                var user = await _userRepository.GetByIdAsync(id);
+                if (user != null)
+                {
+                    var result = user.Adapt<UserOutputModel>();
+                    return OperationResult<UserOutputModel>.Ok(result);
+                }
+                else
+                {
+                    return OperationResult<UserOutputModel>.Fail($"Пользователь с id = {id} не найден.");
+                }
+            }catch(Exception ex)
+            {
+                return OperationResult<UserOutputModel>.Fail($"Ошибка поиска пользователя: {ex.Message}");
+            }
+        }
     }
 }

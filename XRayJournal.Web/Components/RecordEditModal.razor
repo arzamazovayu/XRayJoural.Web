@@ -6,6 +6,7 @@
 @inject PatientService PatientService
 @inject XRayExamService XRayExamService
 @inject NumberService NumberService
+@inject UserService UserService
 @inject IJSRuntime JS
 
 <div class="modal show d-block fade" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
@@ -18,319 +19,319 @@
 
 
             <div class="modal-body">
-                    <!-- Вкладки -->
-                    <ul class="nav nav-tabs mb-3">
-                        <li class="nav-item">
-                            <button type="button" class="nav-link @(activeTab == "patient" ? "active" : "")" 
-                                @onclick=@(() => activeTab = "patient")>
-                                Данные пациента
-                            </button>
-                        </li>
-                        <li class="nav-item">
-                            <button type="button" class="nav-link @(activeTab == "exams" ? "active" : "")"
-                            @onclick=@(() => activeTab = "exams")> 
-                                Исследования
-                            </button>
-                        </li>
-                    </ul>
+                <!-- Вкладки -->
+                <ul class="nav nav-tabs mb-3">
+                    <li class="nav-item">
+                        <button type="button" class="nav-link @(activeTab == "patient" ? "active" : "")" 
+                        @onclick=@(() => activeTab = "patient")>
+                            Данные пациента
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button type="button" class="nav-link @(activeTab == "exams" ? "active" : "")"
+                        @onclick=@(() => activeTab = "exams")> 
+                            Исследования
+                        </button>
+                    </li>
+                </ul>
 
-                    <div class="tab-content mt-3">
-                        <!-- Вкладка данных пациента -->
-                        @if (activeTab == "patient")
+                <div class="tab-content mt-3">
+                    <!-- Вкладка данных пациента -->
+                    @if (activeTab == "patient")
+                    {
+                        <div class="tab-pane fade show active">
+                            <EditForm Model="FormModel.Patient" OnValidSubmit="SavePatientOnly" FormName="PatientForm">
+                                <DataAnnotationsValidator />
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label class="form-label">Фамилия *</label>
+                                            <InputText class="form-control" @bind-Value="FormModel.Patient.SecondName" />
+                                            <ValidationMessage For="() => FormModel.Patient.SecondName" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label class="form-label">Имя *</label>
+                                            <InputText class="form-control" @bind-Value="FormModel.Patient.FirstName" />
+                                            <ValidationMessage For="() => FormModel.Patient.FirstName" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label class="form-label">Отчество</label>
+                                            <InputText class="form-control" @bind-Value="FormModel.Patient.ThirdName" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Дата рождения *</label>
+                                            <InputDate class="form-control" @bind-Value="FormModel.Patient.BirthDate" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label class="form-label">Пол *</label>
+                                            <InputSelect class="form-select" @bind-Value="FormModel.Patient.Sex">
+                                                <option value="Иное">Не определён</option>
+                                                <option value="Муж">Муж</option>
+                                                <option value="Жен">Жен</option>
+                                            </InputSelect>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label class="form-label">Номер карты *</label>
+                                            <InputText class="form-control" @bind-Value="FormModel.Patient.MedNumber" />
+                                            <ValidationMessage For="() => FormModel.Patient.MedNumber" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row mt-3">
+                                    <div class="col-md-6 d-flex gap-2">
+                                        <!-- Кнопка сохранения пациента -->
+                                        <button type="submit" class="btn btn-outline-success" >
+                                            <i class="bi bi-save"></i> 
+                                            Добавить пациента
+                                        </button>
+                                        <!-- Кнопка удаления пациента -->
+                                        @if (existingPatientId > 0)
+                                        {
+                                            <AuthorizeView Roles="Doctor">
+                                                <Authorized Context="Doctor">
+                                                    <button type="button"
+                                                    class="btn btn-outline-danger btn-sm"
+                                                    @onclick="ShowDeletePatientModal">
+                                                        <i class="bi bi-trash"></i>Удалить пациента
+                                                    </button>
+                                                </Authorized>
+                                                <NotAuthorized Context ="Laborant"></NotAuthorized>
+                                            </AuthorizeView>
+                                        }
+                                    </div>
+                                </div>
+                            </EditForm>
+                        </div>
+                    }
+
+                    <!-- Вкладка исследований -->
+                    @if (activeTab == "exams")
+                    {
+                        <!-- Список существующих исследований -->
+                        @if (existingExams != null && existingExams.Any())
                         {
-                            <div class="tab-pane fade show active">
-                                    <EditForm Model="FormModel.Patient" OnValidSubmit="SavePatientOnly" FormName="PatientForm">
-                                    <DataAnnotationsValidator />
-                                    <div class="row">
-                                        <div class="col-md-4">
-                                            <div class="mb-3">
-                                                <label class="form-label">Фамилия *</label>
-                                                <InputText class="form-control" @bind-Value="FormModel.Patient.SecondName" />
-                                                <ValidationMessage For="() => FormModel.Patient.SecondName" />
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="mb-3">
-                                                <label class="form-label">Имя *</label>
-                                                <InputText class="form-control" @bind-Value="FormModel.Patient.FirstName" />
-                                                <ValidationMessage For="() => FormModel.Patient.FirstName" />
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="mb-3">
-                                                <label class="form-label">Отчество</label>
-                                                <InputText class="form-control" @bind-Value="FormModel.Patient.ThirdName" />
+                            <div class="mb-4">
+                                <h6>Существующие исследования:</h6>
+                                @foreach (var exam in existingExams)
+                                {
+                                    <div class="card mb-2">
+                                        <div class="card-body py-2">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <strong>@exam.XRayName</strong> 
+                                                    <small class="text-muted ms-2">@exam.XRayDate.ToString("dd.MM.yyyy")</small>
+                                                    <br/>
+                                                    <small>Категория: @exam.Category | Снимков: @exam.XRayShots | 
+                                                        Доза: @exam.XRayDose мЗв</small>
+                                                </div>
+                                                <div>
+                                                    <button type="button" class="btn btn-sm btn-outline-primary me-2" 
+                                                    @onclick="() => EditExistingExam(exam)">
+                                                        Редактировать
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                    @onclick="() => ConfirmDeleteExam(exam)">
+                                                        Удалить
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle"></i> 
+                                У пациента пока нет исследований. Добавьте первое исследование.
+                            </div>
+                        }
+
+                        <!-- Форма для нового/редактируемого исследования -->
+                        @if (showExamForm)
+                        {
+                            <div class="border rounded p-3 mb-3 bg-light">
+                                <h6>@(editingExamId.HasValue ? "Редактирование исследования" : "Новое исследование")</h6>
+                                <EditForm Model="currentExam" OnValidSubmit="SaveExam">
+                                    <DataAnnotationsValidator />
 
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="mb-3">
-                                                <label class="form-label">Дата рождения *</label>
-                                                <InputDate class="form-control" @bind-Value="FormModel.Patient.BirthDate" />
+                                                <label class="form-label">Название исследования *</label>
+                                                <InputText class="form-control" @bind-Value="currentExam.XRayName" />
+                                                <ValidationMessage For="() => currentExam.XRayName" />
                                             </div>
                                         </div>
-                                        <div class="col-md-4">
+                                        <div class="col-md-3">
                                             <div class="mb-3">
-                                                <label class="form-label">Пол *</label>
-                                                <InputSelect class="form-select" @bind-Value="FormModel.Patient.Sex">
-                                                    <option value="Иное">Не определён</option>
-                                                    <option value="Муж">Муж</option>
-                                                    <option value="Жен">Жен</option>
+                                                <label class="form-label">Дата исследования *</label>
+                                                <InputDate class="form-control" @bind-Value="currentExam.XRayDate" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="mb-3">
+                                                <label class="form-label">Категория *</label>
+                                                <InputSelect class="form-select" @bind-Value="currentExam.Category">
+                                                    <option value="Другое">Другое</option>
+                                                    <option value="ОМС">ОМС</option>
+                                                    <option value="ВМП ОМС">ВМП ОМС</option>
+                                                    <option value="ДМС">ДМС</option>
+                                                    <option value="ИД ФЛ">ИД ФЛ</option>
+                                                    <option value="ИД ЮЛ">ИД ЮЛ</option>
                                                 </InputSelect>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="mb-3">
-                                                <label class="form-label">Номер карты *</label>
-                                                <InputText class="form-control" @bind-Value="FormModel.Patient.MedNumber" />
-                                                <ValidationMessage For="() => FormModel.Patient.MedNumber" />
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div class="row mt-3">
-                                        <div class="col-md-6 d-flex gap-2">
-                                            <!-- Кнопка сохранения пациента -->
-                                            <button type="submit" class="btn btn-outline-success" >
-                                                <i class="bi bi-save"></i> 
-                                                Добавить пациента
-                                            </button>
-                                            <!-- Кнопка удаления пациента -->
-                                        @if (existingPatientId > 0)
-                                            {
-                                                <AuthorizeView Roles="Doctor">
-                                                    <Authorized Context="Doctor">
-                                                        <button type="button"
-                                                        class="btn btn-outline-danger btn-sm"
-                                                        @onclick="ShowDeletePatientModal">
-                                                            <i class="bi bi-trash"></i>Удалить пациента
-                                                        </button>
-                                                    </Authorized>
-                                                    <NotAuthorized Context ="Laborant"></NotAuthorized>
-                                                </AuthorizeView>
-                                            }
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <div class="mb-3">
+                                                <label class="form-label">Снимков/серий</label>
+                                                <InputNumber class="form-control" @bind-Value="currentExam.XRayShots" min="0" />
+                                            </div>
                                         </div>
+                                        <div class="col-md-3">
+                                            <div class="mb-3">
+                                                <label class="form-label">Доза (мЗв)</label>
+                                                <InputNumber class="form-control" @bind-Value="currentExam.XRayDose" step="0.001" min="0" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="mb-3">
+                                                <label class="form-label">Модальность</label>
+                                                <InputSelect class="form-select" @bind-Value="currentExam.XRayModality">
+                                                    <option value="">-- Выберите --</option>
+                                                    <option value="Цифровая рентгенография">Цифровая рентгенография</option>
+                                                    <option value="Аналоговая рентгенография">Аналоговая рентгенография</option>
+                                                    <option value="КТ">КТ</option>
+                                                    <option value="МРТ">МРТ</option>
+                                                    <option value="УЗИ">УЗИ</option>
+                                                    <option value="Маммография">Маммография</option>
+                                                </InputSelect>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="mb-3">
+                                                <label class="form-label">Стоимость</label>
+                                                <InputNumber class="form-control" @bind-Value="currentExam.XRayCost" min="0" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <label class="form-label">Врач</label>
+                                                <InputText class="form-control" @bind-Value="currentExam.Doctor" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <label class="form-label">Лаборант</label>
+                                                <InputText class="form-control" @bind-Value="currentExam.Laborant" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <label class="form-label">Диагноз</label>
+                                                <InputText class="form-control" @bind-Value="currentExam.XRayDiagnose" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <div class="form-check">
+                                                <InputCheckbox class="form-check-input" @bind-Value="currentExam.XRayPatology" />
+                                                <label class="form-check-label">Патология</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-check">
+                                                <InputCheckbox class="form-check-input" @bind-Value="currentExam.InOperation" />
+                                                <label class="form-check-label">В операционной</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-check">
+                                                <InputCheckbox class="form-check-input" @bind-Value="currentExam.Contrast" />
+                                                <label class="form-check-label">Контраст</label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <div class="mb-3">
+                                                <label class="form-label">Сторона</label>
+                                                <InputSelect class="form-select" @bind-Value="currentExam.Side">
+                                                    <option value="">-- Выберите --</option>
+                                                    <option value="Правая">Правая</option>
+                                                    <option value="Левая">Левая</option>
+                                                    <option value="Нет">Нет</option>
+                                                </InputSelect>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="mb-3">
+                                                <label class="form-label">Область исследования</label>
+                                                <InputSelect class="form-select" @bind-Value="currentExam.Area">
+                                                    <option value="">-- Выберите --</option>
+                                                    <option value=10>Голова</option>
+                                                    <option value=20>Шея</option>
+                                                    <option value=30>Грудь</option>
+                                                    <option value=40>Живот</option>
+                                                    <option value=50>Конечности</option>
+                                                    <option value=60>Таз</option>
+                                                    <option value=70>Позвоночник</option>
+                                                    <option value=80>Плод</option>
+                                                    <option value=90>Всё тело</option>
+                                                    <option value=0>Прочее</option>
+                                                </InputSelect>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-end gap-2 mt-3">
+                                        <button type="button" class="btn btn-secondary" @onclick="CancelExamEdit">Отмена</button>
+                                        <button type="submit" class="btn btn-primary">Сохранить исследование</button>
                                     </div>
                                 </EditForm>
                             </div>
                         }
 
-                        <!-- Вкладка исследований -->
-                        @if (activeTab == "exams")
+                        <!-- Кнопка добавления нового исследования -->
+                        @if (!showExamForm)
                         {
-                                <!-- Список существующих исследований -->
-                        @if (existingExams != null && existingExams.Any())
-                                {
-                                    <div class="mb-4">
-                                        <h6>Существующие исследования:</h6>
-                                        @foreach (var exam in existingExams)
-                                        {
-                                            <div class="card mb-2">
-                                                <div class="card-body py-2">
-                                                    <div class="d-flex justify-content-between align-items-center">
-                                                        <div>
-                                                            <strong>@exam.XRayName</strong> 
-                                                            <small class="text-muted ms-2">@exam.XRayDate.ToString("dd.MM.yyyy")</small>
-                                                            <br/>
-                                                            <small>Категория: @exam.Category | Снимков: @exam.XRayShots | 
-                                                                Доза: @exam.XRayDose мЗв</small>
-                                                        </div>
-                                                        <div>
-                                                            <button type="button" class="btn btn-sm btn-outline-primary me-2" 
-                                                            @onclick="() => EditExistingExam(exam)">
-                                                                Редактировать
-                                                            </button>
-                                                            <button type="button" class="btn btn-sm btn-outline-danger" 
-                                                            @onclick="() => ConfirmDeleteExam(exam)">
-                                                                Удалить
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        }
-                                    </div>
-                                }
-                                else
-                                {
-                                    <div class="alert alert-info">
-                                        <i class="bi bi-info-circle"></i> 
-                                        У пациента пока нет исследований. Добавьте первое исследование.
-                                    </div>
-                                }
-
-                                <!-- Форма для нового/редактируемого исследования -->
-                                @if (showExamForm)
-                                {
-                                            <div class="border rounded p-3 mb-3 bg-light">
-                                    <h6>@(editingExamId.HasValue ? "Редактирование исследования" : "Новое исследование")</h6>
-                                    <EditForm Model="currentExam" OnValidSubmit="SaveExam">
-                                        <DataAnnotationsValidator />
-
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <div class="mb-3">
-                                                    <label class="form-label">Название исследования *</label>
-                                                    <InputText class="form-control" @bind-Value="currentExam.XRayName" />
-                                                    <ValidationMessage For="() => currentExam.XRayName" />
-                                                </div>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <div class="mb-3">
-                                                    <label class="form-label">Дата исследования *</label>
-                                                    <InputDate class="form-control" @bind-Value="currentExam.XRayDate" />
-                                                </div>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <div class="mb-3">
-                                                    <label class="form-label">Категория *</label>
-                                                    <InputSelect class="form-select" @bind-Value="currentExam.Category">
-                                                        <option value="Другое">Другое</option>
-                                                        <option value="ОМС">ОМС</option>
-                                                        <option value="ВМП ОМС">ВМП ОМС</option>
-                                                        <option value="ДМС">ДМС</option>
-                                                        <option value="ИД ФЛ">ИД ФЛ</option>
-                                                        <option value="ИД ЮЛ">ИД ЮЛ</option>
-                                                    </InputSelect>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="row">
-                                            <div class="col-md-3">
-                                                <div class="mb-3">
-                                                    <label class="form-label">Снимков/серий</label>
-                                                    <InputNumber class="form-control" @bind-Value="currentExam.XRayShots" min="0" />
-                                                </div>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <div class="mb-3">
-                                                    <label class="form-label">Доза (мЗв)</label>
-                                                    <InputNumber class="form-control" @bind-Value="currentExam.XRayDose" step="0.001" min="0" />
-                                                </div>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <div class="mb-3">
-                                                    <label class="form-label">Модальность</label>
-                                                    <InputSelect class="form-select" @bind-Value="currentExam.XRayModality">
-                                                        <option value="">-- Выберите --</option>
-                                                        <option value="Цифровая рентгенография">Цифровая рентгенография</option>
-                                                        <option value="Аналоговая рентгенография">Аналоговая рентгенография</option>
-                                                        <option value="КТ">КТ</option>
-                                                        <option value="МРТ">МРТ</option>
-                                                        <option value="УЗИ">УЗИ</option>
-                                                        <option value="Маммография">Маммография</option>
-                                                    </InputSelect>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <div class="mb-3">
-                                                    <label class="form-label">Стоимость</label>
-                                                    <InputNumber class="form-control" @bind-Value="currentExam.XRayCost" min="0" />
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="row">
-                                            <div class="col-md-4">
-                                                <div class="mb-3">
-                                                    <label class="form-label">Врач</label>
-                                                    <InputText class="form-control" @bind-Value="currentExam.Doctor" />
-                                                </div>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <div class="mb-3">
-                                                    <label class="form-label">Лаборант</label>
-                                                    <InputText class="form-control" @bind-Value="currentExam.Laborant" />
-                                                </div>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <div class="mb-3">
-                                                    <label class="form-label">Диагноз</label>
-                                                    <InputText class="form-control" @bind-Value="currentExam.XRayDiagnose" />
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="row">
-                                            <div class="col-md-3">
-                                                <div class="form-check">
-                                                    <InputCheckbox class="form-check-input" @bind-Value="currentExam.XRayPatology" />
-                                                    <label class="form-check-label">Патология</label>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <div class="form-check">
-                                                    <InputCheckbox class="form-check-input" @bind-Value="currentExam.InOperation" />
-                                                    <label class="form-check-label">В операционной</label>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <div class="form-check">
-                                                    <InputCheckbox class="form-check-input" @bind-Value="currentExam.Contrast" />
-                                                    <label class="form-check-label">Контраст</label>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="row">
-                                            <div class="col-md-3">
-                                                <div class="mb-3">
-                                                    <label class="form-label">Сторона</label>
-                                                    <InputSelect class="form-select" @bind-Value="currentExam.Side">
-                                                        <option value="">-- Выберите --</option>
-                                                        <option value="Правая">Правая</option>
-                                                        <option value="Левая">Левая</option>
-                                                        <option value="Нет">Нет</option>
-                                                    </InputSelect>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <div class="mb-3">
-                                                    <label class="form-label">Область исследования</label>
-                                                    <InputSelect class="form-select" @bind-Value="currentExam.Area">
-                                                        <option value="">-- Выберите --</option>
-                                                        <option value=10>Голова</option>
-                                                        <option value=20>Шея</option>
-                                                        <option value=30>Грудь</option>
-                                                        <option value=40>Живот</option>
-                                                        <option value=50>Конечности</option>
-                                                        <option value=60>Таз</option>
-                                                        <option value=70>Позвоночник</option>
-                                                        <option value=80>Плод</option>
-                                                        <option value=90>Всё тело</option>
-                                                        <option value=0>Прочее</option>
-                                                    </InputSelect>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="d-flex justify-content-end gap-2 mt-3">
-                                            <button type="button" class="btn btn-secondary" @onclick="CancelExamEdit">Отмена</button>
-                                            <button type="submit" class="btn btn-primary">Сохранить исследование</button>
-                                        </div>
-                                    </EditForm>
-                                </div>
-                                }
-
-                                <!-- Кнопка добавления нового исследования -->
-                                @if (!showExamForm)
-                                {
-                                    <button type="button" class="btn btn-outline-primary" @onclick="AddNewExam">
-                                        <i class="bi bi-plus-circle"></i> 
-                                        Добавить новое исследование
-                                    </button>
-                                }
-                                @if (existingPatientId == 0)
-                                {
-                                        <div class="alert alert-warning">
-                                            <i class="bi bi-exclamation-triangle"></i>
-                                            Сначала сохраните данные пациента
-                                        </div>
-                                }
-                            }
-                    </div>
+                            <button type="button" class="btn btn-outline-primary" @onclick="AddNewExam">
+                                <i class="bi bi-plus-circle"></i> 
+                                Добавить новое исследование
+                            </button>
+                        }
+                        @if (existingPatientId == 0)
+                        {
+                            <div class="alert alert-warning">
+                                <i class="bi bi-exclamation-triangle"></i>
+                                Сначала сохраните данные пациента
+                            </div>
+                        }
+                    }
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" @onclick="CloseModal">Закрыть</button>
@@ -386,9 +387,9 @@
                             <p>Будут удалены:</p>
                             <ul>
                                 <li>Пациент: <strong>
-                                    @FormModel.Patient.SecondName 
-                                    @FormModel.Patient.FirstName 
-                                    @FormModel.Patient?.ThirdName
+                                        @FormModel.Patient.SecondName 
+                                        @FormModel.Patient.FirstName 
+                                        @FormModel.Patient?.ThirdName
                                     </strong></li>
                                 <li>Номер карты: <strong>@FormModel.Patient.MedNumber</strong></li>
                                 <li>Все связанные исследования: <strong>@existingExams?.Count</strong></li>
@@ -404,7 +405,7 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" @onclick="CancelDeletePatient">Отмена</button>
                         <button type="button" class="btn btn-danger" @onclick="DeletePatientConfirmed" 
-                            disabled="@(!confirmPatientDelete)">
+                        disabled="@(!confirmPatientDelete)">
                             <i class="bi bi-trash"></i> Удалить пациента
                         </button>
                     </div>
@@ -426,6 +427,9 @@
 
     [Parameter]
     public int CurrentCabinetId { get; set; }
+
+    [Parameter]
+    public int CurrentUserId { get; set; }
 
     private string activeTab = "patient";
 
@@ -454,10 +458,16 @@
     //Поле сегодняшней даты
     private DateOnly today = DateOnly.FromDateTime(DateTime.Now);
 
+    //Поля пользователя
+    private string currentUserFIO = string.Empty;
+
     private string Title => existingRecordId > 0 ? "Редактирование записи" : "Новая запись";
 
     protected override async Task OnInitializedAsync()
     {
+
+        FormModel.Patient.BirthDate = today;
+
         await LoadData();
     }
 
@@ -546,15 +556,35 @@
         await OnCancel.InvokeAsync();
     }
 
-    private void AddNewExam()
+    private async Task AddNewExam()
     {
         editingExamId = null;
-        currentExam = new XRayExamInputModel
+
+        var user = await UserService.GetByIdAsync(CurrentUserId);
+        string doctorName = null; //Для хранения ФИО врача
+        string laborantName = null; //Для хранения ФИО лаборанта
+
+        if (user.Success && user.Data != null)
         {
-            Category = "Другое",
-            CabinetId = CurrentCabinetId,
-            XRayDate = today
-        };
+            currentUserFIO = user.Data.FIOshort;
+            //Присваиваем ФИО в зависимости от авторизованной роли
+            if (user.Data.Role.ToString() == "Doctor")
+            {
+                doctorName = currentUserFIO;
+            }else if(user.Data.Role.ToString() == "Laborant")
+            {
+                laborantName = currentUserFIO;
+            }
+        }
+        currentExam = new XRayExamInputModel
+            {
+                Category = "Другое",
+                CabinetId = CurrentCabinetId,
+                XRayDate = today,
+                Doctor = doctorName,
+                Laborant = laborantName,
+            }; //XRayJournal.Core.Results.OperationResult<T>.Data.get вернул null.
+
         showExamForm = true;
     }
 
@@ -709,10 +739,14 @@
 
     private async Task SaveFullRecord()
     {
+        // Проверка, что пациент сохранён
+        if (existingPatientId == 0)
+        {
+            await JS.InvokeVoidAsync("alert", "Сначала сохраните данные пациента!");
+            return;
+        }
         // Получаем текущего пользователя
-        var userId = 1; // Временно, потом из контекста
-        
-        var result = await RecordService.CreateRecordAsync(FormModel, userId, CurrentCabinetId);
+        var result = await RecordService.CreateRecordAsync(FormModel, CurrentUserId, CurrentCabinetId);
         if (result.Success)
         {
             await JS.InvokeVoidAsync("alert", "Запись сохранена");
