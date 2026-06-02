@@ -144,7 +144,7 @@ namespace XRayJournal.DAL
             // Фильтрация по кабинету
             if (cabinetId.HasValue)
             {
-                query = query.Where(r => r.Exam.IdCabinet == cabinetId.Value);
+                query = query.Where(r => r.Exam != null && r.Exam.IdCabinet == cabinetId.Value);
             }
 
             //Фильтрация по дате
@@ -156,7 +156,7 @@ namespace XRayJournal.DAL
             //Сортировка по дате и номеру
             var records = await query
                 .OrderBy(r => r.Date)
-                .ThenBy(r => r.Number.YearlyNum)
+                .ThenBy(r => r.Number != null ? r.Number.YearlyNum : 0)
                 .ToListAsync();
 
             //Группировка по пациенту и дате для определения множественных исследований
@@ -164,7 +164,8 @@ namespace XRayJournal.DAL
                 .GroupBy(r => new { r.PatientId, r.Date })
                 .ToDictionary(g => g.Key, g => g.Count());
 
-            return records.Select(r => r.Adapt<RecordNecessaryOutputModel>()).ToList();
+            return records.Select(r => r.Adapt<RecordNecessaryOutputModel>()).ToList();//System.NullReferenceException: "Object reference not set to an instance of an object."
+
         }
 
         public async Task<bool> UpdateExamIdAsync(int recordId, int examId)

@@ -137,30 +137,33 @@
                             <div class="mb-4">
                                 <h6>Существующие исследования:</h6>
                                 @foreach (var exam in existingExams)
-                                {
-                                    <div class="card mb-2">
-                                        <div class="card-body py-2">
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <div>
-                                                    <strong>@exam.XRayName</strong> 
-                                                    <small class="text-muted ms-2">@exam.XRayDate.ToString("dd.MM.yyyy")</small>
-                                                    <br/>
-                                                    <small>Категория: @exam.Category | Снимков: @exam.XRayShots | 
-                                                        Доза: @exam.XRayDose мЗв</small>
-                                                </div>
-                                                <div>
-                                                    <button type="button" class="btn btn-sm btn-outline-primary me-2" 
-                                                    @onclick="() => EditExistingExam(exam)">
-                                                        Редактировать
-                                                    </button>
-                                                    <button type="button" class="btn btn-sm btn-outline-danger" 
-                                                    @onclick="() => ConfirmDeleteExam(exam)">
-                                                        Удалить
-                                                    </button>
+                                {// exam было null.
+                                    @if (exam != null)
+                                    {
+                                        <div class="card mb-2">
+                                            <div class="card-body py-2">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <strong>@exam.XRayName</strong> 
+                                                        <small class="text-muted ms-2">@exam.XRayDate.ToString("dd.MM.yyyy")</small>
+                                                        <br/>
+                                                        <small>Категория: @exam.Category | Снимков: @exam.XRayShots | 
+                                                            Доза: @exam.XRayDose мЗв</small>
+                                                    </div>
+                                                    <div>
+                                                        <button type="button" class="btn btn-sm btn-outline-primary me-2" 
+                                                        @onclick="() => EditExistingExam(exam)">
+                                                            Редактировать
+                                                        </button>
+                                                        <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                        @onclick="() => ConfirmDeleteExam(exam)">
+                                                            Удалить
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    }
                                 }
                             </div>
                         }
@@ -345,12 +348,6 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" @onclick="CloseModal">Закрыть</button>
-                @if (existingPatientId > 0)
-                {
-                    <button type="button" class="btn btn-success" @onclick="SaveFullRecord">
-                        Сохранить запись
-                    </button>
-                }
             </div>
         </div>
     </div>
@@ -475,8 +472,12 @@
 
     protected override async Task OnInitializedAsync()
     {
-
-        FormModel.Patient.BirthDate = today;
+        if (RecordId == null)
+        {
+            FormModel.Patient.BirthDate = today;
+            FormModel.Date = today;
+            FormModel.Exam.XRayDate = today;
+        }
 
         await LoadData();
         await SuggestNumbers();
@@ -507,46 +508,52 @@
                 existingRecordId = result.Data.Id;
                 existingPatientId = result.Data.Patient.Id;
 
+                var patient = result.Data.Patient;
+                var exam = result.Data.Exam;
+                var number = result.Data.Number;
+
                 FormModel = new RecordInputModel
                 {
                     Date = result.Data.Date,
-                    Patient = new PatientInputModel
+                    Patient = patient != null ? new PatientInputModel
                     {
-                        Id = result.Data.Patient.Id,
-                        SecondName = result.Data.Patient.SecondName,
-                        FirstName = result.Data.Patient.FirstName,
-                        ThirdName = result.Data.Patient.ThirdName,
-                        BirthDate = result.Data.Patient.BirthDate,
-                        Sex = result.Data.Patient.Sex,
-                        MedNumber = result.Data.Patient.MedNumber
-                    },
-                    Exam = new XRayExamInputModel
+                        Id = patient.Id,
+                        SecondName = patient.SecondName,
+                        FirstName = patient.FirstName,
+                        ThirdName = patient.ThirdName,
+                        BirthDate = patient.BirthDate,
+                        Sex = patient.Sex,
+                        MedNumber = patient.MedNumber
+                    } : new PatientInputModel(),
+
+                    Exam = exam != null ? new XRayExamInputModel
                     {
-                        Id = result.Data.Exam.Id,
-                        XRayName = result.Data.Exam.XRayName,
-                        XRayDose = result.Data.Exam.XRayDose,
-                        XRayShots = result.Data.Exam.XRayShots,
-                        XRayDate = result.Data.Exam.XRayDate,
-                        Category = result.Data.Exam.Category,
-                        XRayDiagnose = result.Data.Exam.XRayDiagnose,
-                        XRayPatology = result.Data.Exam.XRayPatology,
-                        XRayCost = result.Data.Exam.XRayCost,
-                        Doctor = result.Data.Exam.Doctor,
-                        Laborant = result.Data.Exam.Laborant,
-                        XRayModality = result.Data.Exam.XRayModality,
-                        InOperation = result.Data.Exam.InOperation,
-                        Contrast = result.Data.Exam.Contrast,
-                        CabinetId = result.Data.Exam.CabinetId,
-                        Side = result.Data.Exam.Side,
-                        Area = result.Data.Exam.Area
-                    },
-                    Number = new NumberInputModel
+                        Id = exam.Id,
+                        XRayName = exam.XRayName,
+                        XRayDose = exam.XRayDose,
+                        XRayShots = exam.XRayShots,
+                        XRayDate = exam.XRayDate,
+                        Category = exam.Category,
+                        XRayDiagnose = exam.XRayDiagnose,
+                        XRayPatology = exam.XRayPatology,
+                        XRayCost = exam.XRayCost,
+                        Doctor = exam.Doctor,
+                        Laborant = exam.Laborant,
+                        XRayModality = exam.XRayModality,
+                        InOperation = exam.InOperation,
+                        Contrast = exam.Contrast,
+                        CabinetId = exam.CabinetId,
+                        Side = exam.Side,
+                        Area = exam.Area
+                    } : new XRayExamInputModel(),
+                    Number = number != null ? new NumberInputModel
                     {
-                        Id = result.Data.Number.Id,
-                        YearlyNum = result.Data.Number.YearlyNum,
-                        DailyNum = result.Data.Number.DailyNum
-                    }
-                };
+                        Id = number.Id,
+                        YearlyNum = number.YearlyNum,
+                        DailyNum = number.DailyNum
+                    } : new NumberInputModel()
+                    }; //XRayJournal.Core.OutputModels.RecordOutputModel.Exam.get вернул null.
+
                 // Загрузка всех исследований пациента
                 await LoadPatientExams(existingPatientId);
             }
@@ -857,11 +864,6 @@
             // Создание нового пациента
             result = PatientService.Add(FormModel.Patient);
         }
-        if (!result.Success)
-        {
-            await JS.InvokeVoidAsync("alert", $"Ошибка сохранения пациента: {result.ErrorMessage}");
-            return false;
-        }
 
         existingPatientId = result.Data.Id;
         FormModel.Patient.Id = existingPatientId;
@@ -875,21 +877,11 @@
         {
             // Обновление существующего номера
             var number = await NumberService.UpdateNumberAsync(FormModel.Number);
-            if (!number.Success)
-            {
-                await JS.InvokeVoidAsync("alert", $"Ошибка обновления номера: {number.ErrorMessage}");
-                return false;
-            }
             return true;
         }
         else
         {
             var number = await NumberService.CreateNumberAsync( FormModel.Number, existingPatientId, FormModel.Date);
-            if (!number.Success)
-            {
-                await JS.InvokeVoidAsync("alert", $"Ошибка сохранения номера: {number.ErrorMessage}");
-                return false;
-            }
             FormModel.Number.Id = number.Data.Id;
             return true;
         }
@@ -897,80 +889,57 @@
 
     private async Task<bool> SaveRecord()
     {
-        try
+        if (existingRecordId > 0)
         {
-            if (existingRecordId > 0)
-            {
-                // Обновление существующей записи
-                var result = await RecordService.UpdateRecordAsync(
-                    existingRecordId,
-                    existingPatientId,
-                    FormModel.Number.Id,
-                    CurrentUserId,
-                    FormModel.Date);
+            // Обновление существующей записи
+            var result = await RecordService.UpdateRecordAsync(
+                existingRecordId,
+                existingPatientId,
+                FormModel.Number.Id,
+                CurrentUserId,
+                FormModel.Date);
 
-                if (!result.Success)
-                {
-                    await JS.InvokeVoidAsync("alert", $"Ошибка обновления записи: {result.ErrorMessage}");
-                    return false;
-                }
-                return true;
-            }
-            else
-            {
-                var result = await RecordService.CreateEmptyRecordAsync(
-                    existingPatientId,
-                    FormModel.Number.Id,
-                    CurrentUserId,
-                    FormModel.Date);
-
-                if (!result.Success)
-                {
-                    await JS.InvokeVoidAsync("alert", $"Ошибка создания записи: {result.ErrorMessage}");
-                    return false;
-                }
-
-                existingRecordId = result.Data.Id;
-                Console.WriteLine($"[DEBUG] Запись создана: ID={existingRecordId}, PatientId={existingPatientId}, NumberId={FormModel.Number.Id}");
-                return true;
-            }
+            return true;
         }
-        catch (Exception ex)
+        else
         {
-            await JS.InvokeVoidAsync("alert", $"Ошибка в SaveRecordToDb: {ex.Message}");
-            return false;
+            var result = await RecordService.CreateEmptyRecordAsync(
+                existingPatientId,
+                FormModel.Number.Id,
+                CurrentUserId,
+                FormModel.Date);
+
+            existingRecordId = result.Data.Id;
+            return true;
         }
     }
 
     private async Task SaveCascade()
     {
-        // 1. Сохраняем пациента
         if (!await SavePatient()) 
         {
-            await JS.InvokeVoidAsync("alert", "Ошибка сохранения пациента");
-            Console.WriteLine($"[DEBUG] Проверка на уровне SavePatient(): ID={existingRecordId}, PatientId={existingPatientId}, NumberId={FormModel.Number.Id}");
             return; 
         }
 
-        // 2. Сохраняем номер
         if (!await SaveNumber()) 
         {
-            await JS.InvokeVoidAsync("alert", "Ошибка сохранения номера");
-            Console.WriteLine($"[DEBUG] Проверка на уровне SaveNumber(): ID={existingRecordId}, PatientId={existingPatientId}, NumberId={FormModel.Number.Id}");
             return; 
         }
 
-        // 3. Создаём запись
         if (!await SaveRecord()) 
         {
-            await JS.InvokeVoidAsync("alert", "Ошибка создания записи");
-            Console.WriteLine($"[DEBUG] Проверка на уровне SaveRecord(): ID={existingRecordId}, PatientId={existingPatientId}, NumberId={FormModel.Number.Id}");
             return;
         }
 
         await JS.InvokeVoidAsync("alert", "Данные сохранены");
+
         activeTab = "exams";
         StateHasChanged();
+
+        if (OnSave.HasDelegate)
+        {
+            await OnSave.InvokeAsync(existingRecordId);
+        }
     }
 }
 

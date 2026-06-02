@@ -42,7 +42,7 @@ namespace XRayJournal.BLL
         {
             try
             {
-                var record = _recordRepository.GetByIdAsync(id);
+                var record = await _recordRepository.GetByIdAsync(id);
                 if (record == null)
                 {
                     return OperationResult<RecordOutputModel>.Fail("Запись не найдена");

@@ -100,14 +100,14 @@
                                         <td>@record.DisplayNumber</td>
                                         <td>@record.SecondName</td>
                                         <td>@record.FirstName</td>
-                                        <td>@record.ThirdName</td>
+                                        <td>@(record.ThirdName ?? "-")</td>
                                         <td>@record.BirthDate.ToString("dd.MM.yyyy")</td>
                                         <td>@record.MedNumber</td> 
-                                        <td>@record.Category</td>
-                                        <td>@record.XRayDate.ToString("dd.MM.yyyy")</td> 
-                                        <td>@record.XRayName</td>
-                                        <td>@record.XRayShots</td>
-                                        <td>@record.XRayDose.ToString("0.###")</td>
+                                        <td>@(record.Category ?? "-")</td>
+                                        <td>@(record.XRayDate.Value.ToString("dd.MM.yyyy") ?? "-")</td> 
+                                        <td>@(record.XRayName ?? "-")</td>
+                                        <td>@(record.XRayShots ?? 0)</td>
+                                        <td>@(record.XRayDose ?? 0)</td>
                                     </tr>
                                 }
                             }
@@ -119,7 +119,7 @@
                                     </td>
                                 </tr>
                             }
-                            }
+                            
                         </tbody>
                     </table>
                 </div>
@@ -167,8 +167,6 @@
     </NotAuthorized>
 </AuthorizeView>
 @code{
-    // [Inject]
-    // private RecordService RecordService { get; set; }
 
     private PagedResult<RecordNecessaryOutputModel>? records;
     private bool isLoading = false;
@@ -286,7 +284,7 @@
 
     private async Task HandleSaveRecord()
     {
-        HideRecordModal();
+        //HideRecordModal();
         await LoadRecords();
         StateHasChanged();
     }

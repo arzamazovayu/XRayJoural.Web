@@ -29,18 +29,18 @@ namespace XRayJournal.Core.OutputModels
         public string MedNumber { get; set; }
 
         //Данные исследования
-        public string XRayName { get; set; }
+        public string? XRayName { get; set; }
 
-        public int XRayShots { get; set; }
+        public int? XRayShots { get; set; }
 
-        public float XRayDose { get; set; }
+        public float? XRayDose { get; set; }
 
-        public DateOnly XRayDate { get; set; }
+        public DateOnly? XRayDate { get; set; }
 
-        public string Category { get; set; }
+        public string? Category { get; set; }
 
         //Данные клиники и отделения
-        public string DepName { get; set; }
+        public string? DepName { get; set; }
 
         //Данные записи
         public DateOnly RecordDate { get; set; }

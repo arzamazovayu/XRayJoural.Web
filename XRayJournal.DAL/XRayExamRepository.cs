@@ -68,12 +68,14 @@ namespace XRayJournal.DAL
 
         public List<XRayExamDTO> GetByPatientId(int patientId)
         {
-            return _dataContext.Records
-                .Where(r => r.PatientId == patientId)
+            var result = _dataContext.Records
+                .Where(r => r.PatientId == patientId && r.Exam != null)
                 .Include(r => r.Exam)
                 .Select(r => r.Exam)
                 .OrderByDescending(r => r.XRayDate)
                 .ToList();
+
+            return result ?? new List<XRayExamDTO>();
         }
     }
 }

@@ -125,9 +125,9 @@ namespace XRayJournal.BLL
             try
             {
                 var exams = _xRayExamRepository.GetByPatientId(patientId);
-                if (exams == null)
+                if (exams == null || !exams.Any())
                 {
-                    return OperationResult<List<XRayExamOutputModel>>.Fail("Запись не найдена");
+                    return OperationResult<List<XRayExamOutputModel>>.Ok(new List<XRayExamOutputModel>());
                 }
                 var result = exams.Adapt<List<XRayExamOutputModel>>();
                 return OperationResult<List<XRayExamOutputModel>>.Ok(result);
