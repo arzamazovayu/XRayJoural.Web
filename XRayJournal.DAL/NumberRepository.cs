@@ -48,7 +48,13 @@ namespace XRayJournal.DAL
         }
         public async Task<NumberDTO> UpdateAsync(NumberDTO number)
         {
-            _dataContext.Numbers.Update(number);
+            var existing = await _dataContext.Numbers.FindAsync(number.Id);
+            if (existing == null) 
+            { 
+                throw new Exception($"Номер с ID {number.Id} не найден");
+            }
+
+            _dataContext.Entry(existing).CurrentValues.SetValues(number);
             await _dataContext.SaveChangesAsync();
             return number;
         }

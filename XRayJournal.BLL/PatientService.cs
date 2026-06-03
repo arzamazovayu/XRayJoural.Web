@@ -126,27 +126,18 @@ namespace XRayJournal.BLL
             }
         }
 
-        //public OperationResult<PatientWithExamOutputModel> GetPatientWithExamsAndNumbersById(int id)
-        //{
-        //    try
-        //    {
-        //        var result = _patientRepository.GetPatientWithExamsAndNumbersById(id);
-        //        if (result == null)
-        //        {
-        //            return OperationResult<PatientWithExamOutputModel>.Fail("Пациент не найден");
-        //        }
-        //        var outputModel = result.Adapt<PatientWithExamOutputModel>();
-        //        return OperationResult<PatientWithExamOutputModel>.Ok(outputModel);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return OperationResult<PatientWithExamOutputModel>.Fail($"Ошибка при получении пациента: {ex.Message}");
-        //    }
-        //}
-
-        //public DateOnly GetPatientsLastExamDate(int id)
-        //{            
-        //    return _patientRepository.GetPatientsLastExamDate(id);
-        //}
+        public async Task<OperationResult<List<PatientOutputModel>>> FindPatientsAsync(PatientSearchInputModel search)
+        {
+            try
+            {
+                var patients = await _patientRepository.FindPatientsAsync(search);
+                var result = patients.Adapt<List<PatientOutputModel>>();
+                return OperationResult<List<PatientOutputModel>>.Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return OperationResult<List<PatientOutputModel>>.Fail(ex.Message);
+            }
+        }
     }
 }

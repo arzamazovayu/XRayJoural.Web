@@ -40,37 +40,37 @@
                     @if (activeTab == "patient")
                     {
                         <div class="tab-pane fade show active">
-                                    <EditForm Model="_localPatient" OnValidSubmit="SavePatientLocal" FormName="PatientForm">
+                            <EditForm Model="_localPatient" OnValidSubmit="SavePatientLocal" FormName="PatientForm">
                                 <DataAnnotationsValidator />
                                 <div class="row">
                                     <div class="col-md-3">
                                         <div class="mb-3">
                                             <label class="form-label">№ п/п</label>
                                             <div class="input-group">
-                                                    <InputNumber class="form-control" @bind-Value="_localNumber.YearlyNum" min="1" style="width: 45px;" />
+                                                <InputNumber class="form-control" @bind-Value="_localNumber.YearlyNum" min="1" style="width: 45px;" />
                                                 <span class="input-group-text">/</span>
-                                                    <InputNumber class="form-control" @bind-Value="_localNumber.DailyNum" min="1" style="width: 45px;" />
+                                                <InputNumber class="form-control" @bind-Value="_localNumber.DailyNum" min="1" style="width: 45px;" />
                                             </div>
                                         </div>
                                     </div>
                                     <div class="col-md-3">
                                         <div class="mb-3">
                                             <label class="form-label">Фамилия *</label>
-                                                <InputText class="form-control" @bind-Value="_localPatient.SecondName" />
-                                                <ValidationMessage For="() => _localPatient.SecondName" />
+                                            <InputText class="form-control" @bind-Value="_localPatient.SecondName" />
+                                            <ValidationMessage For="() => _localPatient.SecondName" />
                                         </div>
                                     </div>
                                     <div class="col-md-3">
                                         <div class="mb-3">
                                             <label class="form-label">Имя *</label>
                                             <InputText class="form-control" @bind-Value="_localPatient.FirstName" />
-                                                <ValidationMessage For="() => _localPatient.FirstName" />
+                                            <ValidationMessage For="() => _localPatient.FirstName" />
                                         </div>
                                     </div>
                                     <div class="col-md-3">
                                         <div class="mb-3">
                                             <label class="form-label">Отчество</label>
-                                                <InputText class="form-control" @bind-Value="_localPatient.ThirdName" />
+                                            <InputText class="form-control" @bind-Value="_localPatient.ThirdName" />
                                         </div>
                                     </div>
                                 </div>
@@ -79,13 +79,13 @@
                                     <div class="col-md-6">
                                         <div class="mb-3">
                                             <label class="form-label">Дата рождения *</label>
-                                                <InputDate class="form-control" @bind-Value="_localPatient.BirthDate" />
+                                            <InputDate class="form-control" @bind-Value="_localPatient.BirthDate" />
                                         </div>
                                     </div>
                                     <div class="col-md-3">
                                         <div class="mb-3">
                                             <label class="form-label">Пол *</label>
-                                                <InputSelect class="form-select" @bind-Value="_localPatient.Sex">
+                                            <InputSelect class="form-select" @bind-Value="_localPatient.Sex">
                                                 <option value="Иное">Не определён</option>
                                                 <option value="Муж">Муж</option>
                                                 <option value="Жен">Жен</option>
@@ -95,17 +95,21 @@
                                     <div class="col-md-3">
                                         <div class="mb-3">
                                             <label class="form-label">Номер карты *</label>
-                                                <InputText class="form-control" @bind-Value="_localPatient.MedNumber" />
-                                                <ValidationMessage For="() => _localPatient.MedNumber" />
+                                            <InputText class="form-control" @bind-Value="_localPatient.MedNumber" />
+                                            <ValidationMessage For="() => _localPatient.MedNumber" />
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="row mt-3">
                                     <div class="col-md-6 d-flex gap-2">
+                                        <!-- Кнопка поиска пациента -->
+                                        <button type="button" class="btn btn-outline-info" @onclick="SearchPatient">
+                                            <i class="bi bi-search"></i> Найти пациента
+                                        </button>
                                         <!-- Кнопка сохранения пациента -->
                                         <button type="submit" class="btn btn-outline-success">
-                                                <i class="bi bi-save"></i> Сохранить данные
+                                            <i class="bi bi-save"></i> Сохранить данные
                                         </button>
                                         <!-- Кнопка удаления пациента -->
                                         @if (_editingRecordId > 0)
@@ -134,33 +138,33 @@
                         @if (_localExams.Any())
                         {
                             <div class="mb-4">
-                                        <h6>Добавленные исследования:</h6>
+                                <h6>Добавленные исследования:</h6>
                                 @foreach (var exam in _localExams)
-                                    {
-                                        <div class="card mb-2">
-                                            <div class="card-body py-2">
-                                                <div class="d-flex justify-content-between align-items-center">
-                                                    <div>
-                                                        <strong>@exam.XRayName</strong> 
-                                                        <small class="text-muted ms-2">@exam.XRayDate.ToString("dd.MM.yyyy")</small>
-                                                        <br/>
-                                                        <small>Категория: @exam.Category | Снимков: @exam.XRayShots | 
-                                                            Доза: @exam.XRayDose мЗв</small>
-                                                    </div>
-                                                    <div>
-                                                        <button type="button" class="btn btn-sm btn-outline-primary me-2" 
-                                                        @onclick="() => EditExistingExam(exam)">
-                                                            Редактировать
-                                                        </button>
-                                                        <button type="button" class="btn btn-sm btn-outline-danger" 
-                                                        @onclick="() => ConfirmDeleteExam(exam)">
-                                                            Удалить
-                                                        </button>
-                                                    </div>
+                                {
+                                    <div class="card mb-2">
+                                        <div class="card-body py-2">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <strong>@exam.XRayName</strong> 
+                                                    <small class="text-muted ms-2">@exam.XRayDate.ToString("dd.MM.yyyy")</small>
+                                                    <br/>
+                                                    <small>Категория: @exam.Category | Снимков: @exam.XRayShots | 
+                                                        Доза: @exam.XRayDose мЗв</small>
+                                                </div>
+                                                <div>
+                                                    <button type="button" class="btn btn-sm btn-outline-primary me-2" 
+                                                    @onclick="() => EditExistingExam(exam)">
+                                                        Редактировать
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                    @onclick="() => ConfirmDeleteExam(exam)">
+                                                        Удалить
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
-                                    }
+                                    </div>
+                                }
                                 }
                             </div>
                         }
@@ -176,7 +180,7 @@
                         @if (showExamForm)
                         {
                             <div class="border rounded p-3 mb-3 bg-light">
-                                        <h6>@(editingExamIndex != -1 ? "Редактирование исследования" : "Новое исследование")</h6>
+                                <h6>@(editingExamIndex != -1 ? "Редактирование исследования" : "Новое исследование")</h6>
                                 <EditForm Model="_currentExam" OnValidSubmit="SaveExamLocal">
                                     <DataAnnotationsValidator />
 
@@ -391,8 +395,8 @@
                                         @_localPatient.FirstName 
                                         @_localPatient?.ThirdName
                                     </strong></li>
-                                    <li>Номер карты: <strong>@_localPatient.MedNumber</strong></li>
-                                    <li>Все связанные исследования: <strong>@_localExams?.Count</strong></li>
+                                <li>Номер карты: <strong>@_localPatient.MedNumber</strong></li>
+                                <li>Все связанные исследования: <strong>@_localExams?.Count</strong></li>
                             </ul>
                         </div>
                         <div class="form-check">
@@ -456,6 +460,10 @@
     private bool showDeletePatientDialog = false;
     private bool confirmPatientDelete = false;
 
+    //Поля для поиска пациента
+    private bool searchMode = true;
+    private List<PatientOutputModel> foundPatients = new();
+    private PatientOutputModel? selectedPatient = null;
 
     private string Title => _editingRecordId > 0 ? "Редактирование записи" : "Новая запись";
 
@@ -778,7 +786,7 @@
             }
 
             // 3. Исследования и записи
-            if (_localExams.Any())
+            if (_editingRecordId == 0) //Новая запись
             {
                 foreach (var exam in _localExams)
                 {
@@ -810,21 +818,58 @@
                         return;
                     }
                 }
-            }
-            else
-            {
-                // Если нет исследований, создаём запись без ExamId
-                var createEmpty = await RecordService.CreateEmptyRecordAsync(patientId, numberId, CurrentUserId, _localDate);
-                if (!createEmpty.Success)
+                if (!_localExams.Any())
                 {
-                    await JS.InvokeVoidAsync("alert", $"Ошибка создания записи без исследования: {createEmpty.ErrorMessage}");
-                    return;
+                    // Если нет исследований, создаём запись без ExamId
+                    var createEmpty = await RecordService.CreateEmptyRecordAsync(patientId, numberId, CurrentUserId, _localDate);
+                    if (!createEmpty.Success)
+                    {
+                        await JS.InvokeVoidAsync("alert", $"Ошибка создания записи без исследования: {createEmpty.ErrorMessage}");
+                        return;
+                    }
+                }
+            }
+            else //Редактирование существующей записи
+            {
+                // Для каждого исследования обновляем его (оно уже имеет Id)
+                foreach (var exam in _localExams)
+                {
+                    int examId = exam.Id ?? 0;
+                    if (examId == 0)
+                    {
+                        var addExam = XRayExamService.Add(exam);
+                        if (!addExam.Success)
+                        {
+                            await JS.InvokeVoidAsync("alert", $"Ошибка обновления исследования: {addExam.ErrorMessage}");
+                            return;
+                        }
+                        examId = addExam.Data.Id;
+                        var createRecord = await RecordService.CreateRecordForExamAsync(patientId, numberId, examId, CurrentUserId, _localDate);
+                        if (!createRecord.Success)
+                        {
+                            await JS.InvokeVoidAsync("alert", $"Ошибка создания записи для исследования {exam.XRayName}: {createRecord.ErrorMessage}");
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        // Существующее исследование – обновляем его
+                        var updExam = XRayExamService.Update(exam);
+                        if (!updExam.Success)
+                        {
+                            await JS.InvokeVoidAsync("alert", $"Ошибка обновления исследования: {updExam.ErrorMessage}");
+                            return;
+                        }
+                        // Запись уже существует, ничего не делаем
+                    }
                 }
             }
 
             await JS.InvokeVoidAsync("alert", "Запись успешно сохранена");
             if (OnSave.HasDelegate)
+            {
                 await OnSave.InvokeAsync();
+            }
             await CloseModal();
         }
         catch (Exception ex)
@@ -833,5 +878,50 @@
         }
     }
 
+    private async Task SearchPatient()
+    {
+        var search = new PatientSearchInputModel
+            {
+                SecondName = _localPatient.SecondName,
+                FirstName = _localPatient.FirstName,
+                ThirdName = _localPatient.ThirdName,
+                BirthDate = _localPatient.BirthDate,
+                MedNumber = _localPatient.MedNumber,
+                Sex = _localPatient.Sex
+            };
+        var result = await PatientService.FindPatientsAsync(search);
+        if (!result.Success)
+        {
+            await JS.InvokeVoidAsync("alert", $"Ошибка поиска: {result.ErrorMessage}");
+            return;
+        }
+        foundPatients = result.Data;
+        if (!foundPatients.Any())
+        {
+            await JS.InvokeVoidAsync("alert", "Пациент с такими данными не найден. Вы можете сохранить нового пациента.");
+            return;
+        }
+        if (foundPatients.Count == 1)
+        {
+            SelectPatient(foundPatients.First());
+        }
+        else
+        {
+            await JS.InvokeVoidAsync("alert", $"Найдено несколько пациентов. Выберите из списка (функция в разработке)");
+        }
+    }
+
+    private void SelectPatient(PatientOutputModel patient)
+    {
+        _localPatient.Id = patient.Id;
+        _localPatient.SecondName = patient.SecondName;
+        _localPatient.FirstName = patient.FirstName;
+        _localPatient.ThirdName = patient.ThirdName;
+        _localPatient.BirthDate = patient.BirthDate;
+        _localPatient.Sex = patient.Sex;
+        _localPatient.MedNumber = patient.MedNumber;
+        selectedPatient = patient;
+        StateHasChanged();
+    }
 }
 

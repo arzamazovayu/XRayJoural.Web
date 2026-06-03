@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using XRayJournal.Core.DTOs;
+using XRayJournal.Core.InputModels;
 
 namespace XRayJournal.Core.IRepositories
 {
@@ -27,6 +28,6 @@ namespace XRayJournal.Core.IRepositories
 
         public PatientDTO GetByMedNumber(string medId);
 
-        //public DateOnly GetPatientsLastExamDate(int id);
+        public Task<List<PatientDTO>> FindPatientsAsync(PatientSearchInputModel search);
     }
 }

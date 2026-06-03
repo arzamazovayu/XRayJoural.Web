@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using XRayJournal.Core;
 using XRayJournal.Core.DTOs;
+using XRayJournal.Core.InputModels;
 using XRayJournal.Core.IRepositories;
 
 
@@ -111,23 +112,22 @@ namespace XRayJournal.DAL
             return patient;
         }
 
-        //public DateOnly GetPatientsLastExamDate(int id)
-        //{
-        //    if(id <= 0) 
-        //    {
-        //        return DateOnly.FromDateTime(DateTime.Now);
-        //    }
-
-        //    var patient = GetPatientWithExamsAndNumbersById(id);
-
-        //    if (patient == null || patient.Exams == null || !patient.Exams.Any())
-        //    {
-        //        return DateOnly.FromDateTime(DateTime.Now);
-        //    }
-        //    else
-        //    {
-        //        return patient.Exams.Max(e => e.XRayDate);
-        //    }
-        //}
+        public async Task<List<PatientDTO>> FindPatientsAsync(PatientSearchInputModel search)
+        {
+            var query = _dataContext.Patients.AsQueryable();
+            if (!string.IsNullOrWhiteSpace(search.SecondName))
+                query = query.Where(p => p.SecondName == search.SecondName);
+            if (!string.IsNullOrWhiteSpace(search.FirstName))
+                query = query.Where(p => p.FirstName == search.FirstName);
+            if (!string.IsNullOrWhiteSpace(search.ThirdName))
+                query = query.Where(p => p.ThirdName == search.ThirdName);
+            if (search.BirthDate.HasValue)
+                query = query.Where(p => p.BirthDate == search.BirthDate.Value);
+            if (!string.IsNullOrWhiteSpace(search.MedNumber))
+                query = query.Where(p => p.MedNumber == search.MedNumber);
+            if (!string.IsNullOrWhiteSpace(search.Sex))
+                query = query.Where(p => p.Sex == search.Sex);
+            return await query.ToListAsync();
+        }
     }
 }
