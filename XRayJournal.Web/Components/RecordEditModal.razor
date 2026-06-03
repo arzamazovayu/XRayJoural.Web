@@ -40,37 +40,37 @@
                     @if (activeTab == "patient")
                     {
                         <div class="tab-pane fade show active">
-                            <EditForm Model="FormModel.Patient" OnValidSubmit="SaveCascade" FormName="PatientForm">
+                                    <EditForm Model="_localPatient" OnValidSubmit="SavePatientLocal" FormName="PatientForm">
                                 <DataAnnotationsValidator />
                                 <div class="row">
                                     <div class="col-md-3">
                                         <div class="mb-3">
                                             <label class="form-label">№ п/п</label>
                                             <div class="input-group">
-                                                <InputNumber class="form-control" @bind-Value="FormModel.Number.YearlyNum" min="1" style="width: 80px;" />
+                                                    <InputNumber class="form-control" @bind-Value="_localNumber.YearlyNum" min="1" style="width: 45px;" />
                                                 <span class="input-group-text">/</span>
-                                                <InputNumber class="form-control" @bind-Value="FormModel.Number.DailyNum" min="1" style="width: 80px;" />
+                                                    <InputNumber class="form-control" @bind-Value="_localNumber.DailyNum" min="1" style="width: 45px;" />
                                             </div>
                                         </div>
                                     </div>
                                     <div class="col-md-3">
                                         <div class="mb-3">
                                             <label class="form-label">Фамилия *</label>
-                                            <InputText class="form-control" @bind-Value="FormModel.Patient.SecondName" />
-                                            <ValidationMessage For="() => FormModel.Patient.SecondName" />
+                                                <InputText class="form-control" @bind-Value="_localPatient.SecondName" />
+                                                <ValidationMessage For="() => _localPatient.SecondName" />
                                         </div>
                                     </div>
                                     <div class="col-md-3">
                                         <div class="mb-3">
                                             <label class="form-label">Имя *</label>
-                                            <InputText class="form-control" @bind-Value="FormModel.Patient.FirstName" />
-                                            <ValidationMessage For="() => FormModel.Patient.FirstName" />
+                                            <InputText class="form-control" @bind-Value="_localPatient.FirstName" />
+                                                <ValidationMessage For="() => _localPatient.FirstName" />
                                         </div>
                                     </div>
                                     <div class="col-md-3">
                                         <div class="mb-3">
                                             <label class="form-label">Отчество</label>
-                                            <InputText class="form-control" @bind-Value="FormModel.Patient.ThirdName" />
+                                                <InputText class="form-control" @bind-Value="_localPatient.ThirdName" />
                                         </div>
                                     </div>
                                 </div>
@@ -79,24 +79,24 @@
                                     <div class="col-md-6">
                                         <div class="mb-3">
                                             <label class="form-label">Дата рождения *</label>
-                                            <InputDate class="form-control" @bind-Value="FormModel.Patient.BirthDate" />
+                                                <InputDate class="form-control" @bind-Value="_localPatient.BirthDate" />
                                         </div>
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <div class="mb-3">
                                             <label class="form-label">Пол *</label>
-                                            <InputSelect class="form-select" @bind-Value="FormModel.Patient.Sex">
+                                                <InputSelect class="form-select" @bind-Value="_localPatient.Sex">
                                                 <option value="Иное">Не определён</option>
                                                 <option value="Муж">Муж</option>
                                                 <option value="Жен">Жен</option>
                                             </InputSelect>
                                         </div>
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-3">
                                         <div class="mb-3">
                                             <label class="form-label">Номер карты *</label>
-                                            <InputText class="form-control" @bind-Value="FormModel.Patient.MedNumber" />
-                                            <ValidationMessage For="() => FormModel.Patient.MedNumber" />
+                                                <InputText class="form-control" @bind-Value="_localPatient.MedNumber" />
+                                                <ValidationMessage For="() => _localPatient.MedNumber" />
                                         </div>
                                     </div>
                                 </div>
@@ -105,11 +105,10 @@
                                     <div class="col-md-6 d-flex gap-2">
                                         <!-- Кнопка сохранения пациента -->
                                         <button type="submit" class="btn btn-outline-success">
-                                            <i class="bi bi-save"></i> 
-                                            @(existingPatientId > 0 ? "Обновить" : "Сохранить")
+                                                <i class="bi bi-save"></i> Сохранить данные
                                         </button>
                                         <!-- Кнопка удаления пациента -->
-                                        @if (existingPatientId > 0)
+                                        @if (_editingRecordId > 0)
                                         {
                                             <AuthorizeView Roles="Doctor">
                                                 <Authorized Context="Doctor">
@@ -132,13 +131,11 @@
                     @if (activeTab == "exams")
                     {
                         <!-- Список существующих исследований -->
-                        @if (existingExams != null && existingExams.Any())
+                        @if (_localExams.Any())
                         {
                             <div class="mb-4">
-                                <h6>Существующие исследования:</h6>
-                                @foreach (var exam in existingExams)
-                                {// exam было null.
-                                    @if (exam != null)
+                                        <h6>Добавленные исследования:</h6>
+                                @foreach (var exam in _localExams)
                                     {
                                         <div class="card mb-2">
                                             <div class="card-body py-2">
@@ -171,7 +168,7 @@
                         {
                             <div class="alert alert-info">
                                 <i class="bi bi-info-circle"></i> 
-                                У пациента пока нет исследований. Добавьте первое исследование.
+                                У пациента пока нет исследований. Добавьте новое исследование.
                             </div>
                         }
 
@@ -179,28 +176,28 @@
                         @if (showExamForm)
                         {
                             <div class="border rounded p-3 mb-3 bg-light">
-                                <h6>@(editingExamId.HasValue ? "Редактирование исследования" : "Новое исследование")</h6>
-                                <EditForm Model="currentExam" OnValidSubmit="SaveExam">
+                                        <h6>@(editingExamIndex != -1 ? "Редактирование исследования" : "Новое исследование")</h6>
+                                <EditForm Model="_currentExam" OnValidSubmit="SaveExamLocal">
                                     <DataAnnotationsValidator />
 
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="mb-3">
                                                 <label class="form-label">Название исследования *</label>
-                                                <InputText class="form-control" @bind-Value="currentExam.XRayName" />
-                                                <ValidationMessage For="() => currentExam.XRayName" />
+                                                <InputText class="form-control" @bind-Value="_currentExam.XRayName" />
+                                                <ValidationMessage For="() => _currentExam.XRayName" />
                                             </div>
                                         </div>
                                         <div class="col-md-3">
                                             <div class="mb-3">
                                                 <label class="form-label">Дата исследования *</label>
-                                                <InputDate class="form-control" @bind-Value="currentExam.XRayDate" />
+                                                <InputDate class="form-control" @bind-Value="_currentExam.XRayDate" />
                                             </div>
                                         </div>
                                         <div class="col-md-3">
                                             <div class="mb-3">
                                                 <label class="form-label">Категория *</label>
-                                                <InputSelect class="form-select" @bind-Value="currentExam.Category">
+                                                <InputSelect class="form-select" @bind-Value="_currentExam.Category">
                                                     <option value="Другое">Другое</option>
                                                     <option value="ОМС">ОМС</option>
                                                     <option value="ВМП ОМС">ВМП ОМС</option>
@@ -216,19 +213,19 @@
                                         <div class="col-md-3">
                                             <div class="mb-3">
                                                 <label class="form-label">Снимков/серий</label>
-                                                <InputNumber class="form-control" @bind-Value="currentExam.XRayShots" min="0" />
+                                                <InputNumber class="form-control" @bind-Value="_currentExam.XRayShots" min="0" />
                                             </div>
                                         </div>
                                         <div class="col-md-3">
                                             <div class="mb-3">
                                                 <label class="form-label">Доза (мЗв)</label>
-                                                <InputNumber class="form-control" @bind-Value="currentExam.XRayDose" step="0.001" min="0" />
+                                                <InputNumber class="form-control" @bind-Value="_currentExam.XRayDose" step="0.001" min="0" />
                                             </div>
                                         </div>
                                         <div class="col-md-3">
                                             <div class="mb-3">
                                                 <label class="form-label">Модальность</label>
-                                                <InputSelect class="form-select" @bind-Value="currentExam.XRayModality">
+                                                <InputSelect class="form-select" @bind-Value="_currentExam.XRayModality">
                                                     <option value="">-- Выберите --</option>
                                                     <option value="Цифровая рентгенография">Цифровая рентгенография</option>
                                                     <option value="Аналоговая рентгенография">Аналоговая рентгенография</option>
@@ -242,7 +239,7 @@
                                         <div class="col-md-3">
                                             <div class="mb-3">
                                                 <label class="form-label">Стоимость</label>
-                                                <InputNumber class="form-control" @bind-Value="currentExam.XRayCost" min="0" />
+                                                <InputNumber class="form-control" @bind-Value="_currentExam.XRayCost" min="0" />
                                             </div>
                                         </div>
                                     </div>
@@ -251,19 +248,19 @@
                                         <div class="col-md-4">
                                             <div class="mb-3">
                                                 <label class="form-label">Врач</label>
-                                                <InputText class="form-control" @bind-Value="currentExam.Doctor" />
+                                                <InputText class="form-control" @bind-Value="_currentExam.Doctor" />
                                             </div>
                                         </div>
                                         <div class="col-md-4">
                                             <div class="mb-3">
                                                 <label class="form-label">Лаборант</label>
-                                                <InputText class="form-control" @bind-Value="currentExam.Laborant" />
+                                                <InputText class="form-control" @bind-Value="_currentExam.Laborant" />
                                             </div>
                                         </div>
                                         <div class="col-md-4">
                                             <div class="mb-3">
                                                 <label class="form-label">Диагноз</label>
-                                                <InputText class="form-control" @bind-Value="currentExam.XRayDiagnose" />
+                                                <InputText class="form-control" @bind-Value="_currentExam.XRayDiagnose" />
                                             </div>
                                         </div>
                                     </div>
@@ -271,19 +268,19 @@
                                     <div class="row">
                                         <div class="col-md-3">
                                             <div class="form-check">
-                                                <InputCheckbox class="form-check-input" @bind-Value="currentExam.XRayPatology" />
+                                                <InputCheckbox class="form-check-input" @bind-Value="_currentExam.XRayPatology" />
                                                 <label class="form-check-label">Патология</label>
                                             </div>
                                         </div>
                                         <div class="col-md-3">
                                             <div class="form-check">
-                                                <InputCheckbox class="form-check-input" @bind-Value="currentExam.InOperation" />
+                                                <InputCheckbox class="form-check-input" @bind-Value="_currentExam.InOperation" />
                                                 <label class="form-check-label">В операционной</label>
                                             </div>
                                         </div>
                                         <div class="col-md-3">
                                             <div class="form-check">
-                                                <InputCheckbox class="form-check-input" @bind-Value="currentExam.Contrast" />
+                                                <InputCheckbox class="form-check-input" @bind-Value="_currentExam.Contrast" />
                                                 <label class="form-check-label">Контраст</label>
                                             </div>
                                         </div>
@@ -293,7 +290,7 @@
                                         <div class="col-md-3">
                                             <div class="mb-3">
                                                 <label class="form-label">Сторона</label>
-                                                <InputSelect class="form-select" @bind-Value="currentExam.Side">
+                                                <InputSelect class="form-select" @bind-Value="_currentExam.Side">
                                                     <option value="">-- Выберите --</option>
                                                     <option value="Правая">Правая</option>
                                                     <option value="Левая">Левая</option>
@@ -304,7 +301,7 @@
                                         <div class="col-md-3">
                                             <div class="mb-3">
                                                 <label class="form-label">Область исследования</label>
-                                                <InputSelect class="form-select" @bind-Value="currentExam.Area">
+                                                <InputSelect class="form-select" @bind-Value="_currentExam.Area">
                                                     <option value="">-- Выберите --</option>
                                                     <option value=10>Голова</option>
                                                     <option value=20>Шея</option>
@@ -336,18 +333,14 @@
                                 Добавить новое исследование
                             </button>
                         }
-                        @if (existingPatientId == 0)
-                        {
-                            <div class="alert alert-warning">
-                                <i class="bi bi-exclamation-triangle"></i>
-                                Сначала сохраните данные пациента
-                            </div>
-                        }
                     }
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" @onclick="CloseModal">Закрыть</button>
+                <button type="button" class="btn btn-secondary" @onclick="CloseModal">Отмена</button>
+                <button type="button" class="btn btn-success" @onclick="SaveRecordToDatabase">
+                    Создать запись
+                </button>
             </div>
         </div>
     </div>
@@ -394,12 +387,12 @@
                             <p>Будут удалены:</p>
                             <ul>
                                 <li>Пациент: <strong>
-                                        @FormModel.Patient.SecondName 
-                                        @FormModel.Patient.FirstName 
-                                        @FormModel.Patient?.ThirdName
+                                        @_localPatient.SecondName 
+                                        @_localPatient.FirstName 
+                                        @_localPatient?.ThirdName
                                     </strong></li>
-                                <li>Номер карты: <strong>@FormModel.Patient.MedNumber</strong></li>
-                                <li>Все связанные исследования: <strong>@existingExams?.Count</strong></li>
+                                    <li>Номер карты: <strong>@_localPatient.MedNumber</strong></li>
+                                    <li>Все связанные исследования: <strong>@_localExams?.Count</strong></li>
                             </ul>
                         </div>
                         <div class="form-check">
@@ -439,318 +432,266 @@
     public int CurrentUserId { get; set; }
 
     private string activeTab = "patient";
+    //Поле сегодняшней даты
+    private DateOnly today = DateOnly.FromDateTime(DateTime.Now);
 
-    private RecordInputModel FormModel = new();
-
-    private int existingRecordId = 0;
-    private int existingPatientId = 0;
-
-    private List<XRayExamOutputModel> existingExams = new();
+    //Поля локальных данных
+    private PatientInputModel _localPatient = new();
+    private NumberInputModel _localNumber = new();
+    private List<XRayExamInputModel> _localExams = new();
+    private DateOnly _localDate = DateOnly.FromDateTime(DateTime.Now);
+    private int _editingRecordId = 0;
 
     // Поля для управления формой исследования
     private bool showExamForm = false;
-    private int? editingExamId = null;
-    private XRayExamInputModel currentExam = new ();
+    private int editingExamIndex = -1;
+    private XRayExamInputModel _currentExam = new ();
 
     // Поля для диалога удаления
     private bool showDeleteDialog = false;
     private string deleteDialogMessage = "";
-    private int? examToDeleteId = null;
-    //private XRayExamOutputModel examToDelete;
+    private int deleteExamIndex = -1;
 
     // Поля для диалога удаления пациента
     private bool showDeletePatientDialog = false;
     private bool confirmPatientDelete = false;
 
-    //Поле сегодняшней даты
-    private DateOnly today = DateOnly.FromDateTime(DateTime.Now);
 
-    //Поля пользователя
-    private string currentUserFIO = string.Empty;
-
-    private string Title => existingRecordId > 0 ? "Редактирование записи" : "Новая запись";
+    private string Title => _editingRecordId > 0 ? "Редактирование записи" : "Новая запись";
 
     protected override async Task OnInitializedAsync()
     {
-        if (RecordId == null)
+        // Загрузка данных при редактировании
+        if (RecordId.HasValue && RecordId.Value > 0)
         {
-            FormModel.Patient.BirthDate = today;
-            FormModel.Date = today;
-            FormModel.Exam.XRayDate = today;
+            await LoadRecordForEdit(RecordId.Value);
         }
-
-        await LoadData();
+        else
+        {
+            InitNewRecord();
+        }
         await SuggestNumbers();
+    }
+
+    private void InitNewRecord()
+    {
+        _editingRecordId = 0;
+        _localPatient = new PatientInputModel { BirthDate = today, Sex = "Иное" };
+        _localNumber = new NumberInputModel();
+        _localExams = new List<XRayExamInputModel>();
+        _localDate = today;
     }
 
     private async Task SuggestNumbers()
     {
-        if (CurrentCabinetId > 0 && existingRecordId == 0)
+        if (CurrentCabinetId > 0 && _editingRecordId == 0)
         {
-            var (yearly, daily) = await NumberService.CalculateNextNumberAsync(today, CurrentCabinetId);
+            var (yearly, daily) = await NumberService.CalculateNextNumberAsync(_localDate, CurrentCabinetId);
 
             // Предлагаем номера, только если они ещё не установлены
-            if (FormModel.Number.YearlyNum == 0)
-                FormModel.Number.YearlyNum = yearly;
-            if (FormModel.Number.DailyNum == 0)
-                FormModel.Number.DailyNum = daily;
+            if (_localNumber.YearlyNum == 0)
+                _localNumber.YearlyNum = yearly;
+            if (_localNumber.DailyNum == 0)
+                _localNumber.DailyNum = daily;
         }
     }
 
-    private async Task LoadData()
+    // Сохранение данных пациента локально
+    private async Task SavePatientLocal()
     {
-        if (RecordId.HasValue && RecordId.Value > 0)
+        // Валидация уже происходит через DataAnnotations
+        if (string.IsNullOrWhiteSpace(_localPatient.SecondName) ||
+            string.IsNullOrWhiteSpace(_localPatient.FirstName) ||
+            string.IsNullOrWhiteSpace(_localPatient.MedNumber))
         {
-            // Режим редактирования существующей записи
-            var result = await RecordService.GetByIdAsync(RecordId.Value);
-            if (result.Success && result.Data != null)
-            {
-                existingRecordId = result.Data.Id;
-                existingPatientId = result.Data.Patient.Id;
-
-                var patient = result.Data.Patient;
-                var exam = result.Data.Exam;
-                var number = result.Data.Number;
-
-                FormModel = new RecordInputModel
-                {
-                    Date = result.Data.Date,
-                    Patient = patient != null ? new PatientInputModel
-                    {
-                        Id = patient.Id,
-                        SecondName = patient.SecondName,
-                        FirstName = patient.FirstName,
-                        ThirdName = patient.ThirdName,
-                        BirthDate = patient.BirthDate,
-                        Sex = patient.Sex,
-                        MedNumber = patient.MedNumber
-                    } : new PatientInputModel(),
-
-                    Exam = exam != null ? new XRayExamInputModel
-                    {
-                        Id = exam.Id,
-                        XRayName = exam.XRayName,
-                        XRayDose = exam.XRayDose,
-                        XRayShots = exam.XRayShots,
-                        XRayDate = exam.XRayDate,
-                        Category = exam.Category,
-                        XRayDiagnose = exam.XRayDiagnose,
-                        XRayPatology = exam.XRayPatology,
-                        XRayCost = exam.XRayCost,
-                        Doctor = exam.Doctor,
-                        Laborant = exam.Laborant,
-                        XRayModality = exam.XRayModality,
-                        InOperation = exam.InOperation,
-                        Contrast = exam.Contrast,
-                        CabinetId = exam.CabinetId,
-                        Side = exam.Side,
-                        Area = exam.Area
-                    } : new XRayExamInputModel(),
-                    Number = number != null ? new NumberInputModel
-                    {
-                        Id = number.Id,
-                        YearlyNum = number.YearlyNum,
-                        DailyNum = number.DailyNum
-                    } : new NumberInputModel()
-                    }; //XRayJournal.Core.OutputModels.RecordOutputModel.Exam.get вернул null.
-
-                // Загрузка всех исследований пациента
-                await LoadPatientExams(existingPatientId);
-            }
+            await JS.InvokeVoidAsync("alert", "Заполните обязательные поля");
+            return;
         }
-        else
+        // Переключаемся на вкладку исследований
+        activeTab = "exams";
+        StateHasChanged();
+    }
+
+    private async Task LoadRecordForEdit(int recordId)
+    {
+        var result = await RecordService.GetByIdAsync(recordId);
+        if (!result.Success || result.Data == null)
         {
-            // Режим добавления новой записи
-            FormModel = new RecordInputModel
+            await JS.InvokeVoidAsync("alert", "Не удалось загрузить запись");
+            return;
+        }
+        var d = result.Data;
+        _editingRecordId = d.Id;
+        _localDate = d.Date;
+
+
+        _localPatient = new PatientInputModel
             {
-                Date = DateOnly.FromDateTime(DateTime.Now),
-                Patient = new PatientInputModel(),
-                Exam = new XRayExamInputModel
-                {
-                    XRayDate = DateOnly.FromDateTime(DateTime.Now)
-                },
-                Number = new NumberInputModel()
+                Id = d.Patient.Id,
+                SecondName = d.Patient.SecondName,
+                FirstName = d.Patient.FirstName,
+                ThirdName = d.Patient.ThirdName,
+                BirthDate = d.Patient.BirthDate,
+                Sex = d.Patient.Sex,
+                MedNumber = d.Patient.MedNumber
             };
-        }
-    }
 
-    private async Task LoadPatientExams(int patientId)
-    {
-        var result = await XRayExamService.GetByPatientIdAsync(patientId);
-        if (result.Success)
+        _localNumber = new NumberInputModel
+            {
+                Id = d.Number.Id,
+                YearlyNum = d.Number.YearlyNum,
+                DailyNum = d.Number.DailyNum
+            };
+
+        if (d.Exam != null)
         {
-            existingExams = result.Data;
+            var examInput = new XRayExamInputModel
+            {
+                Id = d.Exam.Id,
+                XRayName = d.Exam.XRayName,
+                XRayDose = d.Exam.XRayDose,
+                XRayShots = d.Exam.XRayShots,
+                XRayDate = d.Exam.XRayDate,
+                Category = d.Exam.Category,
+                XRayDiagnose = d.Exam.XRayDiagnose,
+                XRayPatology = d.Exam.XRayPatology,
+                XRayCost = d.Exam.XRayCost,
+                Doctor = d.Exam.Doctor,
+                Laborant = d.Exam.Laborant,
+                XRayModality = d.Exam.XRayModality,
+                InOperation = d.Exam.InOperation,
+                Contrast = d.Exam.Contrast,
+                CabinetId = d.Exam.CabinetId,
+                Side = d.Exam.Side,
+                Area = d.Exam.Area
+            };
+            _localExams.Add(examInput);
         }
     }
 
     private async Task CloseModal()
     {
-        await OnCancel.InvokeAsync();
+        // Сброс локальных данных
+        _localPatient = new();
+        _localNumber = new();
+        _localExams = new();
+        _editingRecordId = 0;
+        showExamForm = false;
+
+        if (OnCancel.HasDelegate)
+        {
+            await OnCancel.InvokeAsync();
+        }
     }
 
     private async Task AddNewExam()
     {
-        editingExamId = null;
-
-        var user = await UserService.GetByIdAsync(CurrentUserId);
-        string doctorName = null; //Для хранения ФИО врача
-        string laborantName = null; //Для хранения ФИО лаборанта
-
-        if (user.Success && user.Data != null)
-        {
-            currentUserFIO = user.Data.FIOshort;
-            //Присваиваем ФИО в зависимости от авторизованной роли
-            if (user.Data.Role.ToString() == "Doctor")
-            {
-                doctorName = currentUserFIO;
-            }else if(user.Data.Role.ToString() == "Laborant")
-            {
-                laborantName = currentUserFIO;
-            }
-        }
-        currentExam = new XRayExamInputModel
+        editingExamIndex = -1;
+        _currentExam = new XRayExamInputModel
             {
                 Category = "Другое",
                 CabinetId = CurrentCabinetId,
-                XRayDate = today,
-                Doctor = doctorName,
-                Laborant = laborantName,
-            }; //XRayJournal.Core.Results.OperationResult<T>.Data.get вернул null.
-
+                XRayDate = _localDate
+            };
+        // Автозаполнение врача/лаборанта
+        var user = await UserService.GetByIdAsync(CurrentUserId);
+        if (user.Success && user.Data != null)
+        {
+            var fioShort = user.Data.FIOshort;
+            if (user.Data.Role.ToString() == "Doctor")
+                _currentExam.Doctor = fioShort;
+            else if (user.Data.Role.ToString() == "Laborant")
+                _currentExam.Laborant = fioShort;
+        }
         showExamForm = true;
+        StateHasChanged();
     }
 
-    private void EditExistingExam(XRayExamOutputModel exam)
+    private void EditExistingExam(XRayExamInputModel exam)
     {
 
-        editingExamId = exam.Id;
-        currentExam = new XRayExamInputModel
-            {
-                Id = exam.Id,
-                XRayName = exam.XRayName,
-                XRayDose = exam.XRayDose,
-                XRayShots = exam.XRayShots,
-                XRayDate = exam.XRayDate,
-                Category = exam.Category,
-                XRayDiagnose = exam.XRayDiagnose,
-                XRayPatology = exam.XRayPatology,
-                XRayCost = exam.XRayCost,
-                Doctor = exam.Doctor,
-                Laborant = exam.Laborant,
-                XRayModality = exam.XRayModality,
-                InOperation = exam.InOperation,
-                Contrast = exam.Contrast,
-                CabinetId = exam.CabinetId,
-                Side = exam.Side,
-                Area = exam.Area
-            };
+        editingExamIndex = _localExams.FindIndex(e => e == exam);
+
+        _currentExam = new XRayExamInputModel();
+        _currentExam.Id = exam.Id;
+        _currentExam.XRayName = exam.XRayName;
+        _currentExam.XRayDose = exam.XRayDose;
+        _currentExam.XRayShots = exam.XRayShots;
+        _currentExam.XRayDate = exam.XRayDate;
+        _currentExam.Category = exam.Category;
+        _currentExam.XRayDiagnose = exam.XRayDiagnose;
+        _currentExam.XRayPatology = exam.XRayPatology;
+        _currentExam.XRayCost = exam.XRayCost;
+        _currentExam.Doctor = exam.Doctor;
+        _currentExam.Laborant = exam.Laborant;
+        _currentExam.XRayModality = exam.XRayModality;
+        _currentExam.InOperation = exam.InOperation;
+        _currentExam.Contrast = exam.Contrast;
+        _currentExam.CabinetId = exam.CabinetId;
+        _currentExam.Side = exam.Side;
+        _currentExam.Area = exam.Area;        
+
         showExamForm = true;
+        StateHasChanged();
     }
 
     private void CancelExamEdit()
     {
         showExamForm = false;
-        editingExamId = null;
-        currentExam = new ();
+        _currentExam = new ();
+        editingExamIndex = -1;
         StateHasChanged();
     }
 
-    private async Task SaveExam()
+    private async Task SaveExamLocal()
     {
-        OperationResult<XRayExamOutputModel> result;
-        // Обновляем список исследований пациента
-        if (editingExamId.HasValue)
+        // Валидация названия и категории
+        if (string.IsNullOrWhiteSpace(_currentExam.XRayName) || string.IsNullOrWhiteSpace(_currentExam.Category))
         {
-            // Обновление существующего исследования
-            result = XRayExamService.Update(currentExam);
-            // if (result.Success)
-            // {
-            //     await LoadPatientExams(existingPatientId);
-            //     await JS.InvokeVoidAsync("alert", "Исследование обновлено");
-            // }
+            await JS.InvokeVoidAsync("alert", "Заполните название и категорию исследования");
+            return;
+        }
+        if (editingExamIndex >= 0)
+        {
+            // Обновление существующего
+            _localExams[editingExamIndex] = _currentExam;
         }
         else
         {
-            currentExam.CabinetId = CurrentCabinetId;
-            result = XRayExamService.Add(currentExam);
-        }
-
-        if (result.Success)
-        {
-            var savedExam = result.Data;
-
-            //Обновляем запись, добавляя ExamId
-            if (existingRecordId > 0)
-            {
-                await RecordService.UpdateRecordExamIdAsync(existingRecordId, savedExam.Id);
-            }
-
-            await LoadPatientExams(existingPatientId);
-
-            FormModel.Exam.Id = savedExam.Id;
-            FormModel.Exam.XRayName = savedExam.XRayName;
-            FormModel.Exam.XRayDose = savedExam.XRayDose;
-            FormModel.Exam.XRayShots = savedExam.XRayShots;
-            FormModel.Exam.XRayDate = savedExam.XRayDate;
-            FormModel.Exam.Category = savedExam.Category;
-            FormModel.Exam.XRayDiagnose = savedExam.XRayDiagnose;
-            FormModel.Exam.XRayPatology = savedExam.XRayPatology;
-            FormModel.Exam.XRayCost = savedExam.XRayCost;
-            FormModel.Exam.Doctor = savedExam.Doctor;
-            FormModel.Exam.Laborant = savedExam.Laborant;
-            FormModel.Exam.XRayModality = savedExam.XRayModality;
-            FormModel.Exam.InOperation = savedExam.InOperation;
-            FormModel.Exam.Contrast = savedExam.Contrast;
-            FormModel.Exam.CabinetId = savedExam.CabinetId;
-            FormModel.Exam.Side = savedExam.Side;
-            FormModel.Exam.Area = savedExam.Area;
-
-            await JS.InvokeVoidAsync("alert", "Исследование добавлено");
-            StateHasChanged();
+            // Добавление нового
+            _localExams.Add(_currentExam);
         }
         CancelExamEdit();
+        StateHasChanged();
     }
 
-    private void ConfirmDeleteExam(XRayExamOutputModel exam)
+    private void ConfirmDeleteExam(XRayExamInputModel exam)
     {
-        examToDeleteId = exam.Id;
-        deleteDialogMessage = $"Вы уверены, что хотите удалить исследование '{exam.XRayName}' от {exam.XRayDate.ToString("dd.MM.yyyy")}?";
-        showDeleteDialog = true;
-        StateHasChanged();
+        deleteExamIndex = _localExams.FindIndex(e => e == exam);
+        if (deleteExamIndex >= 0)
+        {
+            deleteDialogMessage = $"Вы уверены, что хотите удалить исследование '{exam.XRayName}' от {exam.XRayDate.ToString("dd.MM.yyyy")}?";
+            showDeleteDialog = true;
+            StateHasChanged();
+        }
     }
 
     private void CancelDeleteExam()
     {
         showDeleteDialog = false;
-        examToDeleteId = null;
+        deleteExamIndex = -1;
         StateHasChanged();
     }
 
     private async Task DeleteExamConfirmed()
     {
-        if (examToDeleteId == null)
+        if (deleteExamIndex >= 0 && deleteExamIndex < _localExams.Count)
         {
-            Console.WriteLine("examToDeleteId is null!");
-            return; 
+            _localExams.RemoveAt(deleteExamIndex);
+            await JS.InvokeVoidAsync("alert", "Исследование удалено");
         }
-        try
-        {
-            var result = XRayExamService.Delete(examToDeleteId.Value);
-
-            if (result.Success)
-            {
-                await LoadPatientExams(existingPatientId);
-                await JS.InvokeVoidAsync("alert", "Исследование удалено");
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Ошибка при удалении исследования: {ex.Message}");
-        }
-        finally
-        {
-            CancelDeleteExam();
-        }
+        CancelDeleteExam();
+        StateHasChanged();
     }
 
     private void ShowDeletePatientModal()
@@ -769,9 +710,9 @@
 
     private async Task DeletePatientConfirmed()
     {
-        try
+        if (_editingRecordId > 0)
         {
-            var result = PatientService.Delete(existingPatientId);
+            var result = PatientService.Delete(_localPatient.Id);
 
             if (result.Success)
             {
@@ -783,163 +724,114 @@
                 }
             }
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Ошибка при удалении пациента: {ex.Message}");
-        }
-        finally
-        {
-            CancelDeletePatient();
-        }
+        CancelDeletePatient();
     }
 
-    private void SwitchToPatientTab()
+    private async Task SaveRecordToDatabase()
     {
-        activeTab = "patient";
-        StateHasChanged();
-    }
-
-    private async Task SaveFullRecord()
-    {
-        // Проверка, что пациент сохранён
-        if (existingPatientId == 0)
+        try
         {
-            await JS.InvokeVoidAsync("alert", "Сначала сохраните данные пациента!");
-            return;
-        }
-        //Проверка, что номер введён
-        if (FormModel.Number.YearlyNum <= 0 || FormModel.Number.DailyNum <= 0)
-        {
-            await JS.InvokeVoidAsync("alert", "Укажите номер записи!");
-            return;
-        }
-
-        // Если есть исследования, берём первое (или можно выбирать)
-        if (existingExams != null && existingExams.Any())
-        {
-            var exam = existingExams.First();
-            FormModel.Exam.Id = exam.Id;
-            FormModel.Exam.XRayName = exam.XRayName;
-            FormModel.Exam.XRayDose = exam.XRayDose;
-            FormModel.Exam.XRayShots = exam.XRayShots;
-            FormModel.Exam.XRayDate = exam.XRayDate;
-            FormModel.Exam.Category = exam.Category;
-        }
-        else
-        {
-            // Можно создать запись без исследования
-            // Для этого нужно модифицировать RecordService
-            await JS.InvokeVoidAsync("alert", "Добавьте хотя бы одно исследование");
-            return;
-        }
-
-        // Получаем текущего пользователя
-        var result = await RecordService.CreateRecordAsync(FormModel, CurrentUserId, CurrentCabinetId);
-        if (result.Success)
-        {
-            await JS.InvokeVoidAsync("alert", "Запись сохранена");
-            if (OnSave.HasDelegate)
+            // 1. Пациент
+            int patientId = _localPatient.Id;
+            if (patientId == 0)
             {
-                await OnSave.InvokeAsync();
+                var addPatient = PatientService.Add(_localPatient);
+                if (!addPatient.Success)
+                {
+                    await JS.InvokeVoidAsync("alert", $"Ошибка сохранения пациента: {addPatient.ErrorMessage}");
+                    return;
+                }
+                patientId = addPatient.Data.Id;
             }
+            else
+            {
+                // Если редактируется существующий пациент, обновляем
+                var updPatient = PatientService.Update(_localPatient);
+                if (!updPatient.Success)
+                {
+                    await JS.InvokeVoidAsync("alert", $"Ошибка обновления пациента: {updPatient.ErrorMessage}");
+                    return;
+                }
+            }
+
+            // 2. Номер
+            int numberId = _localNumber.Id;
+            if (numberId == 0)
+            {
+                var createNumber = await NumberService.CreateNumberAsync(_localNumber, patientId, _localDate);
+                if (!createNumber.Success)
+                {
+                    await JS.InvokeVoidAsync("alert", $"Ошибка сохранения номера: {createNumber.ErrorMessage}");
+                    return;
+                }
+                numberId = createNumber.Data.Id;
+            }
+            else
+            {
+                // Обновление номера (если изменился)
+                var updNumber = await NumberService.UpdateNumberAsync(_localNumber);
+                if (!updNumber.Success)
+                {
+                    await JS.InvokeVoidAsync("alert", $"Ошибка обновления номера: {updNumber.ErrorMessage}");
+                    return;
+                }
+            }
+
+            // 3. Исследования и записи
+            if (_localExams.Any())
+            {
+                foreach (var exam in _localExams)
+                {
+                    int examId = exam.Id ?? 0;
+                    if (examId == 0)
+                    {
+                        var addExam = XRayExamService.Add(exam);
+                        if (!addExam.Success)
+                        {
+                            await JS.InvokeVoidAsync("alert", $"Ошибка сохранения исследования: {addExam.ErrorMessage}");
+                            return;
+                        }
+                        examId = addExam.Data.Id;
+                    }
+                    else
+                    {
+                        var updExam = XRayExamService.Update(exam);
+                        if (!updExam.Success)
+                        {
+                            await JS.InvokeVoidAsync("alert", $"Ошибка обновления исследования: {updExam.ErrorMessage}");
+                            return;
+                        }
+                    }
+                    // Создаём запись (одно исследование – одна запись)
+                    var createRecord = await RecordService.CreateRecordForExamAsync(patientId, numberId, examId, CurrentUserId, _localDate);
+                    if (!createRecord.Success)
+                    {
+                        await JS.InvokeVoidAsync("alert", $"Ошибка создания записи для исследования {exam.XRayName}: {createRecord.ErrorMessage}");
+                        return;
+                    }
+                }
+            }
+            else
+            {
+                // Если нет исследований, создаём запись без ExamId
+                var createEmpty = await RecordService.CreateEmptyRecordAsync(patientId, numberId, CurrentUserId, _localDate);
+                if (!createEmpty.Success)
+                {
+                    await JS.InvokeVoidAsync("alert", $"Ошибка создания записи без исследования: {createEmpty.ErrorMessage}");
+                    return;
+                }
+            }
+
+            await JS.InvokeVoidAsync("alert", "Запись успешно сохранена");
+            if (OnSave.HasDelegate)
+                await OnSave.InvokeAsync();
             await CloseModal();
         }
-        else
+        catch (Exception ex)
         {
-            await JS.InvokeVoidAsync("alert", $"Ошибка: {result.ErrorMessage}");
+            await JS.InvokeVoidAsync("alert", $"Ошибка: {ex.Message}");
         }
     }
 
-    private async Task<bool> SavePatient()
-    {
-        OperationResult<PatientOutputModel> result;
-
-        if (existingPatientId > 0)
-        {
-            // Обновление существующего пациента
-            result = PatientService.Update(FormModel.Patient);
-        }
-        else
-        {
-            // Создание нового пациента
-            result = PatientService.Add(FormModel.Patient);
-        }
-
-        existingPatientId = result.Data.Id;
-        FormModel.Patient.Id = existingPatientId;
-
-        return true;
-    }
-
-    private async Task<bool> SaveNumber()
-    {
-        if (FormModel.Number.Id > 0)
-        {
-            // Обновление существующего номера
-            var number = await NumberService.UpdateNumberAsync(FormModel.Number);
-            return true;
-        }
-        else
-        {
-            var number = await NumberService.CreateNumberAsync( FormModel.Number, existingPatientId, FormModel.Date);
-            FormModel.Number.Id = number.Data.Id;
-            return true;
-        }
-    }
-
-    private async Task<bool> SaveRecord()
-    {
-        if (existingRecordId > 0)
-        {
-            // Обновление существующей записи
-            var result = await RecordService.UpdateRecordAsync(
-                existingRecordId,
-                existingPatientId,
-                FormModel.Number.Id,
-                CurrentUserId,
-                FormModel.Date);
-
-            return true;
-        }
-        else
-        {
-            var result = await RecordService.CreateEmptyRecordAsync(
-                existingPatientId,
-                FormModel.Number.Id,
-                CurrentUserId,
-                FormModel.Date);
-
-            existingRecordId = result.Data.Id;
-            return true;
-        }
-    }
-
-    private async Task SaveCascade()
-    {
-        if (!await SavePatient()) 
-        {
-            return; 
-        }
-
-        if (!await SaveNumber()) 
-        {
-            return; 
-        }
-
-        if (!await SaveRecord()) 
-        {
-            return;
-        }
-
-        await JS.InvokeVoidAsync("alert", "Данные сохранены");
-
-        activeTab = "exams";
-        StateHasChanged();
-
-        if (OnSave.HasDelegate)
-        {
-            await OnSave.InvokeAsync(existingRecordId);
-        }
-    }
 }
 

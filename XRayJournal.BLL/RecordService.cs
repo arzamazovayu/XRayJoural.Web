@@ -304,5 +304,26 @@ namespace XRayJournal.BLL
                 return OperationResult<bool>.Fail($"Ошибка: {ex.Message}");
             }
         }
+
+        public async Task<OperationResult<RecordOutputModel>> CreateRecordForExamAsync(int patientId, int numberId, int examId, int userId, DateOnly date)
+        {
+            try
+            {
+                var record = new RecordDTO
+                {
+                    PatientId = patientId,
+                    NumberId = numberId,
+                    ExamId = examId,
+                    UserId = userId,
+                    Date = date
+                };
+                var created = await _recordRepository.AddAsync(record);
+                return OperationResult<RecordOutputModel>.Ok(created.Adapt<RecordOutputModel>());
+            }
+            catch (Exception ex)
+            {
+                return OperationResult<RecordOutputModel>.Fail(ex.Message);
+            }
+        }
     }
 }
