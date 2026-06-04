@@ -139,8 +139,10 @@
                         {
                             <div class="mb-4">
                                 <h6>Добавленные исследования:</h6>
-                                @foreach (var exam in _localExams)
+                                @for (int i = 0; i < _localExams.Count; i++)
                                 {
+                                    var exam = _localExams[i];
+                                    var index = i;
                                     <div class="card mb-2">
                                         <div class="card-body py-2">
                                             <div class="d-flex justify-content-between align-items-center">
@@ -153,7 +155,7 @@
                                                 </div>
                                                 <div>
                                                     <button type="button" class="btn btn-sm btn-outline-primary me-2" 
-                                                    @onclick="() => EditExistingExam(exam)">
+                                                    @onclick="() => EditExistingExam(index)">
                                                         Редактировать
                                                     </button>
                                                     <button type="button" class="btn btn-sm btn-outline-danger" 
@@ -164,7 +166,6 @@
                                             </div>
                                         </div>
                                     </div>
-                                }
                                 }
                             </div>
                         }
@@ -181,7 +182,7 @@
                         {
                             <div class="border rounded p-3 mb-3 bg-light">
                                 <h6>@(editingExamIndex != -1 ? "Редактирование исследования" : "Новое исследование")</h6>
-                                <EditForm Model="_currentExam" OnValidSubmit="SaveExamLocal">
+                                <EditForm Model="_currentExam" OnValidSubmit="SaveExamLocal" OnInvalidSubmit="HandleInvalidExam">
                                     <DataAnnotationsValidator />
 
                                     <div class="row">
@@ -323,7 +324,7 @@
                                     </div>
                                     <div class="d-flex justify-content-end gap-2 mt-3">
                                         <button type="button" class="btn btn-secondary" @onclick="CancelExamEdit">Отмена</button>
-                                        <button type="submit" class="btn btn-primary">Сохранить исследование</button>
+                                        <button type="submit" class="btn btn-primary" @onclick="ButtonClick">Сохранить исследование</button>
                                     </div>
                                 </EditForm>
                             </div>
@@ -343,7 +344,7 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" @onclick="CloseModal">Отмена</button>
                 <button type="button" class="btn btn-success" @onclick="SaveRecordToDatabase">
-                    Создать запись
+                    @(_editingRecordId > 0 ? "Обновить запись" : "Создать запись")
                 </button>
             </div>
         </div>
@@ -573,6 +574,7 @@
                 Side = d.Exam.Side,
                 Area = d.Exam.Area
             };
+
             _localExams.Add(examInput);
         }
     }
@@ -594,6 +596,7 @@
 
     private async Task AddNewExam()
     {
+        Console.WriteLine($"Вызван метод AddNewExam()");
         editingExamIndex = -1;
         _currentExam = new XRayExamInputModel
             {
@@ -601,6 +604,8 @@
                 CabinetId = CurrentCabinetId,
                 XRayDate = _localDate
             };
+        Console.WriteLine($"AddNewExam(): Id={_currentExam.Id}, CabinetId={_currentExam.CabinetId}/");
+
         // Автозаполнение врача/лаборанта
         var user = await UserService.GetByIdAsync(CurrentUserId);
         if (user.Success && user.Data != null)
@@ -615,29 +620,31 @@
         StateHasChanged();
     }
 
-    private void EditExistingExam(XRayExamInputModel exam)
+    private void EditExistingExam(int index)
     {
 
-        editingExamIndex = _localExams.FindIndex(e => e == exam);
-
-        _currentExam = new XRayExamInputModel();
-        _currentExam.Id = exam.Id;
-        _currentExam.XRayName = exam.XRayName;
-        _currentExam.XRayDose = exam.XRayDose;
-        _currentExam.XRayShots = exam.XRayShots;
-        _currentExam.XRayDate = exam.XRayDate;
-        _currentExam.Category = exam.Category;
-        _currentExam.XRayDiagnose = exam.XRayDiagnose;
-        _currentExam.XRayPatology = exam.XRayPatology;
-        _currentExam.XRayCost = exam.XRayCost;
-        _currentExam.Doctor = exam.Doctor;
-        _currentExam.Laborant = exam.Laborant;
-        _currentExam.XRayModality = exam.XRayModality;
-        _currentExam.InOperation = exam.InOperation;
-        _currentExam.Contrast = exam.Contrast;
-        _currentExam.CabinetId = exam.CabinetId;
-        _currentExam.Side = exam.Side;
-        _currentExam.Area = exam.Area;        
+        editingExamIndex = index;
+        var exam = _localExams[index];        Console.WriteLine($"Вызван метод EditExistingExam: editingExamIndex:{index}, _localDate: {_localDate}/");
+        _currentExam = new XRayExamInputModel
+            {
+                Id = exam.Id,
+                XRayName = exam.XRayName,
+                XRayDose = exam.XRayDose,
+                XRayShots = exam.XRayShots,
+                XRayDate = exam.XRayDate,
+                Category = exam.Category,
+                XRayDiagnose = exam.XRayDiagnose,
+                XRayPatology = exam.XRayPatology,
+                XRayCost = exam.XRayCost,
+                Doctor = exam.Doctor,
+                Laborant = exam.Laborant,
+                XRayModality = exam.XRayModality,
+                InOperation = exam.InOperation,
+                Contrast = exam.Contrast,
+                CabinetId = exam.CabinetId,
+                Side = exam.Side,
+                Area = exam.Area,
+            };
 
         showExamForm = true;
         StateHasChanged();
@@ -653,6 +660,7 @@
 
     private async Task SaveExamLocal()
     {
+
         // Валидация названия и категории
         if (string.IsNullOrWhiteSpace(_currentExam.XRayName) || string.IsNullOrWhiteSpace(_currentExam.Category))
         {
@@ -739,11 +747,13 @@
     {
         try
         {
+            Console.WriteLine("Вызван метод SaveRecordToDatabase/");
             // 1. Пациент
             int patientId = _localPatient.Id;
             if (patientId == 0)
             {
                 var addPatient = PatientService.Add(_localPatient);
+                Console.WriteLine($"Пациент добавлен: Add(_localPatient.Id:{_localPatient.Id})/");
                 if (!addPatient.Success)
                 {
                     await JS.InvokeVoidAsync("alert", $"Ошибка сохранения пациента: {addPatient.ErrorMessage}");
@@ -764,9 +774,11 @@
 
             // 2. Номер
             int numberId = _localNumber.Id;
+            Console.WriteLine($"Номер id: {numberId}/");
             if (numberId == 0)
             {
                 var createNumber = await NumberService.CreateNumberAsync(_localNumber, patientId, _localDate);
+
                 if (!createNumber.Success)
                 {
                     await JS.InvokeVoidAsync("alert", $"Ошибка сохранения номера: {createNumber.ErrorMessage}");
@@ -778,6 +790,7 @@
             {
                 // Обновление номера (если изменился)
                 var updNumber = await NumberService.UpdateNumberAsync(_localNumber);
+
                 if (!updNumber.Success)
                 {
                     await JS.InvokeVoidAsync("alert", $"Ошибка обновления номера: {updNumber.ErrorMessage}");
@@ -791,6 +804,7 @@
                 foreach (var exam in _localExams)
                 {
                     int examId = exam.Id ?? 0;
+
                     if (examId == 0)
                     {
                         var addExam = XRayExamService.Add(exam);
@@ -800,6 +814,7 @@
                             return;
                         }
                         examId = addExam.Data.Id;
+                        Console.WriteLine($"examId внутри if (examId == 0): {examId}/");
                     }
                     else
                     {
@@ -812,6 +827,7 @@
                     }
                     // Создаём запись (одно исследование – одна запись)
                     var createRecord = await RecordService.CreateRecordForExamAsync(patientId, numberId, examId, CurrentUserId, _localDate);
+                    
                     if (!createRecord.Success)
                     {
                         await JS.InvokeVoidAsync("alert", $"Ошибка создания записи для исследования {exam.XRayName}: {createRecord.ErrorMessage}");
@@ -822,6 +838,7 @@
                 {
                     // Если нет исследований, создаём запись без ExamId
                     var createEmpty = await RecordService.CreateEmptyRecordAsync(patientId, numberId, CurrentUserId, _localDate);
+                    
                     if (!createEmpty.Success)
                     {
                         await JS.InvokeVoidAsync("alert", $"Ошибка создания записи без исследования: {createEmpty.ErrorMessage}");
@@ -834,16 +851,20 @@
                 // Для каждого исследования обновляем его (оно уже имеет Id)
                 foreach (var exam in _localExams)
                 {
+                    
                     int examId = exam.Id ?? 0;
                     if (examId == 0)
                     {
+
                         var addExam = XRayExamService.Add(exam);
+                        Console.WriteLine($"Запись добавлена: Add(exam.Id:{exam.Id})/");
                         if (!addExam.Success)
                         {
                             await JS.InvokeVoidAsync("alert", $"Ошибка обновления исследования: {addExam.ErrorMessage}");
                             return;
                         }
                         examId = addExam.Data.Id;
+                        Console.WriteLine($"examId внутри if (examId == 0): {examId}/");
                         var createRecord = await RecordService.CreateRecordForExamAsync(patientId, numberId, examId, CurrentUserId, _localDate);
                         if (!createRecord.Success)
                         {
@@ -907,7 +928,7 @@
         }
         else
         {
-            await JS.InvokeVoidAsync("alert", $"Найдено несколько пациентов. Выберите из списка (функция в разработке)");
+            await JS.InvokeVoidAsync("alert", $"Найдено несколько пациентов. Уточните поиск");
         }
     }
 
@@ -922,6 +943,19 @@
         _localPatient.MedNumber = patient.MedNumber;
         selectedPatient = patient;
         StateHasChanged();
+    }
+
+    private void HandleInvalidExam()
+    {
+        
+        Console.WriteLine("=== Ошибки валидации формы исследования ===");
+        
+    }
+
+    private void ButtonClick()
+    {
+        Console.WriteLine("Нажата кнопка 'Сохранить исследование'");
+        Console.WriteLine($"Редактирование исследования: CabinetId={_currentExam.Id}, Name={_currentExam.XRayName}, Category={_currentExam.Category}, Area={_currentExam.Area}");
     }
 }
 

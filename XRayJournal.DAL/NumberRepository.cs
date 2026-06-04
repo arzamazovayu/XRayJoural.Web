@@ -54,7 +54,9 @@ namespace XRayJournal.DAL
                 throw new Exception($"Номер с ID {number.Id} не найден");
             }
 
-            _dataContext.Entry(existing).CurrentValues.SetValues(number);
+            existing.YearlyNum = number.YearlyNum;
+            existing.DailyNum = number.DailyNum;
+            //Изменять дату не зачем т.к. пользователь не может её редактировать напрямую
             await _dataContext.SaveChangesAsync();
             return number;
         }
@@ -73,14 +75,11 @@ namespace XRayJournal.DAL
 
         public async Task<NumberDTO?> GetLastNumberForCabinetAsync(int cabinetId)
         {
-            var query = from record in _dataContext.Records
-                        join exam in _dataContext.Exams on record.ExamId equals exam.Id
-                        join number in _dataContext.Numbers on record.NumberId equals number.Id
-                        where exam.IdCabinet == cabinetId
-                        orderby number.Id descending
-                        select number;
-
-            return await query.FirstOrDefaultAsync();
+            return await _dataContext.Records
+                        .Where(r => r.Exam != null && r.Exam.IdCabinet == cabinetId)
+                        .OrderByDescending(r => r.Number.Id)
+                        .Select(r => r.Number)
+                        .FirstOrDefaultAsync();
         }
 
         public async Task<NumberDTO?> GetByIdAsync(int id)

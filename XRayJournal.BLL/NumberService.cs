@@ -27,12 +27,10 @@ namespace XRayJournal.BLL
         public async Task<(int Yearly, int Daily)> CalculateNextNumberAsync(DateOnly XRayDate, int cabinetId)
         {
             var lastNum = await _numberRepository.GetLastNumberForCabinetAsync(cabinetId);
-            Console.WriteLine($"Last number for cabinet {cabinetId}: {lastNum?.YearlyNum}/{lastNum?.DailyNum}");
 
             //Если последнего номера нет, то предлагаем 1/1 как первый
             if (lastNum == null) 
             {
-                Console.WriteLine("Last number not found");
                 return (1, 1);
             }
 

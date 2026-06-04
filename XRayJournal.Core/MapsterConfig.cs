@@ -16,14 +16,11 @@ namespace XRayJournal.Core
         {
             config.NewConfig<PatientDTO, PatientOutputModel>();
 
-            //config.NewConfig<PatientDTO, PatientWithExamOutputModel>()
-            //    .Map(dest => dest.Exams, src => src.Exams.Adapt<List<XRayExamOutputModel>>())
-            //    .Map(dest => dest.Numbers, src => src.Numbers.Adapt<List<NumberOutputModel>>());
-
             config.NewConfig<XRayExamDTO, XRayExamOutputModel>();
 
             config.NewConfig<XRayExamInputModel, XRayExamDTO>()
-                .Map(dest => dest.Id, src => src.Id ?? 0);
+                .Map(dest => dest.Id, src => src.Id ?? 0)
+                .Map(dest => dest.IdCabinet, src => src.CabinetId);
 
             config.NewConfig<XRayExamOutputModel, XRayExamInputModel>()
                 .Map(dest => dest.Id, src => src.Id);

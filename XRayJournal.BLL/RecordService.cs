@@ -83,7 +83,6 @@ namespace XRayJournal.BLL
 
                 //Получение/создание номера
                 var (yearly, daily) = await _numberService.CalculateNextNumberAsync(input.Date, cabinetId);
-                Console.WriteLine($"[DEBUG] Calculated number: {yearly}/{daily} for cabinet {cabinetId}"); //ОТЛАДКА
                 var number = new NumberDTO
                 {
                     YearlyNum = input.Number.YearlyNum,
@@ -92,7 +91,6 @@ namespace XRayJournal.BLL
                     PatientId = patient.Id
                 };
                 var savedNumber = await _numberRepository.AddAsync(number);
-                Console.WriteLine($"[DEBUG] Saved number with ID: {savedNumber?.Id}");//ОТЛАДКА
                 //Создание записи
                 var record = new RecordDTO
                 {
