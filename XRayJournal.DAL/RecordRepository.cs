@@ -180,5 +180,12 @@ namespace XRayJournal.DAL
             await _dataContext.SaveChangesAsync();
             return true;
         }
+
+        public async Task<List<RecordDTO>> GetByNumberIdAsync(int numberId)
+        {
+            return await _dataContext.Records
+                .Where(r => r.NumberId == numberId)
+                .ToListAsync();
+        }
     }
 }

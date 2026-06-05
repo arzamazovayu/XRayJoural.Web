@@ -18,6 +18,5 @@ namespace XRayJournal.Core.InputModels
 
         public string? MedNumber { get; set; }
 
-        public string? Sex { get; set; }
     }
 }

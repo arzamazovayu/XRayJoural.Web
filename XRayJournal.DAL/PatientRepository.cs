@@ -121,12 +121,10 @@ namespace XRayJournal.DAL
                 query = query.Where(p => p.FirstName == search.FirstName);
             if (!string.IsNullOrWhiteSpace(search.ThirdName))
                 query = query.Where(p => p.ThirdName == search.ThirdName);
-            if (search.BirthDate.HasValue)
+            if (search.BirthDate.HasValue && search.BirthDate != DateOnly.FromDateTime(DateTime.Now))
                 query = query.Where(p => p.BirthDate == search.BirthDate.Value);
             if (!string.IsNullOrWhiteSpace(search.MedNumber))
                 query = query.Where(p => p.MedNumber == search.MedNumber);
-            if (!string.IsNullOrWhiteSpace(search.Sex))
-                query = query.Where(p => p.Sex == search.Sex);
             return await query.ToListAsync();
         }
     }

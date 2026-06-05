@@ -323,5 +323,34 @@ namespace XRayJournal.BLL
                 return OperationResult<RecordOutputModel>.Fail(ex.Message);
             }
         }
+
+        public async Task<OperationResult<bool>> DeleteRecordAsync(int recordId)
+        {
+            try
+            {
+                var success = await _recordRepository.DeleteAsync(recordId);
+                if (!success)
+                    return OperationResult<bool>.Fail("Запись не найдена");
+                return OperationResult<bool>.Ok(true);
+            }
+            catch (Exception ex)
+            {
+                return OperationResult<bool>.Fail($"Ошибка удаления записи: {ex.Message}");
+            }
+        }
+
+        public async Task<OperationResult<List<RecordOutputModel>>> GetRecordsByNumberIdAsync(int numberId)
+        {
+            try
+            {
+                var records = await _recordRepository.GetByNumberIdAsync(numberId);
+                var result = records.Adapt<List<RecordOutputModel>>();
+                return OperationResult<List<RecordOutputModel>>.Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return OperationResult<List<RecordOutputModel>>.Fail(ex.Message);
+            }
+        }
     }
 }

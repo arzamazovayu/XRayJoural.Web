@@ -189,5 +189,21 @@ namespace XRayJournal.BLL
                 return OperationResult<NumberOutputModel>.Fail($"Ошибка при добавлении номера: {ex.Message}");
             }
         }
+
+        /// <summary>
+        /// Удаляет номер пациента
+        /// </summary>
+        public async Task<OperationResult<bool>> DeleteNumberAsync(int numberId)
+        {
+            try
+            {
+                var success = _numberRepository.Delete(numberId);
+                return success ? OperationResult<bool>.Ok(true) : OperationResult<bool>.Fail("Номер не найден");
+            }
+            catch (Exception ex)
+            {
+                return OperationResult<bool>.Fail($"Ошибка удаления номера: {ex.Message}");
+            }
+        }
     }
 }

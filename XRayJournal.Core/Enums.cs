@@ -3,6 +3,7 @@
     public enum UserRole
     {
         Doctor=0,
-        Laborant=1
+        Laborant=1,
+        Head=2
     }
 }

@@ -116,10 +116,9 @@
                                         {
                                             <AuthorizeView Roles="Doctor">
                                                 <Authorized Context="Doctor">
-                                                    <button type="button"
-                                                    class="btn btn-outline-danger btn-sm"
-                                                    @onclick="ShowDeletePatientModal">
-                                                        <i class="bi bi-trash"></i>Удалить пациента
+                                                    <button type="button" class="btn btn-outline-danger btn-sm"
+                                                    @onclick="ShowDeleteRecordModal">
+                                                        <i class="bi bi-trash"></i>Удалить запись
                                                     </button>
                                                 </Authorized>
                                                 <NotAuthorized Context ="Laborant"></NotAuthorized>
@@ -158,10 +157,6 @@
                                                     @onclick="() => EditExistingExam(index)">
                                                         Редактировать
                                                     </button>
-                                                    <button type="button" class="btn btn-sm btn-outline-danger" 
-                                                    @onclick="() => ConfirmDeleteExam(exam)">
-                                                        Удалить
-                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
@@ -182,7 +177,7 @@
                         {
                             <div class="border rounded p-3 mb-3 bg-light">
                                 <h6>@(editingExamIndex != -1 ? "Редактирование исследования" : "Новое исследование")</h6>
-                                <EditForm Model="_currentExam" OnValidSubmit="SaveExamLocal" OnInvalidSubmit="HandleInvalidExam">
+                                <EditForm Model="_currentExam" OnValidSubmit="SaveExamLocal">
                                     <DataAnnotationsValidator />
 
                                     <div class="row">
@@ -324,7 +319,7 @@
                                     </div>
                                     <div class="d-flex justify-content-end gap-2 mt-3">
                                         <button type="button" class="btn btn-secondary" @onclick="CancelExamEdit">Отмена</button>
-                                        <button type="submit" class="btn btn-primary" @onclick="ButtonClick">Сохранить исследование</button>
+                                        <button type="submit" class="btn btn-primary">Сохранить исследование</button>
                                     </div>
                                 </EditForm>
                             </div>
@@ -373,8 +368,8 @@
         </div>
     }
 
-    <!-- Диалог удаления пациента -->
-    @if (showDeletePatientDialog)
+    <!-- Диалог удаления записи -->
+    @if (showDeleteRecordDialog)
     {
         <div class="modal-backdrop fade show" style="z-index: 1050;"></div>
         <div class="modal fade show d-block" tabindex="-1" style="z-index: 1055;">
@@ -382,36 +377,35 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title text-danger">
-                            <i class="bi bi-exclamation-triangle"></i> Подтверждение удаления пациента
+                            <i class="bi bi-exclamation-triangle"></i> Подтверждение удаления записи
                         </h5>
-                        <button type="button" class="btn-close" @onclick="CancelDeletePatient"></button>
+                        <button type="button" class="btn-close" @onclick="CancelDeleteRecord"></button>
                     </div>
                     <div class="modal-body">
                         <div class="alert alert-warning">
                             <h6>Внимание! Это действие нельзя отменить.</h6>
-                            <p>Будут удалены:</p>
+                            <p>Запись будет удалена.</p>
                             <ul>
-                                <li>Пациент: <strong>
+                                <li>У пациента: <strong>
                                         @_localPatient.SecondName 
                                         @_localPatient.FirstName 
                                         @_localPatient?.ThirdName
                                     </strong></li>
-                                <li>Номер карты: <strong>@_localPatient.MedNumber</strong></li>
-                                <li>Все связанные исследования: <strong>@_localExams?.Count</strong></li>
+                                <li>Будет удалено исследование: <strong>@(_localExams.FirstOrDefault()?.XRayName ?? "-")</strong></li>
                             </ul>
                         </div>
                         <div class="form-check">
-                            <InputCheckbox class="form-check-input" @bind-Value="confirmPatientDelete" />
+                            <InputCheckbox class="form-check-input" @bind-Value="confirmRecordDelete" />
                             <label class="form-check-label">
-                                Я подтверждаю удаление пациента и всех связанных данных
+                                Я подтверждаю удаление записи и связанного исследования
                             </label>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" @onclick="CancelDeletePatient">Отмена</button>
-                        <button type="button" class="btn btn-danger" @onclick="DeletePatientConfirmed" 
-                        disabled="@(!confirmPatientDelete)">
-                            <i class="bi bi-trash"></i> Удалить пациента
+                        <button type="button" class="btn btn-secondary" @onclick="CancelDeleteRecord">Отмена</button>
+                        <button type="button" class="btn btn-danger" @onclick="DeleteRecordConfirmed" 
+                        disabled="@(!confirmRecordDelete)">
+                            <i class="bi bi-trash"></i> Удалить запись
                         </button>
                     </div>
                 </div>
@@ -456,6 +450,10 @@
     private bool showDeleteDialog = false;
     private string deleteDialogMessage = "";
     private int deleteExamIndex = -1;
+
+    // Поля диалога удаления записи
+    private bool showDeleteRecordDialog = false;
+    private bool confirmRecordDelete = false;
 
     // Поля для диалога удаления пациента
     private bool showDeletePatientDialog = false;
@@ -907,8 +905,7 @@
                 FirstName = _localPatient.FirstName,
                 ThirdName = _localPatient.ThirdName,
                 BirthDate = _localPatient.BirthDate,
-                MedNumber = _localPatient.MedNumber,
-                Sex = _localPatient.Sex
+                MedNumber = _localPatient.MedNumber
             };
         var result = await PatientService.FindPatientsAsync(search);
         if (!result.Success)
@@ -945,17 +942,78 @@
         StateHasChanged();
     }
 
-    private void HandleInvalidExam()
+    private void ShowDeleteRecordModal()
     {
-        
-        Console.WriteLine("=== Ошибки валидации формы исследования ===");
-        
+        showDeleteRecordDialog = true;
+        confirmRecordDelete = false;
+        StateHasChanged();
     }
 
-    private void ButtonClick()
+    private void CancelDeleteRecord()
     {
-        Console.WriteLine("Нажата кнопка 'Сохранить исследование'");
-        Console.WriteLine($"Редактирование исследования: CabinetId={_currentExam.Id}, Name={_currentExam.XRayName}, Category={_currentExam.Category}, Area={_currentExam.Area}");
+        showDeleteRecordDialog = false;
+        confirmRecordDelete = false;
+        StateHasChanged();
+    }
+
+    private async Task DeleteRecordConfirmed()
+    {
+        try
+        {
+            // 1. Получаем информацию о записи
+            var record = await RecordService.GetByIdAsync(_editingRecordId);
+            if (!record.Success || record.Data == null)
+            {
+                await JS.InvokeVoidAsync("alert", "Не удалось загрузить запись для удаления");
+                return;
+            }
+            // Надёжнее получить id из записи
+            int numberId = record.Data.Number.Id;
+            int examId = record.Data.Exam?.Id ?? 0;
+
+            // 2. Удаляем запись из Records
+            var deleteRecord = await RecordService.DeleteRecordAsync(_editingRecordId);
+            if (!deleteRecord.Success)
+            {
+                await JS.InvokeVoidAsync("alert", $"Ошибка удаления записи: {deleteRecord.ErrorMessage}");
+                return;
+            }
+
+            // 3. Удаляем исследование (если оно есть)
+            if (examId > 0)
+            {
+                var deleteExam = XRayExamService.Delete(examId);
+                if (!deleteExam.Success)
+                {
+                    await JS.InvokeVoidAsync("alert", $"Ошибка удаления исследования: {deleteExam.ErrorMessage}");
+                }
+            }
+
+            // 4. Проверяем, используется ли номер в других записях
+            var otherRecords = await RecordService.GetRecordsByNumberIdAsync(numberId);
+            if (otherRecords.Success && !otherRecords.Data.Any())
+            {
+                // Номер не используется, удаляем его
+                var deleteNumber = await NumberService.DeleteNumberAsync(numberId);
+                if (!deleteNumber.Success)
+                {
+                    await JS.InvokeVoidAsync("alert", $"Ошибка удаления номера: {deleteNumber.ErrorMessage}");
+                }
+            }
+
+            await JS.InvokeVoidAsync("alert", "Запись успешно удалена");
+            if (OnSave.HasDelegate)
+                await OnSave.InvokeAsync();
+            await CloseModal();
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Ошибка: {ex.Message}");
+        }
+        finally
+        {
+            CancelDeleteRecord();
+        }
     }
 }
 
