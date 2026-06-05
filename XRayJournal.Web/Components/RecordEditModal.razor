@@ -10,7 +10,7 @@
 @inject IJSRuntime JS
 
 <div class="modal show d-block fade" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
-    <div class="modal-dialog modal-xl">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">@Title</h5>
@@ -45,16 +45,6 @@
                                 <div class="row">
                                     <div class="col-md-3">
                                         <div class="mb-3">
-                                            <label class="form-label">№ п/п</label>
-                                            <div class="input-group">
-                                                <InputNumber class="form-control" @bind-Value="_localNumber.YearlyNum" min="1" style="width: 45px;" />
-                                                <span class="input-group-text">/</span>
-                                                <InputNumber class="form-control" @bind-Value="_localNumber.DailyNum" min="1" style="width: 45px;" />
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <div class="mb-3">
                                             <label class="form-label">Фамилия *</label>
                                             <InputText class="form-control" @bind-Value="_localPatient.SecondName" />
                                             <ValidationMessage For="() => _localPatient.SecondName" />
@@ -76,13 +66,23 @@
                                 </div>
 
                                 <div class="row">
-                                    <div class="col-md-6">
+                                    <div class="col-md-2">
+                                        <div class="mb-3">
+                                            <label class="form-label">№ п/п</label>
+                                            <div class="input-group">
+                                                <InputNumber class="form-control" @bind-Value="_localNumber.YearlyNum" min="1" style="width: 35px;" />
+                                                <span class="input-group-text">/</span>
+                                                <InputNumber class="form-control" @bind-Value="_localNumber.DailyNum" min="1" style="width: 35px;" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
                                         <div class="mb-3">
                                             <label class="form-label">Дата рождения *</label>
                                             <InputDate class="form-control" @bind-Value="_localPatient.BirthDate" />
                                         </div>
                                     </div>
-                                    <div class="col-md-3">
+                                    <div class="col-md-2">
                                         <div class="mb-3">
                                             <label class="form-label">Пол *</label>
                                             <InputSelect class="form-select" @bind-Value="_localPatient.Sex">
@@ -104,11 +104,11 @@
                                 <div class="row mt-3">
                                     <div class="col-md-6 d-flex gap-2">
                                         <!-- Кнопка поиска пациента -->
-                                        <button type="button" class="btn btn-outline-info" @onclick="SearchPatient">
+                                        <button type="button" class="btn btn-info" @onclick="SearchPatient">
                                             <i class="bi bi-search"></i> Найти пациента
                                         </button>
                                         <!-- Кнопка сохранения пациента -->
-                                        <button type="submit" class="btn btn-outline-success">
+                                        <button type="submit" class="btn btn-outline-success" @onclick="ClickSave" disabled="@(!isFindClicked)">
                                             <i class="bi bi-save"></i> Сохранить данные
                                         </button>
                                         <!-- Кнопка удаления пациента -->
@@ -319,7 +319,7 @@
                                     </div>
                                     <div class="d-flex justify-content-end gap-2 mt-3">
                                         <button type="button" class="btn btn-secondary" @onclick="CancelExamEdit">Отмена</button>
-                                        <button type="submit" class="btn btn-primary">Сохранить исследование</button>
+                                        <button type="submit" class="btn btn-primary" @onclick="ExamClose">Сохранить исследование</button>
                                     </div>
                                 </EditForm>
                             </div>
@@ -338,7 +338,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" @onclick="CloseModal">Отмена</button>
-                <button type="button" class="btn btn-success" @onclick="SaveRecordToDatabase">
+                <button type="button" class="btn btn-success" @onclick="SaveRecordToDatabase" disabled="@isExamAdding">
                     @(_editingRecordId > 0 ? "Обновить запись" : "Создать запись")
                 </button>
             </div>
@@ -463,6 +463,10 @@
     private bool searchMode = true;
     private List<PatientOutputModel> foundPatients = new();
     private PatientOutputModel? selectedPatient = null;
+
+    //Поля кнопок
+    private bool isFindClicked = false;
+    private bool isExamAdding = false;
 
     private string Title => _editingRecordId > 0 ? "Редактирование записи" : "Новая запись";
 
@@ -594,7 +598,6 @@
 
     private async Task AddNewExam()
     {
-        Console.WriteLine($"Вызван метод AddNewExam()");
         editingExamIndex = -1;
         _currentExam = new XRayExamInputModel
             {
@@ -602,7 +605,6 @@
                 CabinetId = CurrentCabinetId,
                 XRayDate = _localDate
             };
-        Console.WriteLine($"AddNewExam(): Id={_currentExam.Id}, CabinetId={_currentExam.CabinetId}/");
 
         // Автозаполнение врача/лаборанта
         var user = await UserService.GetByIdAsync(CurrentUserId);
@@ -615,14 +617,14 @@
                 _currentExam.Laborant = fioShort;
         }
         showExamForm = true;
+        isExamAdding = true;
         StateHasChanged();
     }
 
     private void EditExistingExam(int index)
     {
-
         editingExamIndex = index;
-        var exam = _localExams[index];        Console.WriteLine($"Вызван метод EditExistingExam: editingExamIndex:{index}, _localDate: {_localDate}/");
+        var exam = _localExams[index];        
         _currentExam = new XRayExamInputModel
             {
                 Id = exam.Id,
@@ -645,6 +647,7 @@
             };
 
         showExamForm = true;
+        isExamAdding = true;
         StateHasChanged();
     }
 
@@ -653,6 +656,7 @@
         showExamForm = false;
         _currentExam = new ();
         editingExamIndex = -1;
+        isExamAdding = false;
         StateHasChanged();
     }
 
@@ -825,7 +829,7 @@
                     }
                     // Создаём запись (одно исследование – одна запись)
                     var createRecord = await RecordService.CreateRecordForExamAsync(patientId, numberId, examId, CurrentUserId, _localDate);
-                    
+
                     if (!createRecord.Success)
                     {
                         await JS.InvokeVoidAsync("alert", $"Ошибка создания записи для исследования {exam.XRayName}: {createRecord.ErrorMessage}");
@@ -836,7 +840,7 @@
                 {
                     // Если нет исследований, создаём запись без ExamId
                     var createEmpty = await RecordService.CreateEmptyRecordAsync(patientId, numberId, CurrentUserId, _localDate);
-                    
+
                     if (!createEmpty.Success)
                     {
                         await JS.InvokeVoidAsync("alert", $"Ошибка создания записи без исследования: {createEmpty.ErrorMessage}");
@@ -849,7 +853,7 @@
                 // Для каждого исследования обновляем его (оно уже имеет Id)
                 foreach (var exam in _localExams)
                 {
-                    
+
                     int examId = exam.Id ?? 0;
                     if (examId == 0)
                     {
@@ -927,6 +931,7 @@
         {
             await JS.InvokeVoidAsync("alert", $"Найдено несколько пациентов. Уточните поиск");
         }
+        isFindClicked = true;
     }
 
     private void SelectPatient(PatientOutputModel patient)
@@ -1014,6 +1019,16 @@
         {
             CancelDeleteRecord();
         }
+    }
+
+    private void ClickSave()
+    {
+        isFindClicked = false;
+    }
+
+    private void ExamClose()
+    {
+        isExamAdding = false;
     }
 }
 
