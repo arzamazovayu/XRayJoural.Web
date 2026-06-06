@@ -42,6 +42,25 @@ namespace XRayJournal.BLL
             }
         }
 
+        public async Task<OperationResult<PatientOutputModel>> GetByMedIdAsync(string medId)
+        {
+            try
+            {
+                var patient = await _patientRepository.GetByMedNumberAsync(medId);
+                if (patient == null)
+                {
+                    return OperationResult<PatientOutputModel>.Fail("Пациент не найден");
+                }
+
+                var outputModel = patient.Adapt<PatientOutputModel>();
+                return OperationResult<PatientOutputModel>.Ok(outputModel);
+            }
+            catch(Exception ex)
+            {
+                return OperationResult<PatientOutputModel>.Fail($"Ошибка поиска пациента по medId: {ex.Message}");
+            }
+        }
+
         public OperationResult<PatientOutputModel> Add(PatientInputModel patient) 
         {
             try

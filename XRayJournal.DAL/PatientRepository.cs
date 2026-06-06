@@ -106,10 +106,9 @@ namespace XRayJournal.DAL
             return patient;
         }
 
-        public PatientDTO GetByMedNumber(string medId)
+        public async Task<PatientDTO?> GetByMedNumberAsync(string medId)
         {
-            var patient = _dataContext.Patients.FirstOrDefault(p => p.MedNumber == medId);
-            return patient;
+            return await _dataContext.Patients.FirstOrDefaultAsync(p => p.MedNumber == medId);
         }
 
         public async Task<List<PatientDTO>> FindPatientsAsync(PatientSearchInputModel search)

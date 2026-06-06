@@ -37,6 +37,7 @@ namespace XRayJournal.Web
             builder.Services.AddScoped<NumberService>();
             builder.Services.AddScoped<RecordService>();
             builder.Services.AddScoped<CabinetService>();
+            builder.Services.AddScoped<ReportService>();
 
             TypeAdapterConfig.GlobalSettings.Apply(new MapsterConfig());
             builder.Services.AddMapster();

@@ -77,5 +77,19 @@ namespace XRayJournal.BLL
                 return OperationResult<UserOutputModel>.Fail($"Ошибка поиска пользователя: {ex.Message}");
             }
         }
+
+        public async Task<OperationResult<List<UserOutputModel>>> GetAllUsersAsync()
+        {
+            try
+            {
+                var users = await _userRepository.GetAllAsync();
+                var result = users.Adapt<List<UserOutputModel>>();
+                return OperationResult<List<UserOutputModel>>.Ok(result);
+            }
+            catch(Exception ex)
+            {
+                return OperationResult<List<UserOutputModel>>.Fail($"Ошибка получения пользователей: {ex.Message}");
+            }
+        }
     }
 }

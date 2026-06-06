@@ -26,7 +26,7 @@ namespace XRayJournal.Core.IRepositories
 
         public PatientDTO GetPatientWithExamsAndNumbersById(int id);
 
-        public PatientDTO GetByMedNumber(string medId);
+        public Task<PatientDTO?> GetByMedNumberAsync(string medId);
 
         public Task<List<PatientDTO>> FindPatientsAsync(PatientSearchInputModel search);
     }

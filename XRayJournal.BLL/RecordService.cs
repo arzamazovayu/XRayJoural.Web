@@ -59,7 +59,7 @@ namespace XRayJournal.BLL
         private async Task<PatientDTO> GetOrCreatePatientAsync(PatientInputModel input)
         {
             //Поиск по номеру карты
-            var existing = _patientRepository.GetByMedNumber(input.MedNumber);
+            var existing = await _patientRepository.GetByMedNumberAsync(input.MedNumber);
 
             if (existing != null)
                 return existing;

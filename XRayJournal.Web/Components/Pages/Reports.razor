@@ -1,0 +1,523 @@
+﻿@page "/reports"
+@using XRayJournal.Core.Results
+@using XRayJournal.Core.OutputModels
+@using XRayJournal.Core.DTOs
+@using System.Security.Claims
+@rendermode InteractiveServer
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject UserService UserService
+@inject CabinetService CabinetService
+@inject PatientService PatientService
+@inject RecordService RecordService
+@inject ReportService ReportService
+@inject IJSRuntime JS
+
+<PageTitle>Отчёты</PageTitle>
+
+<AuthorizeView>
+    <Authorized>
+        <div class="reports-container">
+            <!-- Верхняя информационная панель (sticky) -->
+            <div class="sticky-info-bar bg-white pt-2 pb-2 border-bottom mb-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="bi bi-person-circle me-2"></i>
+                        <strong>Вы авторизованы как:</strong> @currentUserFIO
+                        <span class="mx-3">|</span>
+                        <i class="bi bi-building me-2"></i>
+                        <strong>Текущий кабинет:</strong> @currentCabinetName
+                    </div>
+                    <div>
+                        <button class="btn btn-sm btn-outline-secondary me-2" @onclick="YankeeGoHome">
+                            <i class="bi bi-house-door"></i> На главную
+                        </button>
+                        <a href="/logout" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-box-arrow-right"></i> Выйти
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="container-fluid">
+                <div class="row">
+                    <!-- Раздел 1: Отчёты -->
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0">Отчёты</h5>
+                            </div>
+                            <div class="card-body">
+                                @* Radio выбор типа отчёта (кабинет / сотрудник) *@
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Отчёт по:</label>
+                                    <div class="form-check">
+                                        <InputRadioGroup @bind-Value="reportByCabinet">
+                                            <div class="form-check">
+                                                <InputRadio Value="true" id="rbCabinet" class="form-check-input" />
+                                                <label for="rbCabinet" class="form-check-label">Кабинетам</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <InputRadio Value="false" id="rbEmployee" class="form-check-input" />
+                                                <label for="rbEmployee" class="form-check-label">Сотрудникам</label>
+                                            </div>
+                                        </InputRadioGroup>
+                                    </div>
+                                </div>
+
+                                @* Выбор кабинетов (один или список с чекбоксами) *@
+                                @if (reportByCabinet)
+                                {
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Кабинеты:</label>
+                                        @if (isHead)
+                                        {
+                                            <div class="form-check mb-2">
+                                                        <input type="checkbox" class="form-check-input" id="selectAllCabinets" checked="@selectAllCabinets" 
+                                                        @onchange="(e) => { selectAllCabinets = (bool)e.Value; OnSelectAllCabinetsChanged(); }"/>
+                                                <label for="selectAllCabinets" class="form-check-label">Выбрать всё</label>
+                                            </div>
+                                            <div class="cabinet-list border p-2 rounded" style="max-height: 150px; overflow-y: auto;">
+                                                @foreach (var cab in allCabinets)
+                                                {
+                                                    <div class="form-check">
+                                                    <input type="checkbox" class="form-check-input" 
+                                                        id="cab_@cab.Id" value="@cab.Id" checked="@selectedCabinets.Contains(cab.Id)" 
+                                                        @onchange="(e) => ToggleCabinetSelection(cab.Id, (bool)e.Value)" />
+                                                        <label for="cab_@cab.Id" class="form-check-label">@cab.CabNum - @cab.CabinetName</label>
+                                                    </div>
+                                                }
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="form-text">@userCabinetName</div>
+                                            <input type="hidden" value="@userCabinetId" />
+                                        }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Сотрудники:</label>
+                                        @if (isHead)
+                                        {
+                                            <div class="form-check mb-2">
+                                                <input type="checkbox" class="form-check-input" id="selectAllUsers" checked="@selectAllUsers" 
+                                                        @onchange="(e) => { selectAllUsers = (bool)e.Value; OnSelectAllUsersChanged(); }" />
+                                                <label for="selectAllUsers" class="form-check-label">Выбрать всё</label>
+                                            </div>
+                                            <div class="user-list border p-2 rounded" style="max-height: 150px; overflow-y: auto;">
+                                                @foreach (var user in allUsers)
+                                                {
+                                                    <div class="form-check">
+                                                        <input type="checkbox" class="form-check-input" 
+                                                            id="user_@user.ID" value="@user.ID" checked="@selectedUsers.Contains(user.ID)" 
+                                                            @onchange="(e) => ToggleUserSelection(user.ID, (bool)e.Value)" />
+                                                        <label for="user_@user.ID" class="form-check-label">@user.Role (@user.FIOshort)</label>
+                                                    </div>
+                                                }
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="form-text">@currentUserFIO (@currentUserRole)</div>
+                                            <input type="hidden" value="@currentUserId" />
+                                        }
+                                    </div>
+                                }
+
+                                <hr />
+                                @* Ежедневный отчёт *@
+                                <div class="mb-3">
+                                    <label class="form-label">Дата для ежедневного отчёта:</label>
+                                    <InputDate @bind-Value="dailyReportDate" class="form-control" />
+                                    <button class="btn btn-primary mt-2 w-100" @onclick="GenerateDailyReport">
+                                        <i class="bi bi-calendar-day"></i> Ежедневный отчёт
+                                    </button>
+                                </div>
+
+                                @* Еженедельный отчёт *@
+                                <div class="mb-3">
+                                    <label class="form-label">Период (неделя):</label>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <InputDate @bind-Value="weeklyStartDate" class="form-control" />
+                                        </div>
+                                        <div class="col-6">
+                                            <InputDate @bind-Value="weeklyEndDate" class="form-control" />
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-primary mt-2 w-100" @onclick="GenerateWeeklyReport">
+                                        <i class="bi bi-calendar-week"></i> Еженедельный отчёт
+                                    </button>
+                                </div>
+
+                                @* Годовой отчёт *@
+                                <div class="mb-3">
+                                    <label class="form-label">Период (год):</label>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <InputDate @bind-Value="yearlyStartDate" class="form-control" />
+                                        </div>
+                                        <div class="col-6">
+                                            <InputDate @bind-Value="yearlyEndDate" class="form-control" />
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-primary mt-2 w-100" @onclick="GenerateYearlyReport">
+                                        <i class="bi bi-calendar-year"></i> Годовой отчёт
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Раздел 2: Лучевая нагрузка -->
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="mb-0">Лучевая нагрузка</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label">Номер карты пациента:</label>
+                                    <div class="input-group">
+                                        <InputText @bind-Value="searchMedNumber" class="form-control" placeholder="Введите номер карты" />
+                                        <button class="btn btn-outline-secondary" @onclick="SearchPatientByMedNumber">
+                                            <i class="bi bi-search"></i> Поиск
+                                        </button>
+                                    </div>
+                                </div>
+
+                                @if (foundPatient != null)
+                                {
+                                    <div class="alert alert-info">
+                                        <strong>Пациент:</strong> @foundPatient.SecondName @foundPatient.FirstName @foundPatient.ThirdName<br />
+                                        <strong>Дата рождения:</strong> @foundPatient.BirthDate.ToString("dd.MM.yyyy")<br />
+                                        <strong>Номер карты:</strong> @foundPatient.MedNumber
+                                    </div>
+                                }
+                                else if (searchPerformed && foundPatient == null)
+                                {
+                                    <div class="alert alert-warning">Пациент не найден</div>
+                                }
+
+                                <div class="mb-3">
+                                    <label class="form-label">Период отчёта:</label>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <label class="form-label small">с</label>
+                                            <InputDate @bind-Value="radiationStartDate" class="form-control" />
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label small">по</label>
+                                            <InputDate @bind-Value="radiationEndDate" class="form-control" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button class="btn btn-success w-100" @onclick="GenerateRadiationLoadReport" disabled="@(foundPatient == null)">
+                                    <i class="bi bi-file-text"></i> Сформировать лист лучевой нагрузки
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Раздел 3: Журнал -->
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header bg-info text-white">
+                                <h5 class="mb-0">Журнал</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label">Кабинет:</label>
+                                    <InputSelect @bind-Value="selectedJournalCabinetId" class="form-select">
+                                        <option value="0">-- Выберите кабинет --</option>
+                                        @foreach (var cab in journalCabinets)
+                                        {
+                                            <option value="@cab.Id">@cab.CabNum - @cab.CabinetName</option>
+                                        }
+                                    </InputSelect>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Период (журнал):</label>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <label class="form-label small">с</label>
+                                            <InputDate @bind-Value="journalStartDate" class="form-control" />
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label small">по</label>
+                                            <InputDate @bind-Value="journalEndDate" class="form-control" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button class="btn btn-info w-100" @onclick="GenerateJournalReport">
+                                    <i class="bi bi-journal"></i> Сформировать журнал
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </Authorized>
+    <NotAuthorized>
+        <div class="alert alert-warning text-center mt-5">
+            <h4>Требуется авторизация</h4>
+            <p>Для доступа к отчётам необходимо <a href="/login">войти</a>.</p>
+        </div>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+
+    // Данные текущего пользователя
+    private int currentUserId;
+    private string currentUserFIO = "";
+    private string currentUserRole = "";
+    private int currentCabinetId;
+    private string currentCabinetName = "";
+    private bool isHead = false;   // роль Заведующий отделением
+
+    // Списки для Head
+    private List<CabinetOutputModel> allCabinets = new();
+    private List<UserOutputModel> allUsers = new();
+    private List<int> selectedCabinets = new();
+    private List<int> selectedUsers = new();
+    private bool selectAllCabinets = false;
+    private bool selectAllUsers = false;
+
+    // Для обычного пользователя
+    private int userCabinetId;
+    private string userCabinetName = "";
+
+    // Переключение отчёта (кабинет/сотрудник)
+    private bool reportByCabinet = true;
+
+    // Даты для отчётов
+    private DateOnly dailyReportDate = DateOnly.FromDateTime(DateTime.Now);
+    private DateOnly weeklyStartDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-7));
+    private DateOnly weeklyEndDate = DateOnly.FromDateTime(DateTime.Now);
+    private DateOnly yearlyStartDate = new(DateOnly.FromDateTime(DateTime.Now).Year - 1, 12, 1);
+    private DateOnly yearlyEndDate = DateOnly.FromDateTime(DateTime.Now);
+
+    // Лучевая нагрузка
+    private string searchMedNumber = "";
+    private PatientOutputModel? foundPatient = null;
+    private bool searchPerformed = false;
+    private DateOnly radiationStartDate = DateOnly.FromDateTime(DateTime.Now.AddMonths(-1));
+    private DateOnly radiationEndDate = DateOnly.FromDateTime(DateTime.Now);
+
+    // Журнал
+    private List<CabinetOutputModel> journalCabinets = new();
+    private int selectedJournalCabinetId = 0;
+    private DateOnly journalStartDate = new(DateOnly.FromDateTime(DateTime.Now).Year - 1, 12, 1);
+    private DateOnly journalEndDate = DateOnly.FromDateTime(DateTime.Now);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUserInfo();
+        await LoadCabinetData();
+        await LoadUserData();
+        await LoadJournalCabinetList();
+    }
+
+    private async Task LoadUserInfo()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+
+        currentUserId = GetUserIdFromClaims(authState.User);
+
+        var userResult = await UserService.GetByIdAsync(currentUserId);
+
+        if (userResult.Success)
+        {
+            currentUserFIO = userResult.Data.FIO;
+
+            currentUserRole = userResult.Data.Role.ToString();
+
+            isHead = (userResult.Data.Role == UserRole.Head);
+
+            currentCabinetId = await UserService.GetUserCabinetIdAsync(currentUserId);
+
+            var cabResult = await CabinetService.GetByIdAsync(currentCabinetId);
+            if (cabResult.Success) 
+            {
+                currentCabinetName = cabResult.Data.CabinetName;
+            }
+
+            userCabinetId = currentCabinetId;
+
+            userCabinetName = currentCabinetName;
+        }
+    }
+
+    private async Task LoadCabinetData()
+    {
+        if (isHead)
+        {
+            var result = await CabinetService.GetAllAsync();
+            if (result.Success) 
+            {
+                allCabinets = result.Data;
+            }
+        }
+        // обычный пользователь – только свой кабинет (уже в userCabinetId)
+    }
+
+    private async Task LoadUserData()
+    {
+        if (isHead)
+        {
+            var result = await UserService.GetAllUsersAsync();
+            if (result.Success) 
+            {
+                allUsers = result.Data;
+            }
+        }
+        // иначе – не нужен список
+    }
+
+    private async Task LoadJournalCabinetList()
+    {
+        // Загружаем кабинеты для выпадающего списка в разделе Журнал
+        var result = await CabinetService.GetAllAsync();
+        if (result.Success) 
+        {
+            journalCabinets = result.Data;
+        }
+    }
+
+    private int GetUserIdFromClaims(ClaimsPrincipal user)
+    {
+        var customIdClaim = user.FindFirst("UserId");
+        if (customIdClaim != null && int.TryParse(customIdClaim.Value, out int id))
+        {
+            return id;
+        }
+        return 0;
+    }
+
+    // Обработчики кнопок
+    private void YankeeGoHome() => Navigation.NavigateTo("/home");
+
+    private async Task GenerateDailyReport()
+    {
+        // Получить выбранные кабинеты/сотрудников
+        // Вызвать метод сервиса ReportService.GenerateDailyReport
+        // Открыть страницу отчёта (или скачать PDF)
+        // Пока заглушка
+        await JS.InvokeVoidAsync("alert", "Формирование ежедневного отчёта (в разработке)");
+    }
+
+    private async Task GenerateWeeklyReport()
+    {
+        await JS.InvokeVoidAsync("alert", "Формирование еженедельного отчёта (в разработке)");
+    }
+
+    private async Task GenerateYearlyReport()
+    {
+        await JS.InvokeVoidAsync("alert", "Формирование годового отчёта (в разработке)");
+    }
+
+    private async Task SearchPatientByMedNumber()
+    {
+        searchPerformed = true;
+        if (string.IsNullOrWhiteSpace(searchMedNumber))
+        {
+            foundPatient = null;
+            return;
+        }
+        var result = await PatientService.FindPatientsAsync(new PatientSearchInputModel { MedNumber = searchMedNumber });
+        //foundPatient = await PatientService.GetByMedIdAsync(searchMedNumber);
+        if (result.Success && result.Data.Any())
+            {
+                foundPatient = result.Data.First();
+            }
+        else
+            {
+                foundPatient = null;
+            }
+        StateHasChanged();
+    }
+
+    private async Task GenerateRadiationLoadReport()
+    {
+        if (foundPatient == null) return;
+        // Переход на страницу RadiationLoadReport.razor с параметрами
+        // Navigation.NavigateTo($"/radiation-load/{foundPatient.Id}?start={radiationStartDate}&end={radiationEndDate}");
+        await JS.InvokeVoidAsync("alert", "Формирование листа лучевой нагрузки (в разработке)");
+    }
+
+    private async Task GenerateJournalReport()
+    {
+        if (selectedJournalCabinetId == 0)
+        {
+            await JS.InvokeVoidAsync("alert", "Выберите кабинет");
+            return;
+        }
+        // Переход на страницу JournalReport.razor с параметрами
+        await JS.InvokeVoidAsync("alert", "Формирование журнала (в разработке)");
+    }
+
+    // Обработка выбора "Выбрать всё" для кабинетов
+    private void OnSelectAllCabinetsChanged()
+    {
+        if (selectAllCabinets)
+            {
+                selectedCabinets = allCabinets.Select(c => c.Id).ToList();
+            }
+        else
+            {
+                selectedCabinets.Clear();
+            }
+        StateHasChanged();
+    }
+
+    private void OnSelectAllUsersChanged()
+    {
+        if (selectAllUsers)
+            {
+                selectedUsers = allUsers.Select(u => u.ID).ToList();
+            }
+        else
+            {
+                selectedUsers.Clear();
+            }
+        StateHasChanged();
+    }
+
+    private void ToggleCabinetSelection(int cabinetId, bool isChecked)
+    {
+        if (isChecked)
+        {
+            if (!selectedCabinets.Contains(cabinetId))
+                selectedCabinets.Add(cabinetId);
+        }
+        else
+        {
+            selectedCabinets.Remove(cabinetId);
+        }
+        StateHasChanged();
+    }
+
+    private void ToggleUserSelection(int userId, bool isChecked)
+    {
+        if (isChecked)
+        {
+            if (!selectedUsers.Contains(userId))
+                selectedUsers.Add(userId);
+        }
+        else
+        {
+            selectedUsers.Remove(userId);
+        }
+        StateHasChanged();
+    }
+
+    
+}
