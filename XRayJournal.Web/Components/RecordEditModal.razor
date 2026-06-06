@@ -43,21 +43,21 @@
                             <EditForm Model="_localPatient" OnValidSubmit="SavePatientLocal" FormName="PatientForm">
                                 <DataAnnotationsValidator />
                                 <div class="row">
-                                    <div class="col-md-3">
+                                    <div class="col-md-4">
                                         <div class="mb-3">
                                             <label class="form-label">Фамилия *</label>
                                             <InputText class="form-control" @bind-Value="_localPatient.SecondName" />
                                             <ValidationMessage For="() => _localPatient.SecondName" />
                                         </div>
                                     </div>
-                                    <div class="col-md-3">
+                                    <div class="col-md-4">
                                         <div class="mb-3">
                                             <label class="form-label">Имя *</label>
                                             <InputText class="form-control" @bind-Value="_localPatient.FirstName" />
                                             <ValidationMessage For="() => _localPatient.FirstName" />
                                         </div>
                                     </div>
-                                    <div class="col-md-3">
+                                    <div class="col-md-4">
                                         <div class="mb-3">
                                             <label class="form-label">Отчество</label>
                                             <InputText class="form-control" @bind-Value="_localPatient.ThirdName" />
@@ -66,7 +66,7 @@
                                 </div>
 
                                 <div class="row">
-                                    <div class="col-md-2">
+                                    <div class="col-md-3">
                                         <div class="mb-3">
                                             <label class="form-label">№ п/п</label>
                                             <div class="input-group">
@@ -76,13 +76,13 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-2">
+                                    <div class="col-md-3">
                                         <div class="mb-3">
                                             <label class="form-label">Дата рождения *</label>
                                             <InputDate class="form-control" @bind-Value="_localPatient.BirthDate" />
                                         </div>
                                     </div>
-                                    <div class="col-md-2">
+                                    <div class="col-md-3">
                                         <div class="mb-3">
                                             <label class="form-label">Пол *</label>
                                             <InputSelect class="form-select" @bind-Value="_localPatient.Sex">
@@ -126,6 +126,21 @@
                                         }
                                     </div>
                                 </div>
+                                @if (showPatientSelection && foundPatients.Any())
+                                {
+                                    <div class="alert alert-info mt-3">
+                                        <strong>Найдено несколько пациентов. Выберите нужного:</strong>
+                                        <select class="form-select mt-2" @onchange="OnPatientSelected">
+                                            <option value="">-- Выберите пациента --</option>
+                                                @foreach (var patient in foundPatients)
+                                                {
+                                                    <option value="@patient.Id">
+                                                        @patient.SecondName @patient.FirstName @patient.ThirdName, @patient.BirthDate.ToString("dd.MM.yyyy"), №@patient.MedNumber
+                                                    </option>
+                                                }
+                                        </select>
+                                    </div>
+                                }
                             </EditForm>
                         </div>
                     }
@@ -228,11 +243,11 @@
                                                 <InputSelect class="form-select" @bind-Value="_currentExam.XRayModality">
                                                     <option value="">-- Выберите --</option>
                                                     <option value="Цифровая рентгенография">Цифровая рентгенография</option>
-                                                    <option value="Аналоговая рентгенография">Аналоговая рентгенография</option>
+                                                    <option value="Флюорография">Флюорография</option>
                                                     <option value="КТ">КТ</option>
                                                     <option value="МРТ">МРТ</option>
                                                     <option value="УЗИ">УЗИ</option>
-                                                    <option value="Маммография">Маммография</option>
+                                                    <option value="Рентгеноскопия">Рентгеноскопия</option>
                                                 </InputSelect>
                                             </div>
                                         </div>
@@ -298,7 +313,7 @@
                                                 </InputSelect>
                                             </div>
                                         </div>
-                                        <div class="col-md-3">
+                                        <div class="col-md-4">
                                             <div class="mb-3">
                                                 <label class="form-label">Область исследования</label>
                                                 <InputSelect class="form-select" @bind-Value="_currentExam.Area">
@@ -463,6 +478,7 @@
     private bool searchMode = true;
     private List<PatientOutputModel> foundPatients = new();
     private PatientOutputModel? selectedPatient = null;
+    private bool showPatientSelection = false;
 
     //Поля кнопок
     private bool isFindClicked = false;
@@ -491,6 +507,8 @@
         _localNumber = new NumberInputModel();
         _localExams = new List<XRayExamInputModel>();
         _localDate = today;
+
+        showPatientSelection = false;
     }
 
     private async Task SuggestNumbers()
@@ -577,6 +595,7 @@
                 Area = d.Exam.Area
             };
 
+            showPatientSelection = false;
             _localExams.Add(examInput);
         }
     }
@@ -598,6 +617,8 @@
 
     private async Task AddNewExam()
     {
+        isExamAdding = true;
+
         editingExamIndex = -1;
         _currentExam = new XRayExamInputModel
             {
@@ -617,12 +638,13 @@
                 _currentExam.Laborant = fioShort;
         }
         showExamForm = true;
-        isExamAdding = true;
         StateHasChanged();
     }
 
     private void EditExistingExam(int index)
     {
+        isExamAdding = true;
+        
         editingExamIndex = index;
         var exam = _localExams[index];        
         _currentExam = new XRayExamInputModel
@@ -647,7 +669,6 @@
             };
 
         showExamForm = true;
-        isExamAdding = true;
         StateHasChanged();
     }
 
@@ -749,13 +770,11 @@
     {
         try
         {
-            Console.WriteLine("Вызван метод SaveRecordToDatabase/");
             // 1. Пациент
             int patientId = _localPatient.Id;
             if (patientId == 0)
             {
                 var addPatient = PatientService.Add(_localPatient);
-                Console.WriteLine($"Пациент добавлен: Add(_localPatient.Id:{_localPatient.Id})/");
                 if (!addPatient.Success)
                 {
                     await JS.InvokeVoidAsync("alert", $"Ошибка сохранения пациента: {addPatient.ErrorMessage}");
@@ -776,7 +795,6 @@
 
             // 2. Номер
             int numberId = _localNumber.Id;
-            Console.WriteLine($"Номер id: {numberId}/");
             if (numberId == 0)
             {
                 var createNumber = await NumberService.CreateNumberAsync(_localNumber, patientId, _localDate);
@@ -816,7 +834,6 @@
                             return;
                         }
                         examId = addExam.Data.Id;
-                        Console.WriteLine($"examId внутри if (examId == 0): {examId}/");
                     }
                     else
                     {
@@ -903,6 +920,7 @@
 
     private async Task SearchPatient()
     {
+        isFindClicked = true;
         var search = new PatientSearchInputModel
             {
                 SecondName = _localPatient.SecondName,
@@ -925,13 +943,13 @@
         }
         if (foundPatients.Count == 1)
         {
-            SelectPatient(foundPatients.First());
+            SelectPatient(foundPatients.First()); // Один пациент найден, подгружаем его
         }
         else
         {
-            await JS.InvokeVoidAsync("alert", $"Найдено несколько пациентов. Уточните поиск");
+            showPatientSelection = true;   // Много пациентов надено, показываем список выбора
+            StateHasChanged();
         }
-        isFindClicked = true;
     }
 
     private void SelectPatient(PatientOutputModel patient)
@@ -1029,6 +1047,20 @@
     private void ExamClose()
     {
         isExamAdding = false;
+    }
+
+    private void OnPatientSelected(ChangeEventArgs e)
+    {
+        var selectedId = e.Value?.ToString();
+        if (!string.IsNullOrEmpty(selectedId) && int.TryParse(selectedId, out int id))
+        {
+            var patient = foundPatients.FirstOrDefault(p => p.Id == id);
+            if (patient != null)
+            {
+                SelectPatient(patient);
+                showPatientSelection = false;   // Скрываем список после выбора
+            }
+        }
     }
 }
 
