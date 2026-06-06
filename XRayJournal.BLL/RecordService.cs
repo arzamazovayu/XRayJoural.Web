@@ -172,11 +172,12 @@ namespace XRayJournal.BLL
             DateOnly? startDate = null,
             DateOnly? endDate = null,
             string? searchText = null,
-            string? sex = null)
+            string? sex = null,
+            int? cabinetId = null)
         {
             try
             {
-                var allRecords = await _recordRepository.GetNecessaryRecordsAsync(startDate, endDate);
+                var allRecords = await _recordRepository.GetNecessaryRecordsAsync(startDate, endDate, cabinetId);
 
                 // Фильтрация
                 if (!string.IsNullOrWhiteSpace(searchText))

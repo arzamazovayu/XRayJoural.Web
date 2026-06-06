@@ -23,12 +23,14 @@
                     <i class="bi bi-building me-2"></i>
                     <strong>Текущий кабинет:</strong> @currentCabinetName
                 </div>
-                <button class="btn btn-sm btn-outline-secondary me-2" @onclick="GoReports">
-                            <i class="bi bi-house-door"></i> На главную
-                </button>
-                <a href="/logout" class="btn btn-sm btn-outline-secondary">
-                    <i class="bi bi-box-arrow-right"></i> Выйти
-                </a>
+                <div>
+                    <button class="btn btn-sm btn-outline-secondary me-2" @onclick="GoReports">
+                                <i class="bi bi-house-door"></i> Отчёты
+                    </button>
+                    <a href="/logout" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-box-arrow-right"></i> Выйти
+                    </a>
+                </div>
             </div>
             @* Панель фильтров *@
             <div class="card mb-3">
@@ -245,7 +247,9 @@
             pageSize,
             filterStartDate,
             filterEndDate,
-            searchText);
+            searchText,
+            searchSex,
+            currentCabinetId);
 
         if (result.Success)
             {
