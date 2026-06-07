@@ -62,7 +62,9 @@ namespace XRayJournal.BLL
             var existing = await _patientRepository.GetByMedNumberAsync(input.MedNumber);
 
             if (existing != null)
-                return existing;
+            { 
+                return existing; 
+            }
 
             //Создание нового
             var newPatient = input.Adapt<PatientDTO>();

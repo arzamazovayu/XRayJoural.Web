@@ -35,5 +35,6 @@ namespace XRayJournal.Core.IRepositories
 
         public Task<List<RecordDTO>> GetByNumberIdAsync(int numberId);
 
+        public Task<List<RecordDTO>> GetRecordsForReportAsync(DateOnly? startDate, DateOnly? endDate, List<int>? cabinetIds, List<int>? userIds);
     }
 }

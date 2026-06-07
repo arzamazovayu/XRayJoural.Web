@@ -1,0 +1,106 @@
+﻿@page "/daily-report"
+@using XRayJournal.Core.ReportsModels
+@using System.Text.Json
+@inject ReportService ReportService
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<h3>Ежедневный отчёт за @Date.ToString("dd.MM.yyyy")</h3>
+
+@if (items == null)
+{
+    <p>Загрузка...</p>
+}
+else if (!items.Any())
+{
+    <p>Нет данных</p>
+}
+else
+{
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Кабинет / Сотрудник</th>
+                <th>Кол-во пациентов</th>
+                <th>Кол-во исследований</th>
+                <th>Сумма, ₽</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in items)
+            {
+                <tr>
+                    <td>@item.EntityName</td>
+                    <td>@item.PatientCount</td>
+                    <td>@item.ExamCount</td>
+                    <td>@item.TotalCost</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <button class="btn btn-secondary" @onclick="Print">Печать</button>
+}
+@code {
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "DateStr")]
+    public string? DateStr { get; set; }
+
+    [Parameter] 
+    public string? CabIds { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "Params")]
+    public string? Params { get; set; }
+
+    private List<DailyReportModel> items;
+
+    private DateOnly Date { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            if (!string.IsNullOrEmpty(DateStr) && DateOnly.TryParse(DateStr, out var parsedDate))
+            {
+                Date = parsedDate;
+                Console.WriteLine($"Дата успешно распаршена: {Date}");
+            }
+            else
+            {
+                Date = DateOnly.FromDateTime(DateTime.Now);
+                Console.WriteLine($"Парсинг даты не удался, использована текущая дата {Date}");
+            }
+
+            if (!string.IsNullOrEmpty(Params))
+            {
+                var json = Uri.UnescapeDataString(Params);
+                Console.WriteLine($"JSON параметров: {json}");
+                var parameters = JsonSerializer.Deserialize<ReportParameters>(json);
+                if (parameters != null)
+                {
+
+                    var result = await ReportService.GetDailyReportAsync(parameters);
+                    items = result;
+                    Console.WriteLine($"Получено записей в отчёте: {items?.Count ?? 0}");
+                }
+                else
+                {
+                    Console.WriteLine("Ошибка десериализации параметров");
+                    items = new List<DailyReportModel>();
+                    await JS.InvokeVoidAsync("error", $"Ошибка передачи параметров: {parameters?.ToString()}");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Параметр 'params' отсутствует");
+                items = new List<DailyReportModel>();
+            }
+        }
+        catch(Exception ex)
+        {
+            Console.WriteLine($"Ошибка загрузки отчёта: {ex.Message}");
+            items = new List<DailyReportModel>();
+        }
+    }
+    private void Print() => JS.InvokeVoidAsync("window.print");
+}

@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Mapster;
+using Microsoft.EntityFrameworkCore;
 using XRayJournal.Core;
 using XRayJournal.Core.DTOs;
 using XRayJournal.Core.IRepositories;
-using Microsoft.EntityFrameworkCore;
 using XRayJournal.Core.OutputModels;
-using Mapster;
 
 
 
@@ -186,6 +181,84 @@ namespace XRayJournal.DAL
             return await _dataContext.Records
                 .Where(r => r.NumberId == numberId)
                 .ToListAsync();
+        }
+
+        public async Task<List<RecordDTO>> GetRecordsForReportAsync(DateOnly? startDate, DateOnly? endDate,
+            List<int>? cabinetIds, List<int>? userIds)
+        {
+            var query = _dataContext.Records
+                .Include(r => r.Patient)
+                .Include(r => r.Exam)
+                    .ThenInclude(e => e.Cabinet)
+                .Include(r => r.User)
+                .AsQueryable();
+
+            if (startDate.HasValue)
+            {
+                query = query.Where(r => r.Date >= startDate.Value);
+            }
+            if (endDate.HasValue)
+            {
+                query = query.Where(r => r.Date <= endDate.Value);
+            }
+
+            // Фильтр по кабинетам (через Exam)
+            if (cabinetIds != null && cabinetIds.Any())
+            {
+                query = query.Where(r => r.Exam != null && cabinetIds.Contains(r.Exam.IdCabinet.Value));
+            }
+            // Фильтр по сотрудникам (UserId)
+            var result = new List<RecordDTO>();
+
+            if (userIds != null && userIds.Any())
+            {
+                var users = await _dataContext.Users
+                    .Where(u => userIds.Contains(u.ID))
+                    .Select(u => new { u.Role, u.FIOshort, u.ID })
+                    .ToListAsync();
+
+                var doctorShortNames = new List<string>();
+                var laborantShortNames = new List<string>();
+                var otherUserIds = new List<int>();
+
+                foreach (var u in users)
+                {
+                    if (u.Role == UserRole.Doctor || u.Role == UserRole.Head)
+                    {
+                        doctorShortNames.Add(u.FIOshort);
+                    }
+                    else if (u.Role == UserRole.Laborant)
+                    {
+                        laborantShortNames.Add(u.FIOshort);
+                    }
+                    else
+                    {
+                        otherUserIds.Add(u.ID);
+                    }
+                }
+
+                doctorShortNames = doctorShortNames.Distinct().ToList();
+                laborantShortNames = laborantShortNames.Distinct().ToList();
+
+                if (doctorShortNames.Any())
+                { 
+                    result.AddRange(await query.Where(r => r.Exam != null && doctorShortNames.Contains(r.Exam.Doctor)).ToListAsync()); 
+                }
+                if (laborantShortNames.Any())
+                { 
+                    result.AddRange(await query.Where(r => r.Exam != null && laborantShortNames.Contains(r.Exam.Laborant)).ToListAsync()); 
+                }
+                if (otherUserIds.Any())
+                { 
+                    result.AddRange(await query.Where(r => otherUserIds.Contains(r.UserId)).ToListAsync()); 
+                }
+            }
+            else
+            {
+                result = await query.ToListAsync();
+            }
+
+            return await query.ToListAsync();
         }
     }
 }

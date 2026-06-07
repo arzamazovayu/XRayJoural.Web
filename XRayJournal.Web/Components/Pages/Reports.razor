@@ -1,8 +1,10 @@
 ﻿@page "/reports"
 @using XRayJournal.Core.Results
 @using XRayJournal.Core.OutputModels
+@using XRayJournal.Core.ReportsModels
 @using XRayJournal.Core.DTOs
 @using System.Security.Claims
+@using System.Text.Json
 @rendermode InteractiveServer
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthenticationStateProvider
@@ -139,13 +141,10 @@
 
                                 @* Еженедельный отчёт *@
                                 <div class="mb-3">
-                                    <label class="form-label">Период (неделя):</label>
+                                    <label class="form-label">Начало периода (неделя):</label>
                                     <div class="row">
                                         <div class="col-6">
                                             <InputDate @bind-Value="weeklyStartDate" class="form-control" />
-                                        </div>
-                                        <div class="col-6">
-                                            <InputDate @bind-Value="weeklyEndDate" class="form-control" />
                                         </div>
                                     </div>
                                     <button class="btn btn-primary mt-2 w-100" @onclick="GenerateWeeklyReport">
@@ -164,7 +163,9 @@
                                             <InputDate @bind-Value="yearlyEndDate" class="form-control" />
                                         </div>
                                     </div>
-                                    <button class="btn btn-primary mt-2 w-100" @onclick="GenerateYearlyReport">
+                                    <button class="btn btn-primary mt-2 w-100" 
+                                            @onclick="GenerateYearlyReport" 
+                                            disabled="@(!reportByCabinet)">
                                         <i class="bi bi-calendar-year"></i> Годовой отчёт
                                     </button>
                                 </div>
@@ -324,6 +325,7 @@
         await LoadCabinetData();
         await LoadUserData();
         await LoadJournalCabinetList();
+        weeklyEndDate = weeklyStartDate.AddDays(6);
     }
 
     private async Task LoadUserInfo()
@@ -407,11 +409,17 @@
 
     private async Task GenerateDailyReport()
     {
-        // Получить выбранные кабинеты/сотрудников
-        // Вызвать метод сервиса ReportService.GenerateDailyReport
-        // Открыть страницу отчёта (или скачать PDF)
-        // Пока заглушка
-        await JS.InvokeVoidAsync("alert", "Формирование ежедневного отчёта (в разработке)");
+        var parameters = new ReportParameters
+            {
+                ByCabinet = reportByCabinet,
+                CabinetIds = selectedCabinets,
+                UserIds = selectedUsers,
+                StartDate = dailyReportDate,
+                EndDate = dailyReportDate
+            };
+        var json = JsonSerializer.Serialize(parameters);
+        var encoded = Uri.EscapeDataString(json);
+        Navigation.NavigateTo($"/daily-report?DateStr={dailyReportDate:yyyy-MM-dd}&Params={encoded}");
     }
 
     private async Task GenerateWeeklyReport()
@@ -519,5 +527,9 @@
         StateHasChanged();
     }
 
-    
+    private void OnWeeklyStartChanged()
+    {
+        weeklyEndDate = weeklyStartDate.AddDays(6); // 7 дней: с start по start+6
+        StateHasChanged();
+    }
 }
