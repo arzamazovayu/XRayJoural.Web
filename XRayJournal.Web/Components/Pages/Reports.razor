@@ -146,8 +146,6 @@
                                         <div class="col-6">
                                             <InputDate @bind-Value="weeklyStartDate" class="form-control" />
                                         </div>
-                                    </div>
-                                    <div class="row">
                                         <div class="col-6">
                                             <button class="btn btn-outline-dark w-100" disabled>@weeklyStartDate.AddDays(6)</button>
                                         </div>
@@ -456,11 +454,10 @@
             foundPatient = null;
             return;
         }
-        var result = await PatientService.FindPatientsAsync(new PatientSearchInputModel { MedNumber = searchMedNumber });
-        //foundPatient = await PatientService.GetByMedIdAsync(searchMedNumber);
-        if (result.Success && result.Data.Any())
+        var result = await PatientService.GetByMedIdAsync(searchMedNumber);
+        if (result.Success && result.Data != null)
             {
-                foundPatient = result.Data.First();
+                foundPatient = result.Data;
             }
         else
             {
@@ -472,9 +469,8 @@
     private async Task GenerateRadiationLoadReport()
     {
         if (foundPatient == null) return;
-        // Переход на страницу RadiationLoadReport.razor с параметрами
-        // Navigation.NavigateTo($"/radiation-load/{foundPatient.Id}?start={radiationStartDate}&end={radiationEndDate}");
-        await JS.InvokeVoidAsync("alert", "Формирование листа лучевой нагрузки (в разработке)");
+        //Переход на страницу RadiationReport.razor с параметрами
+        Navigation.NavigateTo($"/radiation-load/?patientId={foundPatient.Id}&start={radiationStartDate}&end={radiationEndDate}");
     }
 
     private async Task GenerateJournalReport()

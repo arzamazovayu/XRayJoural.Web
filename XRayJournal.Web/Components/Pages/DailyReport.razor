@@ -38,7 +38,11 @@ else
             }
         </tbody>
     </table>
-    <button class="btn btn-secondary" @onclick="Print">Печать</button>
+    <div class="print-buttons mt-3">
+        <button class="btn btn-secondary" @onclick="Print">Печать</button>
+        <button class="btn btn-outline-secondary" @onclick="GoBack">Назад</button>
+    </div>
+
 }
 @code {
     [Parameter]
@@ -103,4 +107,5 @@ else
         }
     }
     private void Print() => JS.InvokeVoidAsync("window.print");
+    private void GoBack() => Navigation.NavigateTo("/reports");
 }

@@ -251,7 +251,7 @@ namespace XRayJournal.BLL
             try
             {
                 // Проверка 1: существует ли пациент
-                var patient = _patientRepository.GetById(patientId);
+                var patient = await _patientRepository.GetByIdAsync(patientId);
                 if (patient == null)
                 {
                     return OperationResult<RecordOutputModel>.Fail($"Пациент с ID {patientId} не найден");

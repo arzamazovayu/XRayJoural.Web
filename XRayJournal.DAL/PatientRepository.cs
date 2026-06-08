@@ -30,9 +30,9 @@ namespace XRayJournal.DAL
             return result;
         }
 
-        public PatientDTO GetById(int id)
+        public async Task<PatientDTO> GetByIdAsync(int id)
         {
-            var result = _dataContext.Patients.Single(p => p.Id == id);
+            var result = await _dataContext.Patients.SingleAsync(p => p.Id == id);
             return result;
         }
 

@@ -23,11 +23,11 @@ namespace XRayJournal.BLL
             return result;
         }
 
-        public OperationResult<PatientOutputModel> GetById(int id)
+        public async Task<OperationResult<PatientOutputModel>> GetByIdAsync (int id)
         {
             try
             {
-                var patient = _patientRepository.GetById(id);
+                var patient = await _patientRepository.GetByIdAsync(id);
                 if (patient == null)
                 {
                     return OperationResult<PatientOutputModel>.Fail("Пациент не найден");
@@ -75,13 +75,6 @@ namespace XRayJournal.BLL
                 return OperationResult<PatientOutputModel>.Fail($"Ошибка при добавлении пациента: {ex.Message}");
             }
         }
-
-        //public  List<PatientWithExamOutputModel> GetAllWithExams()
-        //{
-        //    var tmp = _patientRepository.GetAllWithExams();
-        //    var result = tmp.Adapt<List<PatientWithExamOutputModel>>();
-        //    return result;
-        //}
 
         public OperationResult<PatientOutputModel> Update(PatientInputModel patient)
         {
@@ -157,6 +150,18 @@ namespace XRayJournal.BLL
             {
                 return OperationResult<List<PatientOutputModel>>.Fail(ex.Message);
             }
+        }
+
+        public string GetPatientFioById (int id)
+        {
+            var patient =  _patientRepository.GetByIdAsync(id);
+            if (patient == null)
+            {
+                return "Пациент не найден";
+            }
+
+            string fio = $"{patient.Result.SecondName} {patient.Result.FirstName} {patient.Result.ThirdName}".Trim();
+            return fio;
         }
     }
 }

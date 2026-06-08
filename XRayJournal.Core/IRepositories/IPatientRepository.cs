@@ -20,7 +20,7 @@ namespace XRayJournal.Core.IRepositories
 
         public bool Delete(int id);
 
-        public PatientDTO GetById(int id);
+        public Task<PatientDTO> GetByIdAsync(int id);
 
         public bool Restore(int id);
 

@@ -1,0 +1,137 @@
+﻿@page "/radiation-load"
+@using XRayJournal.Core.ReportsModels
+@using XRayJournal.Core.OutputModels
+@inject ReportService ReportService
+@inject PatientService PatientService
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
+
+<PageTitle>Лист учёта дозовых нагрузок</PageTitle>
+
+<div class="print-container">
+    <div class="header-right">
+        Приложение 4<br />
+        к СанПиН 2.6.1.1192-03
+    </div>
+
+    <h2>Лист<br />учета дозовых нагрузок пациента<br />при рентгенологических исследованиях</h2>
+
+    <div class="fio-line">
+        Ф.И.О. <strong>@PatientFullName</strong>
+    </div>
+
+    @if (items == null)
+    {
+            <p>Загрузка...</p>
+    }
+    else if (!items.Any())
+    {
+            <p>Нет исследований за указанный период.</p>
+    }
+    else
+    {
+            <table class="radiation-table">
+                <thead>
+                    <tr>
+                        <th>N п/п</th>
+                        <th>Дата</th>
+                        <th>Вид исследования, количество и вид процедур</th>
+                        <th>Эффективная доза за исследование, мЗв</th>
+                        <th>Примечание</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var item in items)
+                {
+                            <tr>
+                                <td class="text-center">@item.Counter</td>
+                                <td class="text-center">@item.Date.ToString("dd.MM.yyyy")</td>
+                                <td>@item.ExamName</td>
+                                <td class="text-center">@item.Dose.ToString("0.###")</td>
+                                <td>@item.Note</td>
+                            </tr>
+                }
+                </tbody>
+            </table>
+    }
+
+    <div class="prim">
+        Примечание: Лист вклеивается в медицинскую карту амбулаторного больного<br />
+        или историю развития ребенка
+    </div>
+    <div class="print-buttons">
+        <button class="btn btn-secondary" @onclick="Print">Печать</button>
+        <button class="btn btn-outline-secondary" @onclick="GoBack">Назад</button>
+    </div>
+</div>
+
+
+@code {
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "patientId")]
+    public int PatientId { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "start")]
+    public string? StartDateStr { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "end")]
+    public string? EndDateStr { get; set; }
+
+    private List<RadiationReportModel>? items;
+    private string PatientFullName = string.Empty;
+    private DateOnly StartDate { get; set; }
+    private DateOnly EndDate { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Парсим даты
+            StartDate = DateOnly.TryParse(StartDateStr, out var s) ? s : DateOnly.FromDateTime(DateTime.Now.AddMonths(-1));
+            EndDate = DateOnly.TryParse(EndDateStr, out var e) ? e : DateOnly.FromDateTime(DateTime.Now);
+
+            // Загружаем данные пациента
+            if (PatientId > 0)
+            {
+                // Получаем полные ФИО пациента
+                //PatientFullName = PatientService.GetPatientFioById(PatientId);
+                var patientResult = await PatientService.GetByIdAsync(PatientId);
+                if (patientResult.Success && patientResult.Data != null)
+                {
+                    PatientFullName = $"{patientResult.Data.SecondName} {patientResult.Data.FirstName} {patientResult.Data.ThirdName}".Trim();
+                }
+                else
+                {
+                    PatientFullName = "Пациент не найден";
+                }
+                // Загружаем исследования
+                items = await ReportService.GetRadiationReportAsync(PatientId, StartDate, EndDate);
+            }
+            else
+            {
+                items = new List<RadiationReportModel>();
+                PatientFullName = "Не указан ID пациента";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка загрузки отчёта: {ex.Message}");
+            items = new List<RadiationReportModel>();
+        }
+    }
+
+    private async Task Print() 
+    {
+        Console.WriteLine("Print вызван");
+        JS.InvokeVoidAsync("print");
+    }
+
+    private async Task GoBack() 
+    {
+        Console.WriteLine("GoBack вызван");
+        Navigation.NavigateTo("/reports");
+        await Task.CompletedTask;
+    }
+}
