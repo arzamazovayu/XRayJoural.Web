@@ -147,6 +147,11 @@
                                             <InputDate @bind-Value="weeklyStartDate" class="form-control" />
                                         </div>
                                     </div>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <button class="btn btn-outline-dark w-100" disabled>@weeklyStartDate.AddDays(6)</button>
+                                        </div>
+                                    </div>
                                     <button class="btn btn-primary mt-2 w-100" @onclick="GenerateWeeklyReport">
                                         <i class="bi bi-calendar-week"></i> Еженедельный отчёт
                                     </button>
@@ -424,7 +429,18 @@
 
     private async Task GenerateWeeklyReport()
     {
-        await JS.InvokeVoidAsync("alert", "Формирование еженедельного отчёта (в разработке)");
+        weeklyEndDate = weeklyStartDate.AddDays(6);
+        var parameters = new ReportParameters
+            {
+                ByCabinet = reportByCabinet,
+                CabinetIds = selectedCabinets,
+                UserIds = selectedUsers,
+                StartDate = weeklyStartDate,
+                EndDate = weeklyEndDate
+            };
+        var json = JsonSerializer.Serialize(parameters);
+        var encoded = Uri.EscapeDataString(json);
+        Navigation.NavigateTo($"/weekly-report?StartDateStr={weeklyStartDate:yyyy-MM-dd}&EndDateStr={weeklyEndDate:yyyy-MM-dd}&Params={encoded}");
     }
 
     private async Task GenerateYearlyReport()

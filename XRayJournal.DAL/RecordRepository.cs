@@ -144,10 +144,13 @@ namespace XRayJournal.DAL
 
             //Фильтрация по дате
             if (startDate.HasValue)
+            {
                 query = query.Where(r => r.Date >= startDate.Value);
+            }            
             if (endDate.HasValue)
+            {
                 query = query.Where(r => r.Date <= endDate.Value);
-
+            }
             //Сортировка по дате и номеру
             var records = await query
                 .OrderBy(r => r.Date)

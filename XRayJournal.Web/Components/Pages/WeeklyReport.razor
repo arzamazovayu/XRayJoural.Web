@@ -1,0 +1,98 @@
+﻿@page "/weekly-report"
+@using XRayJournal.Core.ReportsModels
+@using System.Text.Json
+@inject ReportService ReportService
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<h3>Еженедельный отчёт с @StartDate.ToString("dd.MM.yyyy") по @EndDate.ToString("dd.MM.yyyy")</h3>
+
+@if (items == null)
+{
+    <p>Загрузка...</p>
+}
+else if (!items.Any())
+{
+    <p>Нет данных</p>
+}
+else
+{
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Кабинет / Сотрудник</th>
+                <th>Кол-во пациентов</th>
+                <th>Кол-во исследований</th>
+                <th>Сумма, ₽</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in items)
+            {
+                <tr>
+                    <td>@item.EntityName</td>
+                    <td>@item.PatientCount</td>
+                    <td>@item.ExamCount</td>
+                    <td>@item.TotalCost</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <button class="btn btn-secondary" @onclick="Print">Печать</button>
+}
+@code {
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "StartDateStr")]
+    public string? StartDateStr { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "EndDateStr")]
+    public string? EndDateStr { get; set; }
+
+    [Parameter]
+    public string? CabIds { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "Params")]
+    public string? Params { get; set; }
+
+    private List<WeeklyReportModel> items;
+
+    private DateOnly StartDate { get; set; }
+
+    private DateOnly EndDate { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            //распарсинг даты из строкового параметра, если не null, то присвоить значение, иначе "сегодня"
+            StartDate = DateOnly.TryParse(StartDateStr, out var s) ? s : DateOnly.FromDateTime(DateTime.Now);
+            EndDate = DateOnly.TryParse(EndDateStr, out var e) ? e : DateOnly.FromDateTime(DateTime.Now);
+
+            if (!string.IsNullOrEmpty(Params))
+            {
+                var json = Uri.UnescapeDataString(Params);
+                var parameters = JsonSerializer.Deserialize<ReportParameters>(json);
+                if (parameters != null)
+                {
+                    var result = await ReportService.GetWeeklyReportAsync(parameters);
+                    items = result;
+                }
+                else
+                {
+                    items = new List<WeeklyReportModel>();
+                }
+            }
+            else
+            {
+                items = new List<WeeklyReportModel>();
+            }
+        }
+        catch (Exception ex)
+        {
+            items = new List<WeeklyReportModel>();
+        }
+    }
+    private void Print() => JS.InvokeVoidAsync("window.print");
+}

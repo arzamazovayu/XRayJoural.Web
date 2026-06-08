@@ -63,5 +63,48 @@ namespace XRayJournal.BLL
                 return grouped;
             }
         }
+
+        public async Task<List<WeeklyReportModel>> GetWeeklyReportAsync(ReportParameters parameters)
+        {
+            DateOnly start = parameters.StartDate.Value;
+            DateOnly end = parameters.EndDate.Value;
+            var records = await _recordRepository.GetRecordsForReportAsync(start, end, parameters.CabinetIds, parameters.UserIds);
+            Console.WriteLine($"Найдено записей: {records.Count}");
+
+            if (parameters.ByCabinet)
+            {
+                var grouped = records
+                    .Where(r => r.Exam?.Cabinet != null)
+                    .GroupBy(r => r.Exam.Cabinet.CabNum)
+                    .Select(g => new WeeklyReportModel
+                    {
+                        EntityName = g.Key,
+                        PatientCount = g.Select(r => r.PatientId).Distinct().Count(),
+                        ExamCount = g.Count(),
+                        TotalCost = g.Sum(r => r.Exam?.XRayCost ?? 0),
+                        StartDate = start,
+                        EndDate = end
+                    })
+                    .ToList();
+                return grouped;
+            }
+            else
+            {
+                var grouped = records
+                    .Where(r => r.User != null)
+                    .GroupBy(r => r.User.FIOshort)
+                    .Select(g => new WeeklyReportModel
+                    {
+                        EntityName = g.Key,
+                        PatientCount = g.Select(r => r.PatientId).Distinct().Count(),
+                        ExamCount = g.Count(),
+                        TotalCost = g.Sum(r => r.Exam?.XRayCost ?? 0),
+                        StartDate = start,
+                        EndDate = end
+                    })
+                    .ToList();
+                return grouped;
+            }
+        }
     }
 }
