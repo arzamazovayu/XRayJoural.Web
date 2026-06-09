@@ -5,6 +5,8 @@
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
 
+<PageTitle>Еженедельный отчёт с @StartDate.ToString("dd.MM.yyyy") по @EndDate.ToString("dd.MM.yyyy")</PageTitle>
+
 <h3>Еженедельный отчёт с @StartDate.ToString("dd.MM.yyyy") по @EndDate.ToString("dd.MM.yyyy")</h3>
 
 @if (items == null)
@@ -38,10 +40,6 @@ else
             }
         </tbody>
     </table>
-    <div class="print-buttons mt-3">
-        <button class="btn btn-secondary" @onclick="Print">Печать</button>
-        <button class="btn btn-outline-secondary" @onclick="GoBack">Назад</button>
-    </div>
 }
 @code {
     [Parameter]
@@ -97,6 +95,4 @@ else
             items = new List<WeeklyReportModel>();
         }
     }
-    private void Print() => JS.InvokeVoidAsync("window.print");
-    private void GoBack() => Navigation.NavigateTo("/reports");
 }

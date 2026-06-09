@@ -5,6 +5,8 @@
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
 
+<PageTitle>Ежедневный отчёт за @Date.ToString("dd.MM.yyyy")</PageTitle>
+
 <h3>Ежедневный отчёт за @Date.ToString("dd.MM.yyyy")</h3>
 
 @if (items == null)
@@ -38,11 +40,6 @@ else
             }
         </tbody>
     </table>
-    <div class="print-buttons mt-3">
-        <button class="btn btn-secondary" @onclick="Print">Печать</button>
-        <button class="btn btn-outline-secondary" @onclick="GoBack">Назад</button>
-    </div>
-
 }
 @code {
     [Parameter]
@@ -67,36 +64,30 @@ else
             if (!string.IsNullOrEmpty(DateStr) && DateOnly.TryParse(DateStr, out var parsedDate))
             {
                 Date = parsedDate;
-                Console.WriteLine($"Дата успешно распаршена: {Date}");
             }
             else
             {
                 Date = DateOnly.FromDateTime(DateTime.Now);
-                Console.WriteLine($"Парсинг даты не удался, использована текущая дата {Date}");
             }
 
             if (!string.IsNullOrEmpty(Params))
             {
                 var json = Uri.UnescapeDataString(Params);
-                Console.WriteLine($"JSON параметров: {json}");
                 var parameters = JsonSerializer.Deserialize<ReportParameters>(json);
                 if (parameters != null)
                 {
 
                     var result = await ReportService.GetDailyReportAsync(parameters);
                     items = result;
-                    Console.WriteLine($"Получено записей в отчёте: {items?.Count ?? 0}");
                 }
                 else
                 {
-                    Console.WriteLine("Ошибка десериализации параметров");
                     items = new List<DailyReportModel>();
                     await JS.InvokeVoidAsync("error", $"Ошибка передачи параметров: {parameters?.ToString()}");
                 }
             }
             else
             {
-                Console.WriteLine("Параметр 'params' отсутствует");
                 items = new List<DailyReportModel>();
             }
         }
@@ -106,6 +97,4 @@ else
             items = new List<DailyReportModel>();
         }
     }
-    private void Print() => JS.InvokeVoidAsync("window.print");
-    private void GoBack() => Navigation.NavigateTo("/reports");
 }

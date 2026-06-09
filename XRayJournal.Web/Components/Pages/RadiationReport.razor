@@ -56,12 +56,7 @@
     }
 
     <div class="prim">
-        Примечание: Лист вклеивается в медицинскую карту амбулаторного больного<br />
-        или историю развития ребенка
-    </div>
-    <div class="print-buttons">
-        <button class="btn btn-secondary" @onclick="Print">Печать</button>
-        <button class="btn btn-outline-secondary" @onclick="GoBack">Назад</button>
+        Примечание: Лист вклеивается в медицинскую карту амбулаторного больного или историю развития ребенка
     </div>
 </div>
 
@@ -120,18 +115,5 @@
             Console.WriteLine($"Ошибка загрузки отчёта: {ex.Message}");
             items = new List<RadiationReportModel>();
         }
-    }
-
-    private async Task Print() 
-    {
-        Console.WriteLine("Print вызван");
-        JS.InvokeVoidAsync("print");
-    }
-
-    private async Task GoBack() 
-    {
-        Console.WriteLine("GoBack вызван");
-        Navigation.NavigateTo("/reports");
-        await Task.CompletedTask;
     }
 }
