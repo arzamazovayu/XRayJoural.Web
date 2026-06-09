@@ -8,6 +8,8 @@ namespace XRayJournal.Core.ReportsModels
 {
     public class YearlyReportModel
     {
+        public string CabinetNum { get; set; }
+
         public string Modality { get; set; }
 
         public int AreaCode { get; set; }

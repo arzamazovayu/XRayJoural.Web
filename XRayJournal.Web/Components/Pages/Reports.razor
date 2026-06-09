@@ -5,6 +5,8 @@
 @using XRayJournal.Core.DTOs
 @using System.Security.Claims
 @using System.Text.Json
+@using System.Text
+
 @rendermode InteractiveServer
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthenticationStateProvider
@@ -445,7 +447,17 @@
 
     private async Task GenerateYearlyReport()
     {
-        await JS.InvokeVoidAsync("alert", "Формирование годового отчёта (в разработке)");
+        var parameters = new ReportParameters
+            {
+                ByCabinet = reportByCabinet,
+                CabinetIds = selectedCabinets,
+                UserIds = selectedUsers,
+                StartDate = yearlyStartDate,
+                EndDate = yearlyEndDate
+            };
+        var data = await ReportService.GetYearlyReportAsync(parameters, yearlyStartDate, yearlyEndDate);
+        var csv = BuildYearlyCsv(data);
+        await JS.InvokeVoidAsync("downloadTextFile", $"Годовой_отчёт_{yearlyStartDate:yyyyMMdd}_{yearlyEndDate:yyyyMMdd}.csv", csv);
     }
 
     private async Task SearchPatientByMedNumber()
@@ -492,26 +504,26 @@
     private void OnSelectAllCabinetsChanged()
     {
         if (selectAllCabinets)
-            {
-                selectedCabinets = allCabinets.Select(c => c.Id).ToList();
-            }
+        {
+            selectedCabinets = allCabinets.Select(c => c.Id).ToList();
+        }
         else
-            {
-                selectedCabinets.Clear();
-            }
+        {
+            selectedCabinets.Clear();
+        }
         StateHasChanged();
     }
 
     private void OnSelectAllUsersChanged()
     {
         if (selectAllUsers)
-            {
-                selectedUsers = allUsers.Select(u => u.ID).ToList();
-            }
+        {
+            selectedUsers = allUsers.Select(u => u.ID).ToList();
+        }
         else
-            {
-                selectedUsers.Clear();
-            }
+        {
+            selectedUsers.Clear();
+        }
         StateHasChanged();
     }
 
@@ -546,5 +558,65 @@
     private async Task OpenInNewTab(string url)
     {
         await JS.InvokeVoidAsync("open", url, "_blank");
+    }
+
+    private string BuildYearlyCsv(List<YearlyReportModel> data)
+    {
+        // Собираем уникальные модальности и области
+        var modalities = data.Select(d => d.Modality).Distinct().OrderBy(m => m).ToList();
+        var areas = data.Select(d => d.AreaName).Distinct().OrderBy(a => a).ToList();
+
+        var sb = new StringBuilder();
+        // Формируем заголовок
+        sb.Append("Кабинет;Область");
+        foreach (var mod in modalities)
+        {
+            sb.Append($";{mod}"); // Модальности подряд
+        }
+        sb.AppendLine(";Итого");
+
+        // Группируем по кабинетам и областям
+        var grouped = data.GroupBy(d => new { d.CabinetNum, d.AreaName })
+                          .Select(g => new { g.Key.CabinetNum, g.Key.AreaName, Items = g.ToList() })
+                          .OrderBy(g => g.CabinetNum).ThenBy(g => g.AreaName);
+
+        foreach (var group in grouped)
+        {
+            // Инициализация нулевого словаря
+            var row = new Dictionary<string, int>();
+            foreach (var mod in modalities)
+            {
+                row[mod] = 0;
+            }
+
+            // Подсчитываем суммарное значение в каждой группе
+            int total = 0;
+            foreach (var item in group.Items)
+            {
+                row[item.Modality] += item.Count;
+                total += item.Count;
+            }
+
+            // Сложение .csv строки
+            sb.Append($"{group.CabinetNum};{group.AreaName}");
+            foreach (var mod in modalities)
+            {
+                sb.Append($";{row[mod]}");
+            }
+            sb.AppendLine($";{total}");
+        }
+
+        // Строка "Итого по всем кабинетам"
+        sb.Append("ИТОГО;");
+
+        var totalsByModality = modalities.ToDictionary(m => m, m => data.Where(d => d.Modality == m).Sum(d => d.Count));
+
+        foreach (var mod in modalities)
+        {
+            sb.Append($";{totalsByModality[mod]}");
+        }
+        sb.AppendLine($";{data.Sum(d => d.Count)}");
+
+        return sb.ToString();
     }
 }
