@@ -1,0 +1,64 @@
+﻿/* Стили для журнала */
+.journal-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    font-size: 10pt;
+}
+
+    .journal-table th,
+    .journal-table td {
+        border: 1px solid #000;
+        padding: 6px;
+        vertical-align: top;
+    }
+
+    .journal-table th {
+        background-color: #f2f2f2;
+        font-weight: bold;
+        text-align: center;
+    }
+
+.journal-date-row td {
+    text-align: center;
+    background-color: #e9ecef;
+    font-weight: bold;
+}
+
+.journal-summary-row td {
+    background-color: #f8f9fa;
+    border-top: 2px solid #000;
+}
+
+/* Стили для печати */
+@media print {
+    .journal-table thead {
+        display: table-header-group;
+    }
+
+    .journal-table tfoot {
+        display: table-footer-group;
+    }
+
+    .journal-table tr {
+        page-break-inside: avoid;
+    }
+
+    .journal-date-row {
+        page-break-after: avoid;
+    }
+
+    .journal-summary-row {
+        page-break-before: avoid;
+    }
+
+    @page {
+        size: A4;
+        margin: 1.5cm;
+    }
+
+    body {
+        margin: 0;
+        padding: 0;
+    }
+}

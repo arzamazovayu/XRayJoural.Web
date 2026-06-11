@@ -496,8 +496,11 @@
             await JS.InvokeVoidAsync("alert", "Выберите кабинет");
             return;
         }
+        Console.WriteLine($"CabinetId in Reports.razor = {selectedJournalCabinetId}");
+
         // Переход на страницу JournalReport.razor с параметрами
-        await JS.InvokeVoidAsync("alert", "Формирование журнала (в разработке)");
+        var url = $"/journal-report?CabinetId={selectedJournalCabinetId}&Start={journalStartDate:yyyy-MM-dd}&End={journalEndDate:yyyy-MM-dd}";
+        await OpenInNewTab(url);
     }
 
     // Обработка выбора "Выбрать всё" для кабинетов

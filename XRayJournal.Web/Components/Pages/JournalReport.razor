@@ -1,0 +1,112 @@
+﻿@page "/journal-report"
+@using XRayJournal.Core.ReportsModels
+@inject ReportService ReportService
+@inject IJSRuntime JS
+
+<PageTitle>Журнал исследований</PageTitle>
+
+@if (data == null)
+{
+    <p>Загрузка...</p>
+}
+else if (!data.Any())
+{
+    <p>Нет записей за указанный период.</p>
+}
+else
+{
+    <div class="journal-container">
+        <table class="journal-table">
+            <thead>
+                <tr>
+                    <th>№ п/п</th>
+                    <th>ФИО и дата рождения</th>
+                    <th>№ карты</th>
+                    <th>Категория</th>
+                    <th>Направившее отд.</th>
+                    <th>Название исс-ия</th>
+                    <th>Кол-во снимков</th>
+                    <th>Доза</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var day in data)
+                {
+                    <tr class="journal-date-row">
+                        <td colspan="8" class="text-center">@day.Date.ToString("dd.MM.yyyy")</td>
+                    </tr>
+                    @foreach (var patient in day.PatientGroups)
+                    {
+                        var rowSpan = patient.Exams.Count;
+                        for (int i = 0; i < patient.Exams.Count; i++)
+                        {
+                            var exam = patient.Exams[i];
+                            <tr>
+                                @if (i == 0)
+                                {
+                                    <td rowspan="@rowSpan">@patient.DisplayNumber</td>
+                                    <td rowspan="@rowSpan">@patient.PatientFIO<br />@patient.BirthDate</td>
+                                    <td rowspan="@rowSpan">@patient.MedNumber</td>
+                                    <td rowspan="@rowSpan">@patient.Category</td>
+                                    <td rowspan="@rowSpan">@patient.Department</td>
+                                }
+                                <td>@exam.ExamName</td>
+                                <td class="text-center">@exam.Shots</td>
+                                <td class="text-center">@exam.Dose.ToString("0.###")</td>
+                            </tr>
+                        }
+                    }
+                    <tr>
+                        <td colspan="8" class="small">
+                                    <strong>Итого за день: </strong>
+                            Исследований: @day.Summary.TotalExams
+                                | Пациентов: @day.Summary.PatientCount
+                            @if (!string.IsNullOrEmpty(day.Summary.Doctor))
+                            {
+                                <text> | Врач: @day.Summary.Doctor</text>
+                            }
+                            @if (!string.IsNullOrEmpty(day.Summary.Laborant))
+                            {
+                                <text> | Лаборант: @day.Summary.Laborant</text>
+                            }
+                                | Снимков: @day.Summary.TotalShots
+                                | Категории: @string.Join(", ", day.Summary.CategoryCounts.Select(kv => $"{kv.Key} – {kv.Value}"))
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "CabinetId")]
+    public int CabinetId { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "Start")]
+    public string Start { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "End")]
+    public string End { get; set; }
+
+    private List<JournalReportModel> data;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Console.WriteLine($"CabinetId = {CabinetId}");
+
+        if (DateOnly.TryParse(Start, out var start) && DateOnly.TryParse(End, out var end) && CabinetId > 0)
+        {
+            Console.WriteLine($"Start date = {Start}, End date = {End}");
+
+            data = await ReportService.GetJournalReportAsync(CabinetId, start, end);
+        }
+        else
+        {
+            data = new List<JournalReportModel>();
+        }
+    }
+}

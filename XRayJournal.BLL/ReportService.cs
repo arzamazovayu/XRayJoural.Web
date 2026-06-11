@@ -179,5 +179,96 @@ namespace XRayJournal.BLL
                 0 => "Прочее"
             };
         }
+
+        public async Task<List<JournalReportModel>> GetJournalReportAsync(int cabinetId, DateOnly startDate, DateOnly endDate)
+        {
+            var records = await _recordRepository.GetRecordsForReportAsync(startDate, endDate, new List<int> { cabinetId }, null);
+
+            var result = new List<JournalReportModel>();
+
+            var groupedByDate = records
+                .OrderBy(r => r.Date)
+                .ThenBy(r => r.Number.YearlyNum)
+                .GroupBy(r => r.Date);
+
+            foreach (var dateGroup in groupedByDate)
+            {
+                var dayData = new JournalReportModel { Date = dateGroup.Key };
+
+                var patientsInDay = new List<JournalPatientGroup>();
+
+                var summary = new JournalDaySummary();
+
+                var uniquePatients = dateGroup.Select(r => r.PatientId).Distinct().ToList();
+
+                summary.PatientCount = uniquePatients.Count;
+
+                // Группируем по пациенту внутри дня
+                var patientGroups = dateGroup.GroupBy(r => r.PatientId);
+
+                foreach (var patientGroup in patientGroups)
+                {
+                    var firstRecord = patientGroup.First();
+                    if (firstRecord == null) 
+                    { 
+                        continue; 
+                    }
+
+                    var patientGroupModel = new JournalPatientGroup
+                    {
+                        DisplayNumber = $"{firstRecord.Number.YearlyNum}/{firstRecord.Number.DailyNum}",
+                        PatientFIO = $"{firstRecord.Patient.SecondName} {firstRecord.Patient.FirstName} {firstRecord.Patient.ThirdName}".Trim(),
+                        BirthDate = firstRecord.Patient.BirthDate.ToString("dd.MM.yyyy"),
+                        MedNumber = firstRecord.Patient.MedNumber,
+                        Category = firstRecord.Exam?.Category ?? "",
+                        Department = firstRecord.Exam?.Cabinet?.Hospital?.DepName ?? "",
+                        Exams = new List<JournalExamItem>()
+                    };
+
+
+                    foreach (var record in patientGroup.OrderBy(r => r.Exam?.XRayDate))
+                    {
+                        if (record.Exam != null)
+                        {
+                            patientGroupModel.Exams.Add(new JournalExamItem
+                            {
+                                ExamName = record.Exam.XRayName,
+                                Shots = record.Exam.XRayShots,
+                                Dose = record.Exam.XRayDose
+                            });
+                            // Подсчёт для summary
+                            summary.TotalExams++;
+
+                            summary.TotalShots += record.Exam.XRayShots;
+
+                            if (!string.IsNullOrEmpty(record.Exam.Doctor))
+                            {
+                                summary.Doctor = record.Exam.Doctor; 
+                            }
+
+                            if (!string.IsNullOrEmpty(record.Exam.Laborant))
+                            {
+                                summary.Laborant = record.Exam.Laborant; 
+                            }
+
+                            if (!summary.CategoryCounts.TryGetValue(record.Exam.Category, out int value))
+                            {
+                                value = 0;
+                                summary.CategoryCounts[record.Exam.Category] = value; 
+                            }
+
+                            summary.CategoryCounts[record.Exam.Category] = ++value;
+                        }
+                    }
+                    patientsInDay.Add(patientGroupModel);
+                }
+                dayData.PatientGroups = patientsInDay;
+
+                dayData.Summary = summary;
+
+                result.Add(dayData);
+            }
+            return result;
+        }
     }
 }

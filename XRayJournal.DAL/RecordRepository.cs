@@ -190,9 +190,11 @@ namespace XRayJournal.DAL
             List<int>? cabinetIds, List<int>? userIds)
         {
             var query = _dataContext.Records
+                .Include(r => r.Number)
                 .Include(r => r.Patient)
                 .Include(r => r.Exam)
                     .ThenInclude(e => e.Cabinet)
+                    .ThenInclude(c => c.Hospital)
                 .Include(r => r.User)
                 .AsQueryable();
 
