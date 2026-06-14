@@ -48,7 +48,7 @@ else
                                     <td rowspan="@rowSpan">@patient.PatientFIO<br />@patient.BirthDate</td>
                                     <td rowspan="@rowSpan">@patient.MedNumber</td>
                                     <td rowspan="@rowSpan">@patient.Category</td>
-                                    <td rowspan="@rowSpan">@patient.Department</td>
+                                    <td rowspan="@rowSpan">@patient.DepName</td>
                                 }
                                 <td>@exam.ExamName</td>
                                 <td class="text-center">@exam.Shots</td>
@@ -96,12 +96,8 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        Console.WriteLine($"CabinetId = {CabinetId}");
-
         if (DateOnly.TryParse(Start, out var start) && DateOnly.TryParse(End, out var end) && CabinetId > 0)
         {
-            Console.WriteLine($"Start date = {Start}, End date = {End}");
-
             data = await ReportService.GetJournalReportAsync(CabinetId, start, end);
         }
         else

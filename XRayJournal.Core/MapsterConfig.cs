@@ -25,8 +25,6 @@ namespace XRayJournal.Core
             config.NewConfig<XRayExamOutputModel, XRayExamInputModel>()
                 .Map(dest => dest.Id, src => src.Id);
 
-            //config.NewConfig<XRayExamDTO, XrayExamNecessaryInfoOutputModel>();
-
             config.NewConfig<NumberDTO, NumberOutputModel>()
                 .Map(dest => dest.YearlyNum, src => src.YearlyNum)
                 .Map(dest => dest.DailyNum, src => src.DailyNum);
@@ -49,7 +47,6 @@ namespace XRayJournal.Core
             config.NewConfig<RecordDTO, RecordNecessaryOutputModel>()
                 .Map(dest => dest.YearlyNum, src => src.Number != null ? src.Number.YearlyNum : 0)
                 .Map(dest => dest.DailyNum, src => src.Number != null ? src.Number.DailyNum : 0)
-                //.Map(dest => dest.DisplayNumber, src => $"{src.Number.YearlyNum}/{src.Number.DailyNum}")
                 .Map(dest => dest.SecondName, src => src.Patient != null ? src.Patient.SecondName : "")
                 .Map(dest => dest.FirstName, src => src.Patient != null ? src.Patient.FirstName : "")
                 .Map(dest => dest.ThirdName, src => src.Patient != null ? src.Patient.ThirdName : "")

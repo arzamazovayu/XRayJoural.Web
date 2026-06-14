@@ -26,26 +26,6 @@ namespace XRayJournal.DAL
             return number;
         }
 
-        public async Task<NumberDTO?> GetLastNumberAsync()
-        {
-            return await _dataContext.Numbers.
-                OrderByDescending(n => n.Id).
-                FirstOrDefaultAsync();
-        }
-
-        public async Task<List<NumberDTO>> GetAllAsync()
-        {
-            return await _dataContext.Numbers.
-                OrderBy(n => n.XRayDate).
-                ThenBy(n => n.Id).
-                ToListAsync();
-        }
-
-    public async Task<List<NumberDTO>> GetByPatientAndExamAsync(int patientId, DateOnly xRayDate)
-        {
-            return await _dataContext.Numbers
-                .Where(n => n.PatientId == patientId && n.XRayDate == xRayDate).ToListAsync();
-        }
         public async Task<NumberDTO> UpdateAsync(NumberDTO number)
         {
             var existing = await _dataContext.Numbers.FindAsync(number.Id);

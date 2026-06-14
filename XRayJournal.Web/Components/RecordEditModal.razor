@@ -114,7 +114,7 @@
                                         <!-- Кнопка удаления пациента -->
                                         @if (_editingRecordId > 0)
                                         {
-                                            <AuthorizeView Roles="Doctor">
+                                            <AuthorizeView Roles="Doctor, Head">
                                                 <Authorized Context="Doctor">
                                                     <button type="button" class="btn btn-outline-danger btn-sm"
                                                     @onclick="ShowDeleteRecordModal">
@@ -234,7 +234,7 @@
                                         <div class="col-md-3">
                                             <div class="mb-3">
                                                 <label class="form-label">Доза (мЗв)</label>
-                                                <InputNumber class="form-control" @bind-Value="_currentExam.XRayDose" step="0.001" min="0" />
+                                                <InputNumber class="form-control" @bind-Value="_currentExam.XRayDose" step="0.0001" min="0" />
                                             </div>
                                         </div>
                                         <div class="col-md-3">
@@ -359,29 +359,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Диалог удаления исследования -->
-    @if (showDeleteDialog)
-    {
-        <div class="modal-backdrop fade show" style="z-index: 1050;"></div>
-        <div class="modal fade show d-block" tabindex="-1" style="z-index: 1055;">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Подтверждение удаления</h5>
-                        <button type="button" class="btn-close" @onclick="CancelDeleteExam"></button>
-                    </div>
-                    <div class="modal-body">
-                        <p>@deleteDialogMessage</p>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" @onclick="CancelDeleteExam">Отмена</button>
-                        <button type="button" class="btn btn-danger" @onclick="DeleteExamConfirmed">Удалить</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    }
 
     <!-- Диалог удаления записи -->
     @if (showDeleteRecordDialog)
@@ -633,9 +610,13 @@
         {
             var fioShort = user.Data.FIOshort;
             if (user.Data.Role.ToString() == "Doctor")
+            {
                 _currentExam.Doctor = fioShort;
+            }
             else if (user.Data.Role.ToString() == "Laborant")
+            {
                 _currentExam.Laborant = fioShort;
+            }
         }
         showExamForm = true;
         StateHasChanged();
@@ -646,7 +627,9 @@
         isExamAdding = true;
         
         editingExamIndex = index;
-        var exam = _localExams[index];        
+
+        var exam = _localExams[index];   
+        
         _currentExam = new XRayExamInputModel
             {
                 Id = exam.Id,
@@ -702,68 +685,6 @@
         }
         CancelExamEdit();
         StateHasChanged();
-    }
-
-    private void ConfirmDeleteExam(XRayExamInputModel exam)
-    {
-        deleteExamIndex = _localExams.FindIndex(e => e == exam);
-        if (deleteExamIndex >= 0)
-        {
-            deleteDialogMessage = $"Вы уверены, что хотите удалить исследование '{exam.XRayName}' от {exam.XRayDate.ToString("dd.MM.yyyy")}?";
-            showDeleteDialog = true;
-            StateHasChanged();
-        }
-    }
-
-    private void CancelDeleteExam()
-    {
-        showDeleteDialog = false;
-        deleteExamIndex = -1;
-        StateHasChanged();
-    }
-
-    private async Task DeleteExamConfirmed()
-    {
-        if (deleteExamIndex >= 0 && deleteExamIndex < _localExams.Count)
-        {
-            _localExams.RemoveAt(deleteExamIndex);
-            await JS.InvokeVoidAsync("alert", "Исследование удалено");
-        }
-        CancelDeleteExam();
-        StateHasChanged();
-    }
-
-    private void ShowDeletePatientModal()
-    {
-        showDeletePatientDialog = true;
-        confirmPatientDelete = false;
-        StateHasChanged();
-    }
-
-    private void CancelDeletePatient()
-    {
-        showDeletePatientDialog = false;
-        confirmPatientDelete = false;
-        StateHasChanged();
-    }
-
-    private async Task DeletePatientConfirmed()
-    {
-        if (_editingRecordId > 0)
-        {
-            var result = PatientService.Delete(_localPatient.Id);
-
-            if (result.Success)
-            {
-                await JS.InvokeVoidAsync("alert", "Пациент удалён");
-                await CloseModal();
-                if (OnSave.HasDelegate)
-                {
-                    await OnSave.InvokeAsync();
-                }
-            }
-        }
-        CancelDeletePatient();
     }
 
     private async Task SaveRecordToDatabase()
@@ -870,20 +791,16 @@
                 // Для каждого исследования обновляем его (оно уже имеет Id)
                 foreach (var exam in _localExams)
                 {
-
                     int examId = exam.Id ?? 0;
                     if (examId == 0)
                     {
-
                         var addExam = XRayExamService.Add(exam);
-                        Console.WriteLine($"Запись добавлена: Add(exam.Id:{exam.Id})/");
                         if (!addExam.Success)
                         {
                             await JS.InvokeVoidAsync("alert", $"Ошибка обновления исследования: {addExam.ErrorMessage}");
                             return;
                         }
                         examId = addExam.Data.Id;
-                        Console.WriteLine($"examId внутри if (examId == 0): {examId}/");
                         var createRecord = await RecordService.CreateRecordForExamAsync(patientId, numberId, examId, CurrentUserId, _localDate);
                         if (!createRecord.Success)
                         {
@@ -947,7 +864,7 @@
         }
         else
         {
-            showPatientSelection = true;   // Много пациентов надено, показываем список выбора
+            showPatientSelection = true;   // Много пациентов найдено, показываем список выбора
             StateHasChanged();
         }
     }
@@ -985,17 +902,19 @@
         {
             // 1. Получаем информацию о записи
             var record = await RecordService.GetByIdAsync(_editingRecordId);
+
             if (!record.Success || record.Data == null)
             {
                 await JS.InvokeVoidAsync("alert", "Не удалось загрузить запись для удаления");
                 return;
             }
-            // Надёжнее получить id из записи
+
             int numberId = record.Data.Number.Id;
             int examId = record.Data.Exam?.Id ?? 0;
 
             // 2. Удаляем запись из Records
             var deleteRecord = await RecordService.DeleteRecordAsync(_editingRecordId);
+
             if (!deleteRecord.Success)
             {
                 await JS.InvokeVoidAsync("alert", $"Ошибка удаления записи: {deleteRecord.ErrorMessage}");
@@ -1014,6 +933,7 @@
 
             // 4. Проверяем, используется ли номер в других записях
             var otherRecords = await RecordService.GetRecordsByNumberIdAsync(numberId);
+
             if (otherRecords.Success && !otherRecords.Data.Any())
             {
                 // Номер не используется, удаляем его
@@ -1025,8 +945,12 @@
             }
 
             await JS.InvokeVoidAsync("alert", "Запись успешно удалена");
+
             if (OnSave.HasDelegate)
+            {
                 await OnSave.InvokeAsync();
+            }
+
             await CloseModal();
         }
         catch (Exception ex)

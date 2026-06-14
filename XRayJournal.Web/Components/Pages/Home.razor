@@ -63,7 +63,7 @@
                         @* Кнопка добавления *@
                         <div class="col-auto">
                             <button class="btn btn-success" @onclick="ShowAddRecordModal">
-                                <i class="bi bi-plus-circle"></i> Добавить пациента
+                                <i class="bi bi-plus-circle"></i> Добавить запись
                             </button>
                         </div>
                     </div>
@@ -127,13 +127,10 @@
                                     </td>
                                 </tr>
                             }
-                            
                         </tbody>
                     </table>
                 </div>
             </div>
-
-
             @* Пагинация *@
             @if (records != null && records.TotalPages > 1)
             {
@@ -217,8 +214,8 @@
         if (userResult.Success)
         {
             currentUserFIO = userResult.Data.FIO;
-            //Получение кабинета
             currentCabinetId = await UserService.GetUserCabinetIdAsync(currentUserId);
+
             var cabinetResult = await CabinetService.GetByIdAsync(currentCabinetId);
             if (cabinetResult.Success)
             {
@@ -234,7 +231,7 @@
         {
             return customId;
         }
-        return 0; // Значение по умолчанию
+        return 0;
     }
 
     private async Task LoadRecords()
@@ -252,14 +249,13 @@
             currentCabinetId);
 
         if (result.Success)
-            {
-                records = result.Data;
-            }
+        {
+            records = result.Data;
+        }
         else
-            {
-                // Показать ошибку
-                Console.WriteLine($"Ошибка: {result.ErrorMessage}");
-            }
+        {
+            Console.WriteLine($"Ошибка: {result.ErrorMessage}");
+        }
 
         isLoading = false;
         StateHasChanged();
@@ -294,7 +290,6 @@
 
     private async Task HandleSaveRecord()
     {
-        //HideRecordModal();
         await LoadRecords();
         StateHasChanged();
     }

@@ -20,7 +20,5 @@ namespace XRayJournal.Core.OutputModels
 
         //public string Clinic { get; set; }
 
-        //public string Department { get; set; }
-
     }
 }

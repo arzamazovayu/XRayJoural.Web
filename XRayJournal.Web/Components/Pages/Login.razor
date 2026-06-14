@@ -78,7 +78,7 @@
             errorMessage = "Пароль обязателен";
             return;
         }
-        // Используем UserService
+        
         var result = await UserService.AuthenticateAsync(userModel.Name, userModel.Password);
 
         if (!result.Success)
@@ -109,7 +109,7 @@
             new AuthenticationProperties
                 {
                     IsPersistent = true,
-                    ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(390) // 390 минут потому что рабочий день 6.5 часов
+                    ExpiresUtc = DateTimeOffset.UtcNow.AddMinutes(1440) // 1440 минут для комфортной работы сменщиков (24 часа)
                 });
 
         // Перенаправляем на главную

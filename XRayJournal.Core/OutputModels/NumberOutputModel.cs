@@ -15,7 +15,5 @@ namespace XRayJournal.Core.OutputModels
         public int DailyNum { get; set; }
 
         public DateOnly XRayDate { get; set; }
-
-        public string DisplayNumber => $"{YearlyNum}/{DailyNum}";
     }
 }

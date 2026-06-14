@@ -91,7 +91,6 @@
             if (PatientId > 0)
             {
                 // Получаем полные ФИО пациента
-                //PatientFullName = PatientService.GetPatientFioById(PatientId);
                 var patientResult = await PatientService.GetByIdAsync(PatientId);
                 if (patientResult.Success && patientResult.Data != null)
                 {
@@ -112,7 +111,7 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Ошибка загрузки отчёта: {ex.Message}");
+            await JS.InvokeVoidAsync($"Ошибка загрузки отчёта: {ex.Message}");
             items = new List<RadiationReportModel>();
         }
     }

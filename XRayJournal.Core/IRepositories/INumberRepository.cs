@@ -12,13 +12,7 @@ namespace XRayJournal.Core.IRepositories
     {
         public Task<NumberDTO> AddAsync(NumberDTO number);
 
-        public Task<NumberDTO?> GetLastNumberAsync();
-
         public Task<NumberDTO?> GetLastNumberForCabinetAsync(int cabinetId);
-
-        public Task<List<NumberDTO>> GetAllAsync();
-
-        public Task<List<NumberDTO>> GetByPatientAndExamAsync(int patientId, DateOnly xRayDate);
 
         public Task<NumberDTO> UpdateAsync(NumberDTO number);
 

@@ -179,6 +179,8 @@
                     </div>
 
                     <!-- Раздел 2: Лучевая нагрузка -->
+                    <AuthorizeView Roles="Doctor, Head">
+                    <Authorized Context="Doctor">
                     <div class="col-md-4 mb-4">
                         <div class="card h-100">
                             <div class="card-header bg-success text-white">
@@ -228,7 +230,8 @@
                             </div>
                         </div>
                     </div>
-
+                    </Authorized>
+                    </AuthorizeView>
                     <!-- Раздел 3: Журнал -->
                     <div class="col-md-4 mb-4">
                         <div class="card h-100">
@@ -344,7 +347,6 @@
         if (userResult.Success)
         {
             currentUserFIO = userResult.Data.FIO;
-
             currentUserRole = userResult.Data.Role.ToString();
 
             isHead = (userResult.Data.Role == UserRole.Head);
@@ -355,11 +357,16 @@
             if (cabResult.Success) 
             {
                 currentCabinetName = cabResult.Data.CabinetName;
+                userCabinetId = currentCabinetId;
+                userCabinetName = currentCabinetName;
+
+                if (!isHead)
+                {
+                    selectedCabinets = new List<int> { userCabinetId };
+                    selectedUsers = new List<int> { currentUserId };
+                }
             }
 
-            userCabinetId = currentCabinetId;
-
-            userCabinetName = currentCabinetName;
         }
     }
 
@@ -373,7 +380,6 @@
                 allCabinets = result.Data;
             }
         }
-        // обычный пользователь – только свой кабинет (уже в userCabinetId)
     }
 
     private async Task LoadUserData()
@@ -386,7 +392,6 @@
                 allUsers = result.Data;
             }
         }
-        // иначе – не нужен список
     }
 
     private async Task LoadJournalCabinetList()
@@ -409,7 +414,7 @@
         return 0;
     }
 
-    // Обработчики кнопок
+    // Обработчик кнопок
     private void YankeeGoHome() => Navigation.NavigateTo("/home");
 
     private async Task GenerateDailyReport()
@@ -442,6 +447,7 @@
         var json = JsonSerializer.Serialize(parameters);
         var encoded = Uri.EscapeDataString(json);
         var url = $"/weekly-report?StartDateStr={weeklyStartDate:yyyy-MM-dd}&EndDateStr={weeklyEndDate:yyyy-MM-dd}&Params={encoded}";
+        
         await OpenInNewTab(url);
     }
 
@@ -455,8 +461,8 @@
                 StartDate = yearlyStartDate,
                 EndDate = yearlyEndDate
             };
-        var data = await ReportService.GetYearlyReportAsync(parameters, yearlyStartDate, yearlyEndDate);
-        var csv = BuildYearlyCsv(data);
+        var csv = await ReportService.GetYearlyReportAsync(parameters, yearlyStartDate, yearlyEndDate);
+        
         await JS.InvokeVoidAsync("downloadTextFile", $"Годовой_отчёт_{yearlyStartDate:yyyyMMdd}_{yearlyEndDate:yyyyMMdd}.csv", csv);
     }
 
@@ -470,23 +476,26 @@
         }
         var result = await PatientService.GetByMedIdAsync(searchMedNumber);
         if (result.Success && result.Data != null)
-            {
-                foundPatient = result.Data;
-            }
+        {
+            foundPatient = result.Data;
+        }
         else
-            {
-                foundPatient = null;
-            }
+        {
+            foundPatient = null;
+        }
         StateHasChanged();
     }
 
     private async Task GenerateRadiationLoadReport()
     {
-        if (foundPatient == null) return;
-        //Переход на страницу RadiationReport.razor с параметрами
+        if (foundPatient == null) 
+        {
+            return;
+        }
+        
         var url = $"/radiation-load/?patientId={foundPatient.Id}&start={radiationStartDate}&end={radiationEndDate}";
+        
         await OpenInNewTab(url);
-
     }
 
     private async Task GenerateJournalReport()
@@ -496,10 +505,9 @@
             await JS.InvokeVoidAsync("alert", "Выберите кабинет");
             return;
         }
-        Console.WriteLine($"CabinetId in Reports.razor = {selectedJournalCabinetId}");
 
-        // Переход на страницу JournalReport.razor с параметрами
         var url = $"/journal-report?CabinetId={selectedJournalCabinetId}&Start={journalStartDate:yyyy-MM-dd}&End={journalEndDate:yyyy-MM-dd}";
+        
         await OpenInNewTab(url);
     }
 
@@ -535,7 +543,9 @@
         if (isChecked)
         {
             if (!selectedCabinets.Contains(cabinetId))
+            {
                 selectedCabinets.Add(cabinetId);
+            }
         }
         else
         {
@@ -549,7 +559,9 @@
         if (isChecked)
         {
             if (!selectedUsers.Contains(userId))
+            {
                 selectedUsers.Add(userId);
+            }
         }
         else
         {
@@ -561,65 +573,5 @@
     private async Task OpenInNewTab(string url)
     {
         await JS.InvokeVoidAsync("open", url, "_blank");
-    }
-
-    private string BuildYearlyCsv(List<YearlyReportModel> data)
-    {
-        // Собираем уникальные модальности и области
-        var modalities = data.Select(d => d.Modality).Distinct().OrderBy(m => m).ToList();
-        var areas = data.Select(d => d.AreaName).Distinct().OrderBy(a => a).ToList();
-
-        var sb = new StringBuilder();
-        // Формируем заголовок
-        sb.Append("Кабинет;Область");
-        foreach (var mod in modalities)
-        {
-            sb.Append($";{mod}"); // Модальности подряд
-        }
-        sb.AppendLine(";Итого");
-
-        // Группируем по кабинетам и областям
-        var grouped = data.GroupBy(d => new { d.CabinetNum, d.AreaName })
-                          .Select(g => new { g.Key.CabinetNum, g.Key.AreaName, Items = g.ToList() })
-                          .OrderBy(g => g.CabinetNum).ThenBy(g => g.AreaName);
-
-        foreach (var group in grouped)
-        {
-            // Инициализация нулевого словаря
-            var row = new Dictionary<string, int>();
-            foreach (var mod in modalities)
-            {
-                row[mod] = 0;
-            }
-
-            // Подсчитываем суммарное значение в каждой группе
-            int total = 0;
-            foreach (var item in group.Items)
-            {
-                row[item.Modality] += item.Count;
-                total += item.Count;
-            }
-
-            // Сложение .csv строки
-            sb.Append($"{group.CabinetNum};{group.AreaName}");
-            foreach (var mod in modalities)
-            {
-                sb.Append($";{row[mod]}");
-            }
-            sb.AppendLine($";{total}");
-        }
-
-        // Строка "Итого по всем кабинетам"
-        sb.Append("ИТОГО;");
-
-        var totalsByModality = modalities.ToDictionary(m => m, m => data.Where(d => d.Modality == m).Sum(d => d.Count));
-
-        foreach (var mod in modalities)
-        {
-            sb.Append($";{totalsByModality[mod]}");
-        }
-        sb.AppendLine($";{data.Sum(d => d.Count)}");
-
-        return sb.ToString();
     }
 }

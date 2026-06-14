@@ -20,7 +20,6 @@ namespace XRayJournal.Core.DTOs
 
         public DateOnly Date { get; set; }
 
-        // Навигационные свойства - связи (join) для EF Core
         public virtual PatientDTO? Patient { get; set; }
 
         public virtual NumberDTO? Number { get; set; }

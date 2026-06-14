@@ -15,36 +15,33 @@ namespace XRayJournal.DAL
             _dataContext = dataContext;
         }
 
-        // Проверка логина и пароля
         public async Task<UserDTO?> AuthenticateAsync(string login, string password)
         {
             return await _dataContext.Users.FirstOrDefaultAsync(u => u.Login == login && u.Password == password);
         }
 
-        // Получение пользователя по ID
         public async Task<UserDTO?> GetByIdAsync(int id)
         {
             return await _dataContext.Users.FindAsync(id);
         }
 
-        // Получение всех пользователей
         public async Task<List<UserDTO>> GetAllAsync()
         {
             return await _dataContext.Users.ToListAsync();
         }
 
-        // Получение пользователя по логину
-        public async Task<UserDTO?> GetUserByLoginAsync(string login)
-        {
-            return await _dataContext.Users.FirstOrDefaultAsync(u => u.Login == login);
-        }
-
-        //Получение пользователя с кабинетом
         public async Task<UserDTO?> GetByIdWithCabinetsAsync(int id)
         {
             return await _dataContext.Users
                 .Include(u => u.Cabinets)
                 .FirstOrDefaultAsync(u => u.ID == id);
+        }
+
+        public async Task<List<UserDTO>> GetUsersByIdsAsync(List<int> ids)
+        {
+            return await _dataContext.Users
+                .Where(u => ids.Contains(u.ID))
+                .ToListAsync();
         }
     }
 }

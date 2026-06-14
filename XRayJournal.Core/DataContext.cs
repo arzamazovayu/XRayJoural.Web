@@ -26,8 +26,7 @@ namespace XRayJournal.Core
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            //string connectionString = Options.ConnectionString;
-            string connectionString = "Server = localhost; Port = 5432; User Id = postgres; Password = Flvby1; Database = XRayJournalWeb";
+            string connectionString = Options.ConnectionString;
             optionsBuilder.UseNpgsql(connectionString);
         }
 

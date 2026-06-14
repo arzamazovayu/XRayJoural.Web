@@ -27,7 +27,7 @@ namespace XRayJournal.Core.ReportsModels
 
         public string Category { get; set; }
 
-        public string Department { get; set; }
+        public string DepName { get; set; }
 
         public List<JournalExamItem> Exams { get; set; } = new();
     }

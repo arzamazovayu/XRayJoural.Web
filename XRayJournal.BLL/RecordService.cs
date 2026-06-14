@@ -71,102 +71,6 @@ namespace XRayJournal.BLL
             return _patientRepository.Add(newPatient);
         }
 
-        public async Task<OperationResult<RecordOutputModel>> CreateRecordAsync(RecordInputModel input, int userId, int cabinetId)
-        {
-            try
-            {
-                //Получение/создание пациента
-                var patient = await GetOrCreatePatientAsync(input.Patient);
-
-                //Создание исследования с привязкой к кабинету
-                var examDto = input.Exam.Adapt<XRayExamDTO>();
-                examDto.IdCabinet = cabinetId;
-                var exam = _examRepository.Add(examDto);
-
-                //Получение/создание номера
-                var (yearly, daily) = await _numberService.CalculateNextNumberAsync(input.Date, cabinetId);
-                var number = new NumberDTO
-                {
-                    YearlyNum = input.Number.YearlyNum,
-                    DailyNum = input.Number.DailyNum,
-                    XRayDate = input.Date,
-                    PatientId = patient.Id
-                };
-                var savedNumber = await _numberRepository.AddAsync(number);
-                //Создание записи
-                var record = new RecordDTO
-                {
-                    PatientId = patient.Id,
-                    ExamId = exam.Id,
-                    NumberId = savedNumber.Id,
-                    UserId = userId,
-                    Date = input.Date
-                };
-
-                var created = await _recordRepository.AddAsync(record);
-                var result = created.Adapt<RecordOutputModel>();
-
-                return OperationResult<RecordOutputModel>.Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return OperationResult<RecordOutputModel>.Fail($"Ошибка создания записи: {ex.Message}");
-            }
-        }
-
-        public async Task<OperationResult<List<RecordOutputModel>>> GetRecordsByDateRangeAsync(DateOnly start, DateOnly end)
-        {
-            try
-            {
-                var records = await _recordRepository.GetByDateRangeAsync(start, end);
-                var result = records.Adapt<List<RecordOutputModel>>();
-                return OperationResult<List<RecordOutputModel>>.Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return OperationResult<List<RecordOutputModel>>.Fail($"Ошибка получения записей: {ex.Message}");
-            }
-        }
-
-        public async Task<OperationResult<List<RecordOutputModel>>> GetAllRecordsAsync()
-        {
-            try
-            {
-                var records = await _recordRepository.GetAllAsync();
-                var result = records.Adapt<List<RecordOutputModel>>();
-                return OperationResult<List<RecordOutputModel>>.Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return OperationResult<List<RecordOutputModel>>.Fail($"Ошибка получения записей: {ex.Message}");
-            }
-        }
-
-        public async Task<OperationResult<List<RecordNecessaryOutputModel>>> GetNecessaryRecordsAsync(
-            DateOnly? startDate = null, DateOnly? endDate = null)
-        {
-            try
-            {
-                //Если даты null, то текущий месяц по умолчанию
-                if (!startDate.HasValue && !endDate.HasValue)
-                {
-                    var today = DateOnly.FromDateTime(DateTime.Now);
-                    //startDate = new DateOnly(today.Year, today.Month, 1); //Начало месяца
-                    //endDate = startDate.Value.AddMonths(1).AddDays(-1); // + 1 месяц - 1 день = последний день текущего месяца
-                    endDate = today;
-                    startDate = endDate.Value.AddMonths(-1);
-                }
-
-                var records = await _recordRepository.GetNecessaryRecordsAsync(startDate, endDate);
-                return OperationResult<List<RecordNecessaryOutputModel>>.Ok(records);
-            }
-            catch (Exception ex)
-            {
-                return OperationResult<List<RecordNecessaryOutputModel>>.Fail(
-                    $"Ошибка получения записей: {ex.Message}");
-            }
-        }
-
         //Метод получения записей с пагинацией (страницированием)
         public async Task<OperationResult<PagedResult<RecordNecessaryOutputModel>>> GetNecessaryRecordsPagedAsync(
             int page = 1,
@@ -216,34 +120,6 @@ namespace XRayJournal.BLL
                     $"Ошибка получения записей: {ex.Message}");
             }
         }
-
-        public async Task<OperationResult<RecordOutputModel>> UpdateRecordAsync(
-            int recordId, int patientId, int numberId, int userId, DateOnly date)
-        {
-            try
-            {
-                var record = new RecordDTO
-                {
-                    Id = recordId,
-                    PatientId = patientId,
-                    NumberId = numberId,
-                    UserId = userId,
-                    Date = date
-                };
-
-                var updated = await _recordRepository.UpdateAsync(record);
-                if (updated == null)
-                    return OperationResult<RecordOutputModel>.Fail("Запись не найдена");
-
-                var result = updated.Adapt<RecordOutputModel>();
-                return OperationResult<RecordOutputModel>.Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return OperationResult<RecordOutputModel>.Fail($"Ошибка обновления записи: {ex.Message}");
-            }
-        }
-
         
         public async Task<OperationResult<RecordOutputModel>> CreateEmptyRecordAsync(
             int patientId, int numberId, int userId, DateOnly date)
@@ -285,24 +161,6 @@ namespace XRayJournal.BLL
             catch (Exception ex)
             {
                 return OperationResult<RecordOutputModel>.Fail($"Ошибка создания записи: {ex.Message}");
-            }
-        }
-
-        public async Task<OperationResult<bool>> UpdateRecordExamIdAsync(int recordId, int examId)
-        {
-            try
-            {
-                var success = await _recordRepository.UpdateExamIdAsync(recordId, examId);
-                if (!success)
-                {
-                    return OperationResult<bool>.Fail("Запись не найдена");
-                }
-
-                return OperationResult<bool>.Ok(true);
-            }
-            catch (Exception ex)
-            {
-                return OperationResult<bool>.Fail($"Ошибка: {ex.Message}");
             }
         }
 

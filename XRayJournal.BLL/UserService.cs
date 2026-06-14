@@ -1,18 +1,16 @@
-﻿using XRayJournal.Core.IRepositories;
-using XRayJournal.Core.OutputModels;
-using XRayJournal.Core.InputModels;
-using Mapster;
-using XRayJournal.Core.DTOs;
-using XRayJournal.Core.Results;
+﻿using Mapster;
 using XRayJournal.Core;
+using XRayJournal.Core.IRepositories;
 using XRayJournal.Core.Models;
+using XRayJournal.Core.OutputModels;
+using XRayJournal.Core.Results;
 
 namespace XRayJournal.BLL
 {
     public class UserService
     {
         public IUserRepository _userRepository;
-        public UserService(IUserRepository userRepository) 
+        public UserService(IUserRepository userRepository)
         {
             _userRepository = userRepository;
         }
@@ -39,16 +37,10 @@ namespace XRayJournal.BLL
 
                 return OperationResult<UserModel>.Ok(userModel);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return OperationResult<UserModel>.Fail($"Ошибка аутентификации: {ex.Message}");
             }
-        }
-
-        public async Task<UserRole> GetUserRoleAsync(string login)
-        {
-            var userDto = await _userRepository.GetUserByLoginAsync(login);
-            return userDto?.Role ?? UserRole.Laborant; // Проверка на null
         }
 
         public async Task<int> GetUserCabinetIdAsync(int userId)
@@ -58,7 +50,7 @@ namespace XRayJournal.BLL
             return user?.Cabinets?.FirstOrDefault()?.Id ?? 0;
         }
 
-        public async Task<OperationResult<UserOutputModel>> GetByIdAsync (int id)
+        public async Task<OperationResult<UserOutputModel>> GetByIdAsync(int id)
         {
             try
             {
@@ -72,7 +64,8 @@ namespace XRayJournal.BLL
                 {
                     return OperationResult<UserOutputModel>.Fail($"Пользователь с id = {id} не найден.");
                 }
-            }catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 return OperationResult<UserOutputModel>.Fail($"Ошибка поиска пользователя: {ex.Message}");
             }
@@ -86,7 +79,7 @@ namespace XRayJournal.BLL
                 var result = users.Adapt<List<UserOutputModel>>();
                 return OperationResult<List<UserOutputModel>>.Ok(result);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return OperationResult<List<UserOutputModel>>.Fail($"Ошибка получения пользователей: {ex.Message}");
             }

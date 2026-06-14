@@ -14,8 +14,6 @@ namespace XRayJournal.Core.DTOs
 
         public string Clinic { get; set; }
 
-        public string Department { get; set; }
-
         public List<CabinetDTO>? Cabinets { get; set; }
 
     }

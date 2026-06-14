@@ -10,10 +10,6 @@ namespace XRayJournal.Core.IRepositories
 {
     public interface IXRayExamRepository
     {
-        public List<XRayExamDTO> GetAllExams();
-
-        //public List<XRayExamDTO> GetNecessaryExams();
-
         public XRayExamDTO Add(XRayExamDTO exam);
 
         public bool Update(XRayExamDTO exam);
@@ -22,7 +18,7 @@ namespace XRayJournal.Core.IRepositories
 
         public XRayExamDTO? GetById(int id);
 
-        public List<XRayExamDTO> GetByPatientId(int patientId);
+        public List<XRayExamDTO?> GetByPatientId(int patientId);
 
     }
 }

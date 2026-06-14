@@ -24,26 +24,9 @@ namespace XRayJournal.DAL
             return patient;
         }
 
-        public List<PatientDTO> GetAll()
-        {
-            var result = _dataContext.Patients.OrderBy(p=>p.Id).ToList();
-            return result;
-        }
-
         public async Task<PatientDTO> GetByIdAsync(int id)
         {
             var result = await _dataContext.Patients.SingleAsync(p => p.Id == id);
-            return result;
-        }
-
-        public List<PatientDTO> GetAllWithExams()
-        {
-            var result = _dataContext.Patients
-                .Where(p => !p.IsDeleted)
-                //.Include(p => p.Exams)
-                //.Include(p => p.Numbers)
-                .OrderBy(p => p.Id)
-                .ToList();
             return result;
         }
 
@@ -78,32 +61,6 @@ namespace XRayJournal.DAL
             
             _dataContext.SaveChanges();
             return true;
-        }
-
-        public bool Restore(int id) 
-        {
-            var patient = _dataContext.Patients.Find(id);
-
-            if (patient == null || !patient.IsDeleted)
-            {
-                return false;
-            }
-
-            patient.IsDeleted = false;
-            _dataContext.SaveChanges();
-            return true;
-        }
-
-        public PatientDTO GetPatientWithExamsAndNumbersById(int id)
-        {
-            var patient = _dataContext.Patients
-                .Where(p => p.Id == id && !p.IsDeleted)
-                //.Include(p => p.Exams)
-                //.Include(p => p.Numbers)
-                //.OrderByDescending(p => p.Exams.Max(e => e.XRayDate))
-                .FirstOrDefault();
-                
-            return patient;
         }
 
         public async Task<PatientDTO?> GetByMedNumberAsync(string medId)

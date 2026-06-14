@@ -10,11 +10,9 @@ namespace XRayJournal.Core.OutputModels
     {
         public int Id { get; set; }
 
-        public string DepName { get; set; } //Краткое имя клиника + отделение
+        public string DepName { get; set; }
 
         public string Clinic { get; set; }
-
-        public string Department { get; set; }
 
         public List<CabinetOutputModel> Cabinets { get; set; } = new List<CabinetOutputModel>();
     }

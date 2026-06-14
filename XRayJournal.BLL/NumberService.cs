@@ -21,9 +21,6 @@ namespace XRayJournal.BLL
             _numberRepository = numberRepository;
         }
 
-        /// <summary>
-        /// Рассчитывает следующий номер на основе последнего. Принимает дату и Id кабинета, возвращает два номера.
-        /// </summary>
         public async Task<(int Yearly, int Daily)> CalculateNextNumberAsync(DateOnly XRayDate, int cabinetId)
         {
             var lastNum = await _numberRepository.GetLastNumberForCabinetAsync(cabinetId);
@@ -73,51 +70,6 @@ namespace XRayJournal.BLL
             return (yearlyNum, dailyNum);
         }
 
-        /// <summary>
-        /// Сохраняет номер или перезаписывает его (после подтверждения пользователем)
-        /// </summary>
-        public async Task<OperationResult<NumberDTO>> SaveNumberAsync(int patientId, DateOnly xRayDate, int yearlyNum, int dailyNum)
-        {
-            if (patientId <= 0)
-            {
-                return OperationResult<NumberDTO>.Fail("PatientId должен быть больше 0");
-            }
-
-            if (yearlyNum <= 0 || dailyNum <= 0)
-            {
-                return OperationResult<NumberDTO>.Fail("Номера должны быть больше 0");
-            }
-
-            try
-            {
-                var existingNumbers = await _numberRepository.GetByPatientAndExamAsync(patientId, xRayDate);
-
-                if(existingNumbers != null && existingNumbers.Any())
-                {
-                    var existingNumber = existingNumbers.First();
-                    existingNumber.YearlyNum = yearlyNum;
-                    existingNumber.DailyNum = dailyNum;
-                    var updated = await _numberRepository.UpdateAsync(existingNumber);
-                    return OperationResult<NumberDTO>.Ok(updated);
-                }
-
-                var number = new NumberDTO
-                {
-                    PatientId = patientId,
-                    XRayDate = xRayDate,
-                    YearlyNum = yearlyNum,
-                    DailyNum = dailyNum
-                };
-
-                var result = await _numberRepository.AddAsync(number);
-                return OperationResult<NumberDTO>.Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return OperationResult<NumberDTO>.Fail($"Ошибка сохранения номера: {ex.Message}");
-            }
-        }
-
         public async Task<OperationResult<NumberOutputModel>> CreateNumberAsync(
             NumberInputModel numberInput, int patientId, DateOnly xRayDate)
         {
@@ -138,32 +90,6 @@ namespace XRayJournal.BLL
             }
         }
 
-        /// <summary>
-        /// Получает последний номер для отображения
-        /// </summary>
-        public async Task<string> GetLastNumberAsync()
-        {
-            var lastNum = await _numberRepository.GetLastNumberAsync();
-            if (lastNum == null)
-            {
-                return "1/1";
-            }else
-            {
-                return $"{lastNum.YearlyNum}/{lastNum.DailyNum}";
-            }
-        }
-
-        /// <summary>
-        /// Получает номер для записи пациента
-        /// </summary>
-        public async Task<List<NumberDTO>> GetNumberForRecordAsync(int patientId, DateOnly xRayDate)
-        {
-            return await _numberRepository.GetByPatientAndExamAsync(patientId, xRayDate);
-        }
-
-        /// <summary>
-        /// Обновляет номер пациента
-        /// </summary>
         public async Task<OperationResult<NumberOutputModel>> UpdateNumberAsync(NumberInputModel number)
         {
             try
@@ -190,9 +116,6 @@ namespace XRayJournal.BLL
             }
         }
 
-        /// <summary>
-        /// Удаляет номер пациента
-        /// </summary>
         public async Task<OperationResult<bool>> DeleteNumberAsync(int numberId)
         {
             try

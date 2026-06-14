@@ -67,7 +67,7 @@ else
     {
         try
         {
-            //распарсинг даты из строкового параметра, если не null, то присвоить значение, иначе "сегодня"
+            //распарсинг даты из строкового параметра, если не null (?), то присвоить значение, иначе (:) "сегодня"
             StartDate = DateOnly.TryParse(StartDateStr, out var s) ? s : DateOnly.FromDateTime(DateTime.Now);
             EndDate = DateOnly.TryParse(EndDateStr, out var e) ? e : DateOnly.FromDateTime(DateTime.Now);
 

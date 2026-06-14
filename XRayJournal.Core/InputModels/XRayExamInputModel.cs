@@ -15,7 +15,7 @@ namespace XRayJournal.Core.InputModels
         [StringLength(200, ErrorMessage = "Название не может превышать 200 символов")]
         public string XRayName { get; set; }
 
-        [Range(0.0001, 1000, ErrorMessage = "Доза должна быть от 0 до 1000 мЗв")]
+        [Range(0, 1000, ErrorMessage = "Доза должна быть от 0 до 1000 мЗв")]
         public float XRayDose { get; set; }
 
         [Range(0, 1000, ErrorMessage = "Количество снимков/последовательностей должно быть от 0 до 1000")]

@@ -18,17 +18,6 @@ namespace XRayJournal.DAL
         {
             _dataContext = dataContext;
         }
-        public List<XRayExamDTO> GetAllExams() 
-        { 
-            var result = _dataContext.Exams.OrderBy(p=>p.Id).ToList();
-            return result;
-        }
-
-        //public List<XRayExamDTO> GetNecessaryExams()
-        //{
-        //    var result = _dataContext.Exams.Include(e => e.Patient).OrderBy(p => p.Id).ToList();
-        //    return result;
-        //}
 
         public XRayExamDTO Add(XRayExamDTO exam)
         {
@@ -66,7 +55,7 @@ namespace XRayJournal.DAL
             return true;
         }
 
-        public List<XRayExamDTO> GetByPatientId(int patientId)
+        public List<XRayExamDTO?> GetByPatientId(int patientId)
         {
             var result = _dataContext.Records
                 .Where(r => r.PatientId == patientId && r.Exam != null)
@@ -75,7 +64,7 @@ namespace XRayJournal.DAL
                 .OrderByDescending(r => r.XRayDate)
                 .ToList();
 
-            return result ?? new List<XRayExamDTO>();
+            return result ?? new List<XRayExamDTO?>();
         }
     }
 }

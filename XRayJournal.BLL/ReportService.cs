@@ -1,13 +1,7 @@
-﻿using Mapster;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Text;
+using XRayJournal.Core;
 using XRayJournal.Core.IRepositories;
-using XRayJournal.Core.OutputModels;
 using XRayJournal.Core.ReportsModels;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace XRayJournal.BLL
 {
@@ -50,19 +44,28 @@ namespace XRayJournal.BLL
             }
             else
             {
-                var grouped = records
-                    .Where(r => r.User != null)
-                    .GroupBy(r => r.User.FIOshort)
-                    .Select(g => new DailyReportModel
+                var users = await _userRepository.GetUsersByIdsAsync(parameters.UserIds);
+                var result = new List<DailyReportModel>();
+
+                foreach (var user in users)
+                {
+                    var filtered = records.Where(r => r.Exam != null &&
+                        (user.Role == UserRole.Doctor || user.Role == UserRole.Head) && r.Exam.Doctor == user.FIOshort ||
+                        (user.Role == UserRole.Laborant) && r.Exam.Laborant == user.FIOshort)
+                        .ToList();
+                    if (filtered.Any())
                     {
-                        EntityName = g.Key,
-                        PatientCount = g.Select(r => r.PatientId).Distinct().Count(),
-                        ExamCount = g.Count(),
-                        TotalCost = g.Sum(r => r.Exam?.XRayCost ?? 0),
-                        Date = start
-                    })
-                    .ToList();
-                return grouped;
+                        result.Add(new DailyReportModel
+                        {
+                            EntityName = user.FIOshort,
+                            PatientCount = filtered.Select(r => r.PatientId).Distinct().Count(),
+                            ExamCount = filtered.Count(),
+                            TotalCost = filtered.Sum(r => r.Exam?.XRayCost ?? 0),
+                            Date = start
+                        });
+                    }
+                }
+                return result;
             }
         }
 
@@ -91,34 +94,43 @@ namespace XRayJournal.BLL
             }
             else
             {
-                var grouped = records
-                    .Where(r => r.User != null)
-                    .GroupBy(r => r.User.FIOshort)
-                    .Select(g => new WeeklyReportModel
+                var users = await _userRepository.GetUsersByIdsAsync(parameters.UserIds);
+                var result = new List<WeeklyReportModel>();
+
+                foreach (var user in users)
+                {
+                    var filtered = records.Where(r => r.Exam != null &&
+                        (user.Role == UserRole.Doctor || user.Role == UserRole.Head) && r.Exam.Doctor == user.FIOshort ||
+                        (user.Role == UserRole.Laborant) && r.Exam.Laborant == user.FIOshort)
+                        .ToList();
+                    if (filtered.Any())
                     {
-                        EntityName = g.Key,
-                        PatientCount = g.Select(r => r.PatientId).Distinct().Count(),
-                        ExamCount = g.Count(),
-                        TotalCost = g.Sum(r => r.Exam?.XRayCost ?? 0),
-                        StartDate = start,
-                        EndDate = end
-                    })
-                    .ToList();
-                return grouped;
+                        result.Add(new WeeklyReportModel
+                        {
+                            EntityName = user.FIOshort,
+                            PatientCount = filtered.Select(r => r.PatientId).Distinct().Count(),
+                            ExamCount = filtered.Count(),
+                            TotalCost = filtered.Sum(r => r.Exam?.XRayCost ?? 0),
+                            StartDate = start,
+                            EndDate = end
+                        });
+                    }
+                }
+                return result;
             }
         }
 
         public async Task<List<RadiationReportModel>> GetRadiationReportAsync(int patientId, DateOnly startDate, DateOnly endDate)
         {
-            var exams = _xRayExamRepository.GetByPatientId(patientId);
+            var exams = _xRayExamRepository.GetByPatientId(patientId); // Получение данных
             var filtered = exams
-                .Where(e => e.XRayDate >= startDate && e.XRayDate <= endDate)
-                .OrderBy(e => e.XRayDate)
+                .Where(e => e.XRayDate >= startDate && e.XRayDate <= endDate)    // Фильтрация
+                .OrderBy(e => e.XRayDate)   // Упорядочивание
                 .ToList();
 
             int counter = 1;
             var result = filtered
-                .Select(e => new RadiationReportModel
+                .Select(e => new RadiationReportModel // Сборка модели данных
                 {
                     Counter = counter++,
                     Date = e.XRayDate,
@@ -209,9 +221,9 @@ namespace XRayJournal.BLL
                 foreach (var patientGroup in patientGroups)
                 {
                     var firstRecord = patientGroup.First();
-                    if (firstRecord == null) 
-                    { 
-                        continue; 
+                    if (firstRecord == null)
+                    {
+                        continue;
                     }
 
                     var patientGroupModel = new JournalPatientGroup
@@ -221,7 +233,7 @@ namespace XRayJournal.BLL
                         BirthDate = firstRecord.Patient.BirthDate.ToString("dd.MM.yyyy"),
                         MedNumber = firstRecord.Patient.MedNumber,
                         Category = firstRecord.Exam?.Category ?? "",
-                        Department = firstRecord.Exam?.Cabinet?.Hospital?.DepName ?? "",
+                        DepName = firstRecord.Exam?.Cabinet?.Hospital?.DepName ?? "",
                         Exams = new List<JournalExamItem>()
                     };
 
@@ -243,18 +255,18 @@ namespace XRayJournal.BLL
 
                             if (!string.IsNullOrEmpty(record.Exam.Doctor))
                             {
-                                summary.Doctor = record.Exam.Doctor; 
+                                summary.Doctor = record.Exam.Doctor;
                             }
 
                             if (!string.IsNullOrEmpty(record.Exam.Laborant))
                             {
-                                summary.Laborant = record.Exam.Laborant; 
+                                summary.Laborant = record.Exam.Laborant;
                             }
 
                             if (!summary.CategoryCounts.TryGetValue(record.Exam.Category, out int value))
                             {
                                 value = 0;
-                                summary.CategoryCounts[record.Exam.Category] = value; 
+                                summary.CategoryCounts[record.Exam.Category] = value;
                             }
 
                             summary.CategoryCounts[record.Exam.Category] = ++value;
@@ -270,5 +282,71 @@ namespace XRayJournal.BLL
             }
             return result;
         }
+
+        public string BuildYearlyCsv(List<YearlyReportModel> data)
+        {
+            // Собираем уникальные модальности и области
+            var modalities = data.Select(d => d.Modality).Distinct().OrderBy(m => m).ToList();
+            var areas = data.Select(d => d.AreaName).Distinct().OrderBy(a => a).ToList();
+
+            var sb = new StringBuilder();
+            // Формируем заголовок
+            sb.Append("Кабинет;Область");
+            foreach (var mod in modalities)
+            {
+                sb.Append($";{mod}"); // Модальности подряд
+            }
+            sb.AppendLine(";Итого");
+
+            // Группируем по кабинетам и областям
+            var grouped = data.GroupBy(d => new { d.CabinetNum, d.AreaName })
+                              .Select(g => new { g.Key.CabinetNum, g.Key.AreaName, Items = g.ToList() })
+                              .OrderBy(g => g.CabinetNum).ThenBy(g => g.AreaName);
+
+            foreach (var group in grouped)
+            {
+                // Инициализация нулевого словаря
+                var row = new Dictionary<string, int>();
+                foreach (var mod in modalities)
+                {
+                    row[mod] = 0;
+                }
+
+                // Подсчитываем суммарное значение в каждой группе
+                int total = 0;
+                foreach (var item in group.Items)
+                {
+                    row[item.Modality] += item.Count;
+                    total += item.Count;
+                }
+
+                // Сложение .csv строки
+                sb.Append($"{group.CabinetNum};{group.AreaName}");
+                foreach (var mod in modalities)
+                {
+                    sb.Append($";{row[mod]}");
+                }
+                sb.AppendLine($";{total}");
+            }
+
+            // Строка "Итого по всем кабинетам"
+            sb.Append("ИТОГО;");
+
+            var totalsByModality = modalities.ToDictionary(m => m, m => data.Where(d => d.Modality == m).Sum(d => d.Count));
+
+            foreach (var mod in modalities)
+            {
+                sb.Append($";{totalsByModality[mod]}");
+            }
+            sb.AppendLine($";{data.Sum(d => d.Count)}");
+
+            return sb.ToString();
+        }
+
+        public async Task<string> GetYearlyReportCsvAsync(ReportParameters parameters, DateOnly start, DateOnly end)
+{
+    var data = await GetYearlyReportAsync(parameters, start, end);
+    return BuildYearlyCsv(data);
+}
     }
 }

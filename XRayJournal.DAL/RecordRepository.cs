@@ -37,57 +37,6 @@ namespace XRayJournal.DAL
             return true;
         }
 
-        public async Task<List<RecordDTO>> GetAllAsync()
-        {
-            return await _dataContext.Records
-                .Include(r => r.Patient)
-                .Include(r => r.Number)
-                .Include(r => r.Exam)
-                .ThenInclude(e => e.Cabinet)
-                .Include(r => r.User)
-                .OrderBy(r => r.Date)
-                .ThenBy(r => r.Number.YearlyNum)
-                .ToListAsync();
-        }
-
-        public async Task<List<RecordDTO>> GetByCabinetIdAsync(int cabinetId)
-        {
-            return await _dataContext.Records
-                .Include(r => r.Patient)
-                .Include(r => r.Number)
-                .Include(r => r.Exam)
-                .Include(r => r.User)
-                .Where(r => r.Exam.IdCabinet == cabinetId)
-                .OrderBy(r => r.Date)
-                .ToListAsync();
-        }
-
-        public async Task<List<RecordDTO>> GetByDateAndCabinetAsync(DateOnly date, int cabinetId)
-        {
-            return await _dataContext.Records
-                .Include(r => r.Patient)
-                .Include(r => r.Number)
-                .Include(r => r.Exam)
-                .Include(r => r.User)
-                .Where(r => r.Date == date && r.Exam.IdCabinet == cabinetId)
-                .OrderBy(r => r.Number.DailyNum)
-                .ToListAsync();
-        }
-
-        public async Task<List<RecordDTO>> GetByDateRangeAsync(DateOnly start, DateOnly end)
-        {
-            return await _dataContext.Records
-                .Include(r => r.Patient)
-                .Include(r => r.Number)
-                .Include(r => r.Exam)
-                .ThenInclude(e => e.Cabinet)
-                .Include(r => r.User)
-                .Where(r => r.Date >= start && r.Date <= end)
-                .OrderBy(r => r.Date)
-                .ThenBy(r => r.Number.YearlyNum)
-                .ToListAsync();
-        }
-
         public async Task<RecordDTO?> GetByIdAsync(int id)
         {
             return await _dataContext.Records
@@ -98,19 +47,6 @@ namespace XRayJournal.DAL
                 .Include(r => r.User)
                 .FirstOrDefaultAsync(r => r.Id == id);
         }
-
-        public async Task<List<RecordDTO>> GetByPatientIdAsync(int patientId)
-        {
-            return await _dataContext.Records
-                .Include(r => r.Patient)
-                .Include(r => r.Number)
-                .Include(r => r.Exam)
-                .Include(r => r.User)
-                .Where(r => r.PatientId == patientId)
-                .OrderByDescending(r => r.Date)
-                .ToListAsync();
-        }
-
 
         public async Task<RecordDTO?> UpdateAsync(RecordDTO record)
         {
@@ -124,6 +60,7 @@ namespace XRayJournal.DAL
             await _dataContext.SaveChangesAsync();
             return exist;
         }
+
         public async Task<List<RecordNecessaryOutputModel>> GetNecessaryRecordsAsync(
             DateOnly? startDate = null, DateOnly? endDate = null, int? cabinetId = null)
         {
@@ -164,19 +101,6 @@ namespace XRayJournal.DAL
 
             return records.Select(r => r.Adapt<RecordNecessaryOutputModel>()).ToList();//System.NullReferenceException: "Object reference not set to an instance of an object."
 
-        }
-
-        public async Task<bool> UpdateExamIdAsync(int recordId, int examId)
-        {
-            var record = await _dataContext.Records.FindAsync(recordId);
-            if (record == null)
-            {
-                return false;
-            }
-
-            record.ExamId = examId;
-            await _dataContext.SaveChangesAsync();
-            return true;
         }
 
         public async Task<List<RecordDTO>> GetByNumberIdAsync(int numberId)
