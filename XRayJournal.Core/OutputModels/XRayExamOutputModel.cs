@@ -42,5 +42,7 @@ namespace XRayJournal.Core.OutputModels
         public string Side { get; set; }
 
         public int Area { get; set; }
+
+        public int DepartmentId {  get; set; }
     }
 }

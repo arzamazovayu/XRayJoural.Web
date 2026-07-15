@@ -58,8 +58,10 @@ namespace XRayJournal.Core
                 .Map(dest => dest.XRayDose, src => src.Exam != null ? src.Exam.XRayDose : 0)
                 .Map(dest => dest.XRayDate, src => src.Exam != null ? src.Exam.XRayDate : DateOnly.FromDateTime(DateTime.Now))
                 .Map(dest => dest.DepName, src => src.Exam != null && 
-                src.Exam.Cabinet != null && src.Exam.Cabinet.Hospital !=null ? src.Exam.Cabinet.Hospital.DepName : "")
+                    src.Exam.Department != null ? src.Exam.Department.DepName : "н/у")
                 .Map(dest => dest.RecordDate, src => src.Date);
+
+            config.NewConfig<DepartmentDTO, DepartmentOutputModel>();
         }
     }
 }

@@ -10,11 +10,13 @@ namespace XRayJournal.Core.DTOs
     {
         public int Id { get; set; }
 
-        public string DepName { get; set; }
+        //public string DepName { get; set; }
 
         public string Clinic { get; set; }
 
         public List<CabinetDTO>? Cabinets { get; set; }
+
+        public List<DepartmentDTO>? Departments { get; set; }
 
     }
 }

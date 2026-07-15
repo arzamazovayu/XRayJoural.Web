@@ -70,7 +70,7 @@ namespace XRayJournal.DAL
                 .Include(r => r.Number)
                 .Include(r => r.Exam)
                     .ThenInclude(e => e.Cabinet)
-                        .ThenInclude(c => c.Hospital)
+                    .ThenInclude(c => c.Hospital)
                 .AsQueryable();
 
             // Фильтрация по кабинету
@@ -119,6 +119,7 @@ namespace XRayJournal.DAL
                 .Include(r => r.Exam)
                     .ThenInclude(e => e.Cabinet)
                     .ThenInclude(c => c.Hospital)
+                    .ThenInclude(d => d.Departments)
                 .Include(r => r.User)
                 .AsQueryable();
 

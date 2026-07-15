@@ -58,5 +58,7 @@ namespace XRayJournal.Core.InputModels
         [Required(ErrorMessage = "Область исследования обязательна!")]
         public int Area { get; set; }
 
+        [Required(ErrorMessage = "Отделение обязательно!")]
+        public int DepartmentId { get; set; }
     }
 }

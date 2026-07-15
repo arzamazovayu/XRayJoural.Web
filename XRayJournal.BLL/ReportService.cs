@@ -233,7 +233,7 @@ namespace XRayJournal.BLL
                         BirthDate = firstRecord.Patient.BirthDate.ToString("dd.MM.yyyy"),
                         MedNumber = firstRecord.Patient.MedNumber,
                         Category = firstRecord.Exam?.Category ?? "",
-                        DepName = firstRecord.Exam?.Cabinet?.Hospital?.DepName ?? "",
+                        DepName = firstRecord.Exam?.Department?.DepName ?? "н/у", //теперь из department
                         Exams = new List<JournalExamItem>()
                     };
 
@@ -344,9 +344,9 @@ namespace XRayJournal.BLL
         }
 
         public async Task<string> GetYearlyReportCsvAsync(ReportParameters parameters, DateOnly start, DateOnly end)
-{
-    var data = await GetYearlyReportAsync(parameters, start, end);
-    return BuildYearlyCsv(data);
-}
+        {
+            var data = await GetYearlyReportAsync(parameters, start, end);
+            return BuildYearlyCsv(data);
+        }
     }
 }

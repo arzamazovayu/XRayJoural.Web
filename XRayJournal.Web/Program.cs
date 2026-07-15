@@ -28,6 +28,7 @@ namespace XRayJournal.Web
             builder.Services.AddScoped<INumberRepository, NumberRepository>();
             builder.Services.AddScoped<IRecordRepository, RecordRepository>();
             builder.Services.AddScoped<ICabinetRepository, CabinetRepository>();
+            builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
 
             //Сервисы
             builder.Services.AddScoped<PatientService>();
@@ -37,6 +38,7 @@ namespace XRayJournal.Web
             builder.Services.AddScoped<RecordService>();
             builder.Services.AddScoped<CabinetService>();
             builder.Services.AddScoped<ReportService>();
+            builder.Services.AddScoped<DepartmentService>();
 
             TypeAdapterConfig.GlobalSettings.Apply(new MapsterConfig());
             builder.Services.AddMapster();

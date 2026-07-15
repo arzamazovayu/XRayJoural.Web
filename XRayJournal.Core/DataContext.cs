@@ -24,6 +24,8 @@ namespace XRayJournal.Core
 
         public DbSet<HospitalDTO> Hospitals { get; set; }
 
+        public DbSet<DepartmentDTO> Departments {  get; set; }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             string connectionString = Options.ConnectionString;
@@ -49,6 +51,14 @@ namespace XRayJournal.Core
                 .WithOne(r => r.Exam)
                 .HasForeignKey(r => r.ExamId);
 
+            modelBuilder.Entity<XRayExamDTO>(entity =>
+            {
+                entity.HasOne(e => e.Department) //Отделение -Е Исследования
+                    .WithMany(d => d.Exams)
+                    .HasForeignKey(e => e.DepartmentId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
             modelBuilder.Entity<XRayExamDTO>() //Кабинет -Е Исследования
                 .HasOne(e => e.Cabinet)
                 .WithMany(c => c.Exams)
@@ -62,6 +72,10 @@ namespace XRayJournal.Core
                 entity.HasMany(h => h.Cabinets) //Кабинет Э- Больница
                     .WithOne(c => c.Hospital)
                     .HasForeignKey(c => c.IdClinic);
+
+                entity.HasMany(h => h.Departments) //Отделения Э- Больница
+                    .WithOne(d => d.Hospital)
+                    .HasForeignKey(d => d.HospitalId);
             });
 
             modelBuilder.Entity<CabinetDTO>(entity =>
@@ -117,6 +131,22 @@ namespace XRayJournal.Core
                 .WithMany(p => p.Records)
                 .HasForeignKey(r => r.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<DepartmentDTO>(entity =>
+            {
+                entity.HasKey(d => d.Id);
+                entity.Property(d => d.Id).ValueGeneratedOnAdd();
+
+                entity.HasOne(d => d.Hospital) //Больница -Е Отделения
+                    .WithMany(h => h.Departments)
+                    .HasForeignKey(d => d.HospitalId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasMany(d => d.Exams) //Исследования Э- Отделение
+                    .WithOne(e => e.Department)
+                    .HasForeignKey(e => e.DepartmentId)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
         }
     }

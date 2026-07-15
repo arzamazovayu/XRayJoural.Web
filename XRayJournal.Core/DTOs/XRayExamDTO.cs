@@ -42,6 +42,10 @@ namespace XRayJournal.Core.DTOs
 
         public int Area { get; set; }
 
+        public int DepartmentId { get; set; }
+
+        public virtual DepartmentDTO? Department { get; set; }
+
         public virtual CabinetDTO? Cabinet { get; set; }
 
         public virtual List<RecordDTO>? Records { get; set; }
