@@ -120,7 +120,7 @@ namespace XRayJournal.BLL
         {
             try
             {
-                var success = _numberRepository.Delete(numberId);
+                var success = await _numberRepository.DeleteAsync(numberId);
                 return success ? OperationResult<bool>.Ok(true) : OperationResult<bool>.Fail("Номер не найден");
             }
             catch (Exception ex)

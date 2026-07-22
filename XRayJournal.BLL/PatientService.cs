@@ -54,12 +54,12 @@ namespace XRayJournal.BLL
             }
         }
 
-        public OperationResult<PatientOutputModel> Add(PatientInputModel patient) 
+        public async Task<OperationResult<PatientOutputModel>> AddAsync(PatientInputModel patient) 
         {
             try
             {
                 var patientDto = patient.Adapt<PatientDTO>();
-                var result = _patientRepository.Add(patientDto);
+                var result = await _patientRepository.AddAsync(patientDto);
                 var outputModel = result.Adapt<PatientOutputModel>();
                 return OperationResult<PatientOutputModel>.Ok(outputModel);
             }
@@ -69,7 +69,7 @@ namespace XRayJournal.BLL
             }
         }
 
-        public OperationResult<PatientOutputModel> Update(PatientInputModel patient)
+        public async Task<OperationResult<PatientOutputModel>> UpdateAsync(PatientInputModel patient)
         {
             try
             {
@@ -79,7 +79,7 @@ namespace XRayJournal.BLL
                 }
 
                 var patientDto = patient.Adapt<PatientDTO>();
-                var updatedPatient = _patientRepository.Update(patientDto);
+                var updatedPatient = await _patientRepository.UpdateAsync(patientDto);
 
                 if (updatedPatient == null)
                 {
@@ -95,11 +95,11 @@ namespace XRayJournal.BLL
             }
         }
 
-        public OperationResult Delete(int id)
+        public async Task<OperationResult> DeleteAsync(int id)
         {
             try
             {
-                var success = _patientRepository.Delete(id);
+                var success = await _patientRepository.DeleteAsync(id);
                 if (!success)
                 {
                     return OperationResult.Fail("Пациент не найден!");

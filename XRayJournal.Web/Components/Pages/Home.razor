@@ -104,7 +104,7 @@
                             {
                                 @foreach (var record in records.Items)
                                 {
-                                    <tr @ondblclick="() => EditRecord(record.Id)">
+                                        <tr @ondblclick="() => EditRecordAsync(record.Id)">
                                         <td>@record.DisplayNumber</td>
                                         <td>@record.SecondName</td>
                                         <td>@record.FirstName</td>
@@ -137,16 +137,16 @@
                 <nav>
                     <ul class="pagination justify-content-center">
                         <li class="page-item @(records.HasPreviousPage ? "" : "disabled")">
-                            <button class="page-link" @onclick="() => GoToPage(records.Page - 1)">Назад</button>
+                            <button class="page-link" @onclick="() => GoToPageAsync(records.Page - 1)">Назад</button>
                         </li>
                         @for (int i = 1; i <= records.TotalPages; i++)
                         {
                             <li class="page-item @(i == records.Page ? "active" : "")">
-                                <button class="page-link" @onclick="() => GoToPage(i)">@i</button>
+                                <button class="page-link" @onclick="() => GoToPageAsync(i)">@i</button>
                             </li>
                         }
                         <li class="page-item @(records.HasNextPage ? "" : "disabled")">
-                            <button class="page-link" @onclick="() => GoToPage(records.Page + 1)">Вперёд</button>
+                            <button class="page-link" @onclick="() => GoToPageAsync(records.Page + 1)">Вперёд</button>
                         </li>
                     </ul>
                 </nav>
@@ -157,7 +157,7 @@
             <RecordEditModal RecordId="@editingRecordId"
             CurrentCabinetId="@currentCabinetId"
             CurrentUserId="@currentUserId"
-            OnSave="HandleSaveRecord"
+            OnSave="HandleSaveRecordAsync"
             OnCancel="HideRecordModal"/>
         }
     </Authorized>
@@ -200,11 +200,11 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadUserInfo();
-        await LoadRecords();
+        await LoadUserInfoAsync();
+        await LoadRecordsAsync();
     }
 
-    private async Task LoadUserInfo()
+    private async Task LoadUserInfoAsync()
     {
         //Получение Id авторизованного пользователя
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
@@ -234,7 +234,7 @@
         return 0;
     }
 
-    private async Task LoadRecords()
+    private async Task LoadRecordsAsync()
     {
         isLoading = true;
         StateHasChanged();
@@ -264,7 +264,7 @@
     private async Task ApplyFilters()
     {
         currentPage = 1;
-        await LoadRecords();
+        await LoadRecordsAsync();
         StateHasChanged();
     }
 
@@ -275,7 +275,7 @@
         StateHasChanged();
     }
 
-    private async Task EditRecord(int recordId)
+    private async Task EditRecordAsync(int recordId)
     {
         editingRecordId = recordId;
         showRecordModal = true;
@@ -288,17 +288,17 @@
         StateHasChanged();
     }
 
-    private async Task HandleSaveRecord()
+    private async Task HandleSaveRecordAsync()
     {
-        await LoadRecords();
+        await LoadRecordsAsync();
         StateHasChanged();
     }
 
-    private async Task GoToPage(int page)
+    private async Task GoToPageAsync(int page)
     {
         if (page < 1 || page > records?.TotalPages) return;
         currentPage = page;
-        await LoadRecords();
+        await LoadRecordsAsync();
         StateHasChanged();
     }
 

@@ -56,20 +56,20 @@ namespace XRayJournal.BLL
             }
         }
 
-        private async Task<PatientDTO> GetOrCreatePatientAsync(PatientInputModel input)
-        {
-            //Поиск по номеру карты
-            var existing = await _patientRepository.GetByMedNumberAsync(input.MedNumber);
+        //private async Task<PatientDTO> GetOrCreatePatientAsync(PatientInputModel input)
+        //{
+        //    //Поиск по номеру карты
+        //    var existing = await _patientRepository.GetByMedNumberAsync(input.MedNumber);
 
-            if (existing != null)
-            { 
-                return existing; 
-            }
+        //    if (existing != null)
+        //    { 
+        //        return existing; 
+        //    }
 
-            //Создание нового
-            var newPatient = input.Adapt<PatientDTO>();
-            return _patientRepository.Add(newPatient);
-        }
+        //    //Создание нового
+        //    var newPatient = input.Adapt<PatientDTO>();
+        //    return await _patientRepository.AddAsync(newPatient);
+        //}
 
         //Метод получения записей с пагинацией (страницированием)
         public async Task<OperationResult<PagedResult<RecordNecessaryOutputModel>>> GetNecessaryRecordsPagedAsync(

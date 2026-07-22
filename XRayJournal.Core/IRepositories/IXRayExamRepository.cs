@@ -10,15 +10,15 @@ namespace XRayJournal.Core.IRepositories
 {
     public interface IXRayExamRepository
     {
-        public XRayExamDTO Add(XRayExamDTO exam);
+        public Task<XRayExamDTO> AddAsync(XRayExamDTO exam);
 
-        public bool Update(XRayExamDTO exam);
+        public Task<bool> UpdateAsync(XRayExamDTO exam);
 
-        public bool Delete(int id);
+        public Task<bool> DeleteAsync(int id);
 
-        public XRayExamDTO? GetById(int id);
+        public Task<XRayExamDTO?> GetByIdAsync(int id);
 
-        public List<XRayExamDTO?> GetByPatientId(int patientId);
+        public Task<List<XRayExamDTO?>> GetByPatientIdAsync(int patientId);
 
     }
 }

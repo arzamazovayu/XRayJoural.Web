@@ -9,12 +9,12 @@ namespace XRayJournal.Core.IRepositories
 {
     public interface IDepartmentRepository
     {
-        Task<DepartmentDTO?> GetByIdAsync(int id);
+        public Task<DepartmentDTO?> GetByIdAsync(int id);
 
-        Task<DepartmentDTO?> GetByDepNameAsync(string depName);
+        public Task<DepartmentDTO?> GetByDepNameAsync(string depName);
 
-        Task<List<DepartmentDTO>> GetByHospitalAsync(int hospitalId);
+        public Task<List<DepartmentDTO>> GetByHospitalAsync(int hospitalId);
 
-        Task<List<DepartmentDTO>> GetAllAsync();
+        public Task<List<DepartmentDTO>> GetAllAsync();
     }
 }

@@ -169,7 +169,7 @@
                                         </div>
                                     </div>
                                     <button class="btn btn-primary mt-2 w-100" 
-                                    @onclick="GenerateYearlyReport" 
+                                    @onclick="GenerateYearlyReportAsync" 
                                     disabled="@(!reportByCabinet)">
                                         <i class="bi bi-calendar-year"></i> Годовой отчёт
                                     </button>
@@ -191,7 +191,7 @@
                                     <label class="form-label">Номер карты пациента:</label>
                                     <div class="input-group">
                                         <InputText @bind-Value="searchMedNumber" class="form-control" placeholder="Введите номер карты" />
-                                        <button class="btn btn-outline-secondary" @onclick="SearchPatientByMedNumber">
+                                        <button class="btn btn-outline-secondary" @onclick="SearchPatientByMedNumberAsync">
                                             <i class="bi bi-search"></i> Поиск
                                         </button>
                                     </div>
@@ -224,7 +224,7 @@
                                     </div>
                                 </div>
 
-                                <button class="btn btn-success w-100" @onclick="GenerateRadiationLoadReport" disabled="@(foundPatient == null)">
+                                <button class="btn btn-success w-100" @onclick="GenerateRadiationLoadReportAsync" disabled="@(foundPatient == null)">
                                     <i class="bi bi-file-text"></i> Сформировать лист лучевой нагрузки
                                 </button>
                             </div>
@@ -264,7 +264,7 @@
                                     </div>
                                 </div>
 
-                                <button class="btn btn-info w-100" @onclick="GenerateJournalReport">
+                                <button class="btn btn-info w-100" @onclick="GenerateJournalReportAsync">
                                     <i class="bi bi-journal"></i> Сформировать журнал
                                 </button>
                             </div>
@@ -329,14 +329,14 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadUserInfo();
-        await LoadCabinetData();
-        await LoadUserData();
-        await LoadJournalCabinetList();
+        await LoadUserInfoAsync();
+        await LoadCabinetDataAsync();
+        await LoadUserDataAsync();
+        await LoadJournalCabinetListAsync();
         weeklyEndDate = weeklyStartDate.AddDays(6);
     }
 
-    private async Task LoadUserInfo()
+    private async Task LoadUserInfoAsync()
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
 
@@ -370,7 +370,7 @@
         }
     }
 
-    private async Task LoadCabinetData()
+    private async Task LoadCabinetDataAsync()
     {
         if (isHead)
         {
@@ -382,7 +382,7 @@
         }
     }
 
-    private async Task LoadUserData()
+    private async Task LoadUserDataAsync()
     {
         if (isHead)
         {
@@ -394,7 +394,7 @@
         }
     }
 
-    private async Task LoadJournalCabinetList()
+    private async Task LoadJournalCabinetListAsync()
     {
         // Загружаем кабинеты для выпадающего списка в разделе Журнал
         var result = await CabinetService.GetAllAsync();
@@ -430,7 +430,7 @@
         var json = JsonSerializer.Serialize(parameters);
         var encoded = Uri.EscapeDataString(json);
         var url = $"/daily-report?DateStr={dailyReportDate:yyyy-MM-dd}&Params={encoded}";
-        await OpenInNewTab(url);
+        await OpenInNewTabAsync(url);
     }
 
     private async Task GenerateWeeklyReport()
@@ -447,11 +447,11 @@
         var json = JsonSerializer.Serialize(parameters);
         var encoded = Uri.EscapeDataString(json);
         var url = $"/weekly-report?StartDateStr={weeklyStartDate:yyyy-MM-dd}&EndDateStr={weeklyEndDate:yyyy-MM-dd}&Params={encoded}";
-        
-        await OpenInNewTab(url);
+
+        await OpenInNewTabAsync(url);
     }
 
-    private async Task GenerateYearlyReport()
+    private async Task GenerateYearlyReportAsync()
     {
         var parameters = new ReportParameters
             {
@@ -466,7 +466,7 @@
         await JS.InvokeVoidAsync("downloadTextFile", $"Годовой_отчёт_{yearlyStartDate:yyyyMMdd}_{yearlyEndDate:yyyyMMdd}.csv", csv);
     }
 
-    private async Task SearchPatientByMedNumber()
+    private async Task SearchPatientByMedNumberAsync()
     {
         searchPerformed = true;
         if (string.IsNullOrWhiteSpace(searchMedNumber))
@@ -486,7 +486,7 @@
         StateHasChanged();
     }
 
-    private async Task GenerateRadiationLoadReport()
+    private async Task GenerateRadiationLoadReportAsync()
     {
         if (foundPatient == null) 
         {
@@ -494,11 +494,11 @@
         }
         
         var url = $"/radiation-load/?patientId={foundPatient.Id}&start={radiationStartDate}&end={radiationEndDate}";
-        
-        await OpenInNewTab(url);
+
+        await OpenInNewTabAsync(url);
     }
 
-    private async Task GenerateJournalReport()
+    private async Task GenerateJournalReportAsync()
     {
         if (selectedJournalCabinetId == 0)
         {
@@ -507,8 +507,8 @@
         }
 
         var url = $"/journal-report?CabinetId={selectedJournalCabinetId}&Start={journalStartDate:yyyy-MM-dd}&End={journalEndDate:yyyy-MM-dd}";
-        
-        await OpenInNewTab(url);
+
+        await OpenInNewTabAsync(url);
     }
 
     // Обработка выбора "Выбрать всё" для кабинетов
@@ -570,7 +570,7 @@
         StateHasChanged();
     }
 
-    private async Task OpenInNewTab(string url)
+    private async Task OpenInNewTabAsync(string url)
     {
         await JS.InvokeVoidAsync("open", url, "_blank");
     }

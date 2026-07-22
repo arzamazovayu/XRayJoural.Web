@@ -15,7 +15,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">@Title</h5>
-                <button type="button" class="btn-close" @onclick="CloseModal"></button>
+                <button type="button" class="btn-close" @onclick="CloseModalAsync"></button>
             </div>
 
 
@@ -105,7 +105,7 @@
                                 <div class="row mt-3">
                                     <div class="col-md-6 d-flex gap-2">
                                         <!-- Кнопка поиска пациента -->
-                                        <button type="button" class="btn btn-info" @onclick="SearchPatient">
+                                        <button type="button" class="btn btn-info" @onclick="SearchPatientAsync">
                                             <i class="bi bi-search"></i> Найти пациента
                                         </button>
                                         <!-- Кнопка сохранения пациента -->
@@ -365,7 +365,7 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" @onclick="CloseModal">Отмена</button>
+                <button type="button" class="btn btn-secondary" @onclick="CloseModalAsync">Отмена</button>
                 <button type="button" class="btn btn-success" @onclick="SaveRecordToDatabase" disabled="@isExamAdding">
                     @(_editingRecordId > 0 ? "Обновить запись" : "Создать запись")
                 </button>
@@ -408,7 +408,7 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" @onclick="CancelDeleteRecord">Отмена</button>
-                        <button type="button" class="btn btn-danger" @onclick="DeleteRecordConfirmed" 
+                        <button type="button" class="btn btn-danger" @onclick="DeleteRecordConfirmedAsync" 
                         disabled="@(!confirmRecordDelete)">
                             <i class="bi bi-trash"></i> Удалить запись
                         </button>
@@ -594,7 +594,7 @@
         }
     }
 
-    private async Task CloseModal()
+    private async Task CloseModalAsync()
     {
         // Сброс локальных данных
         _localPatient = new();
@@ -719,7 +719,7 @@
             int patientId = _localPatient.Id;
             if (patientId == 0)
             {
-                var addPatient = PatientService.Add(_localPatient);
+                var addPatient = await PatientService.AddAsync(_localPatient);
                 if (!addPatient.Success)
                 {
                     await JS.InvokeVoidAsync("alert", $"Ошибка сохранения пациента: {addPatient.ErrorMessage}");
@@ -730,7 +730,7 @@
             else
             {
                 // Если редактируется существующий пациент, обновляем
-                var updPatient = PatientService.Update(_localPatient);
+                var updPatient = await PatientService.UpdateAsync(_localPatient);
                 if (!updPatient.Success)
                 {
                     await JS.InvokeVoidAsync("alert", $"Ошибка обновления пациента: {updPatient.ErrorMessage}");
@@ -772,7 +772,7 @@
 
                     if (examId == 0)
                     {
-                        var addExam = XRayExamService.Add(exam);
+                        var addExam = await XRayExamService.AddAsync(exam);
                         if (!addExam.Success)
                         {
                             await JS.InvokeVoidAsync("alert", $"Ошибка сохранения исследования: {addExam.ErrorMessage}");
@@ -782,7 +782,7 @@
                     }
                     else
                     {
-                        var updExam = XRayExamService.Update(exam);
+                        var updExam = await XRayExamService.UpdateAsync(exam);
                         if (!updExam.Success)
                         {
                             await JS.InvokeVoidAsync("alert", $"Ошибка обновления исследования: {updExam.ErrorMessage}");
@@ -818,7 +818,7 @@
                     int examId = exam.Id ?? 0;
                     if (examId == 0)
                     {
-                        var addExam = XRayExamService.Add(exam);
+                        var addExam = await XRayExamService.AddAsync(exam);
                         if (!addExam.Success)
                         {
                             await JS.InvokeVoidAsync("alert", $"Ошибка обновления исследования: {addExam.ErrorMessage}");
@@ -835,7 +835,7 @@
                     else
                     {
                         // Существующее исследование – обновляем его
-                        var updExam = XRayExamService.Update(exam);
+                        var updExam = await XRayExamService.UpdateAsync(exam);
                         if (!updExam.Success)
                         {
                             await JS.InvokeVoidAsync("alert", $"Ошибка обновления исследования: {updExam.ErrorMessage}");
@@ -851,7 +851,7 @@
             {
                 await OnSave.InvokeAsync();
             }
-            await CloseModal();
+            await CloseModalAsync();
         }
         catch (Exception ex)
         {
@@ -859,7 +859,7 @@
         }
     }
 
-    private async Task SearchPatient()
+    private async Task SearchPatientAsync()
     {
         isFindClicked = true;
         var search = new PatientSearchInputModel
@@ -920,7 +920,7 @@
         StateHasChanged();
     }
 
-    private async Task DeleteRecordConfirmed()
+    private async Task DeleteRecordConfirmedAsync()
     {
         try
         {
@@ -948,7 +948,7 @@
             // 3. Удаляем исследование (если оно есть)
             if (examId > 0)
             {
-                var deleteExam = XRayExamService.Delete(examId);
+                var deleteExam = await XRayExamService.DeleteAsync(examId);
                 if (!deleteExam.Success)
                 {
                     await JS.InvokeVoidAsync("alert", $"Ошибка удаления исследования: {deleteExam.ErrorMessage}");
@@ -975,7 +975,7 @@
                 await OnSave.InvokeAsync();
             }
 
-            await CloseModal();
+            await CloseModalAsync();
         }
         catch (Exception ex)
         {

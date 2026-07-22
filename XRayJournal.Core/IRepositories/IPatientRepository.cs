@@ -10,11 +10,11 @@ namespace XRayJournal.Core.IRepositories
 {
     public interface IPatientRepository
     {
-        public PatientDTO Add(PatientDTO patient);
+        public Task<PatientDTO> AddAsync(PatientDTO patient);
 
-        public PatientDTO Update(PatientDTO patient);
+        public Task<PatientDTO> UpdateAsync(PatientDTO patient);
 
-        public bool Delete(int id);
+        public Task<bool> DeleteAsync(int id);
 
         public Task<PatientDTO> GetByIdAsync(int id);
 

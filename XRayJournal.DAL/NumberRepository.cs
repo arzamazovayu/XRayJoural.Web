@@ -41,15 +41,15 @@ namespace XRayJournal.DAL
             return number;
         }
 
-        public bool Delete(int id)
+        public async Task<bool> DeleteAsync(int id)
         {
-            var number = _dataContext.Numbers.Find(id);
+            var number = await _dataContext.Numbers.FindAsync(id);
             if (number == null)
             {
                 return false;
             }
             _dataContext.Numbers.Remove(number);
-            _dataContext.SaveChanges();
+            await _dataContext.SaveChangesAsync();
             return true;
         }
 

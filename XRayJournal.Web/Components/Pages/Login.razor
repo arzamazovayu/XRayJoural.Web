@@ -16,7 +16,7 @@
                     <h5>Авторизация</h5>
                 </div>
                 <div class="card-body">
-                    <EditForm Model="userModel" OnValidSubmit="HandleLogin" FormName="LoginForm">
+                    <EditForm Model="userModel" OnValidSubmit="HandleLoginAsync" FormName="LoginForm">
                         <DataAnnotationsValidator />
 
                         <div class="mb-3">
@@ -63,7 +63,7 @@
 
     private string errorMessage = string.Empty;
 
-    private async Task HandleLogin()
+    private async Task HandleLoginAsync()
     {
         errorMessage = string.Empty;
         //Валидация

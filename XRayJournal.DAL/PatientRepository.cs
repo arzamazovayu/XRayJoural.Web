@@ -17,10 +17,10 @@ namespace XRayJournal.DAL
             _dataContext = dataContext;
         }
 
-        public PatientDTO Add(PatientDTO patient)
+        public async Task<PatientDTO> AddAsync(PatientDTO patient)
         {
-            _dataContext.Patients.Add(patient);
-            _dataContext.SaveChanges();
+            await _dataContext.Patients.AddAsync(patient);
+            await _dataContext.SaveChangesAsync();
             return patient;
         }
 
@@ -30,9 +30,9 @@ namespace XRayJournal.DAL
             return result;
         }
 
-        public PatientDTO Update(PatientDTO patient)
+        public async Task<PatientDTO> UpdateAsync(PatientDTO patient)
         {
-            var exist = _dataContext.Patients.Find(patient.Id);
+            var exist = await _dataContext.Patients.FindAsync(patient.Id);
             if (exist == null)
             {
                 return null;
@@ -45,13 +45,13 @@ namespace XRayJournal.DAL
             exist.Sex = patient.Sex;
             exist.MedNumber = patient.MedNumber;
 
-            _dataContext.SaveChanges();
+            await _dataContext.SaveChangesAsync();
             return exist;
         }
 
-        public bool Delete(int id) 
+        public async Task<bool> DeleteAsync(int id) 
         {
-            var patient = _dataContext.Patients.Find(id);
+            var patient = await _dataContext.Patients.FindAsync(id);
             if (patient == null)
             {
                 return false;
@@ -59,7 +59,7 @@ namespace XRayJournal.DAL
 
             patient.IsDeleted = true;
             
-            _dataContext.SaveChanges();
+            await _dataContext.SaveChangesAsync();
             return true;
         }
 

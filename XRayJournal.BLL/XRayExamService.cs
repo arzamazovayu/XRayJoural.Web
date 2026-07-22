@@ -17,12 +17,12 @@ namespace XRayJournal.BLL
             _xRayExamRepository = xRayExamRepository;
         }
 
-        public OperationResult<XRayExamOutputModel> Add(XRayExamInputModel exam)
+        public async Task<OperationResult<XRayExamOutputModel>> AddAsync(XRayExamInputModel exam)
         {
             try
             {
                 var examDto = exam.Adapt<XRayExamDTO>();
-                var result = _xRayExamRepository.Add(examDto);
+                var result = await _xRayExamRepository.AddAsync(examDto);
                 var outputModel = result.Adapt<XRayExamOutputModel>();
                 return OperationResult<XRayExamOutputModel>.Ok(outputModel);
             }
@@ -32,7 +32,7 @@ namespace XRayJournal.BLL
             }
         }
 
-        public OperationResult<XRayExamOutputModel> Update(XRayExamInputModel exam)
+        public async Task<OperationResult<XRayExamOutputModel>> UpdateAsync(XRayExamInputModel exam)
         {
             try
             {
@@ -46,13 +46,13 @@ namespace XRayJournal.BLL
                     OperationResult<XRayExamOutputModel>.Fail("ID исследования не указан!");
                 }
 
-                var success = _xRayExamRepository.Update(examDto);
+                var success = await _xRayExamRepository.UpdateAsync(examDto);
                 if (!success)
                 {
                     return OperationResult<XRayExamOutputModel>.Fail("Исследование не найдено");
                 }
 
-                var updatedExam = _xRayExamRepository.GetById(exam.Id.Value);
+                var updatedExam = await _xRayExamRepository.GetByIdAsync(exam.Id.Value);
                 if (updatedExam == null)
                 {
                     return OperationResult<XRayExamOutputModel>.Fail("Не удалось загрузить обновлённое исследование");
@@ -66,11 +66,11 @@ namespace XRayJournal.BLL
             }
         }
 
-        public OperationResult Delete(int id)
+        public async Task<OperationResult> DeleteAsync(int id)
         {
             try
             {
-                var success = _xRayExamRepository.Delete(id);
+                var success = await _xRayExamRepository.DeleteAsync(id);
                 if (!success)
                 {
                     return OperationResult.Fail("Исследование не найдено");

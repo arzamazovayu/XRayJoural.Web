@@ -19,50 +19,50 @@ namespace XRayJournal.DAL
             _dataContext = dataContext;
         }
 
-        public XRayExamDTO Add(XRayExamDTO exam)
+        public async Task<XRayExamDTO> AddAsync(XRayExamDTO exam)
         {
-            _dataContext.Exams.Add(exam);
-            _dataContext.SaveChanges();
+            await _dataContext.Exams.AddAsync(exam);
+            await _dataContext.SaveChangesAsync();
             return exam;
         }
 
-        public XRayExamDTO? GetById(int id)
+        public async Task<XRayExamDTO?> GetByIdAsync(int id)
         {
-            return _dataContext.Exams?.FirstOrDefault(e => e.Id == id);
+            return await _dataContext.Exams?.FirstOrDefaultAsync(e => e.Id == id);
         }
 
-        public bool Update(XRayExamDTO exam) 
+        public async Task<bool> UpdateAsync(XRayExamDTO exam) 
         {
-            var exist = _dataContext.Exams.Find(exam.Id);
+            var exist = await _dataContext.Exams.FindAsync(exam.Id);
             if (exist == null) 
             {
                 return false;
             }
             _dataContext.Entry(exist).CurrentValues.SetValues(exam);
-            _dataContext.SaveChanges();
+            await _dataContext.SaveChangesAsync();
             return true;
         }
 
-        public bool Delete(int id)
+        public async Task<bool> DeleteAsync(int id)
         {
-            var exam = _dataContext.Exams.Find(id);
+            var exam = await _dataContext.Exams.FindAsync(id);
             if (exam == null)
             {
                 return false;
             }
             _dataContext.Exams.Remove(exam);
-            _dataContext.SaveChanges();
+            await _dataContext.SaveChangesAsync();
             return true;
         }
 
-        public List<XRayExamDTO?> GetByPatientId(int patientId)
+        public async Task<List<XRayExamDTO?>> GetByPatientIdAsync(int patientId)
         {
-            var result = _dataContext.Records
+            var result = await _dataContext.Records
                 .Where(r => r.PatientId == patientId && r.Exam != null)
                 .Include(r => r.Exam)
                 .Select(r => r.Exam)
                 .OrderByDescending(r => r.XRayDate)
-                .ToList();
+                .ToListAsync();
 
             return result ?? new List<XRayExamDTO?>();
         }

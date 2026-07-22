@@ -122,7 +122,7 @@ namespace XRayJournal.BLL
 
         public async Task<List<RadiationReportModel>> GetRadiationReportAsync(int patientId, DateOnly startDate, DateOnly endDate)
         {
-            var exams = _xRayExamRepository.GetByPatientId(patientId); // Получение данных
+            var exams = await _xRayExamRepository.GetByPatientIdAsync(patientId); // Получение данных
             var filtered = exams
                 .Where(e => e.XRayDate >= startDate && e.XRayDate <= endDate)    // Фильтрация
                 .OrderBy(e => e.XRayDate)   // Упорядочивание

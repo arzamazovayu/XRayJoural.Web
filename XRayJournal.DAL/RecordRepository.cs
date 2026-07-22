@@ -99,8 +99,7 @@ namespace XRayJournal.DAL
                 .GroupBy(r => new { r.PatientId, r.Date })
                 .ToDictionary(g => g.Key, g => g.Count());
 
-            return records.Select(r => r.Adapt<RecordNecessaryOutputModel>()).ToList();//System.NullReferenceException: "Object reference not set to an instance of an object."
-
+            return records.Select(r => r.Adapt<RecordNecessaryOutputModel>()).ToList();
         }
 
         public async Task<List<RecordDTO>> GetByNumberIdAsync(int numberId)
@@ -119,7 +118,8 @@ namespace XRayJournal.DAL
                 .Include(r => r.Exam)
                     .ThenInclude(e => e.Cabinet)
                     .ThenInclude(c => c.Hospital)
-                    .ThenInclude(d => d.Departments)
+                .Include(r => r.Exam)
+                    .ThenInclude(e => e.Department)
                 .Include(r => r.User)
                 .AsQueryable();
 
