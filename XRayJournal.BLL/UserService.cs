@@ -19,12 +19,22 @@ namespace XRayJournal.BLL
         {
             try
             {
-                var userDto = await _userRepository.AuthenticateAsync(login, password);
+                var userDto = await _userRepository.GetByLoginAsync(login);
 
                 if (userDto == null)
                 {
                     return OperationResult<UserModel>.Fail("Неверный логин или пароль");
                 }
+
+                bool IsValidPassword = BCrypt.Net.BCrypt.Verify(password, userDto.PwHash);
+
+                if (!IsValidPassword)
+                {
+                    return OperationResult<UserModel>.Fail("Неверный логин или пароль");
+                }
+
+                string defaultHash = "$2a$12$VqlwKy2yA/1hwMK9YWHoxuCbS.wZdCS/iZ5.V2FyKcUwsfAqEscOa";
+                bool isDefault = (userDto.PwHash == defaultHash);
 
                 var userModel = new UserModel
                 {
@@ -32,7 +42,8 @@ namespace XRayJournal.BLL
                     Role = userDto.Role,
                     ID = userDto.ID,
                     CabinetId = userDto.CabinetId,
-                    IsAuthenticated = true
+                    IsAuthenticated = true,
+                    RequiresPasswordChange = true,
                 };
 
                 return OperationResult<UserModel>.Ok(userModel);

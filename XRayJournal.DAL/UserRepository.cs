@@ -15,9 +15,9 @@ namespace XRayJournal.DAL
             _dataContext = dataContext;
         }
 
-        public async Task<UserDTO?> AuthenticateAsync(string login, string password)
+        public async Task<UserDTO?> GetByLoginAsync(string login)
         {
-            return await _dataContext.Users.FirstOrDefaultAsync(u => u.Login == login && u.Password == password);
+            return await _dataContext.Users.FirstOrDefaultAsync(u => u.Login == login);
         }
 
         public async Task<UserDTO?> GetByIdAsync(int id)

@@ -19,5 +19,7 @@ namespace XRayJournal.Core.Models
         public int? CabinetId { get; set; }
 
         public bool IsAuthenticated { get; set; }
+
+        public bool RequiresPasswordChange { get; set; }
     }
 }

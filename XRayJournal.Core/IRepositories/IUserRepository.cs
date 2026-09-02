@@ -9,7 +9,7 @@ namespace XRayJournal.Core.IRepositories
 {
     public interface IUserRepository
     {
-        public Task<UserDTO?> AuthenticateAsync(string login, string password);
+        public Task<UserDTO?> GetByLoginAsync(string login);
 
         public Task<UserDTO?> GetByIdAsync(int id);
 
