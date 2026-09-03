@@ -25,7 +25,10 @@
                 </div>
                 <div>
                     <button class="btn btn-sm btn-outline-secondary me-2" @onclick="GoReports">
-                                <i class="bi bi-house-door"></i> Отчёты
+                        <i class="bi bi-house-door"></i> Отчёты
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary me-2" @onclick="ChangePassword">
+                        <i class="bi bi-house-door"></i> Сменить пароль
                     </button>
                     <a href="/logout" class="btn btn-sm btn-outline-secondary">
                         <i class="bi bi-box-arrow-right"></i> Выйти
@@ -70,88 +73,88 @@
                 </div>
             </div>
         </div>
-            <div class="container-fluid">
-                @* Таблица записей *@
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover  table-bordered">
-                        <thead class="table-dark">
-                            <tr>
-                                <th scope="col">№ п/п</th>
-                                <th scope="col">Фамилия</th>
-                                <th scope="col">Имя</th>
-                                <th scope="col">Отчество</th>
-                                <th scope="col">Дата рождения</th>
-                                <th scope="col">Номер карты</th>
-                                <th scope="col">Категория</th>
-                                <th scope="col">Дата исс-я</th>
-                                <th scope="col">Исследование</th>
-                                <th scope="col">Снимков/серий</th>
-                                <th scope="col">Доза</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @if (isLoading)
-                            {
-                                <tr>
-                                    <td colspan="10" class="text-center">
-                                        <div class="spinner-border text-primary" role="status">
-                                            <span class="visually-hidden">Загрузка...</span>
-                                        </div>
-                                    </td>
-                                </tr>
-                            }
-                            else if (records?.Items != null && records.Items.Any())
-                            {
-                                @foreach (var record in records.Items)
-                                {
-                                        <tr @ondblclick="() => EditRecordAsync(record.Id)">
-                                        <td>@record.DisplayNumber</td>
-                                        <td>@record.SecondName</td>
-                                        <td>@record.FirstName</td>
-                                        <td>@(record.ThirdName ?? "-")</td>
-                                        <td>@record.BirthDate.ToString("dd.MM.yyyy")</td>
-                                        <td>@record.MedNumber</td> 
-                                        <td>@(record.Category ?? "-")</td>
-                                        <td>@(record.XRayDate.Value.ToString("dd.MM.yyyy") ?? "-")</td> 
-                                        <td>@(record.XRayName ?? "-")</td>
-                                        <td>@(record.XRayShots ?? 0)</td>
-                                        <td>@(record.XRayDose ?? 0)</td>
-                                    </tr>
-                                }
-                            }
-                            else
-                            {
-                                <tr>
-                                    <td colspan="10" class="text-center text-muted">
-                                        Нет записей за выбранный период
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            @* Пагинация *@
-            @if (records != null && records.TotalPages > 1)
-            {
-                <nav>
-                    <ul class="pagination justify-content-center">
-                        <li class="page-item @(records.HasPreviousPage ? "" : "disabled")">
-                            <button class="page-link" @onclick="() => GoToPageAsync(records.Page - 1)">Назад</button>
-                        </li>
-                        @for (int i = 1; i <= records.TotalPages; i++)
+        <div class="container-fluid">
+            @* Таблица записей *@
+            <div class="table-responsive">
+                <table class="table table-striped table-hover  table-bordered">
+                    <thead class="table-dark">
+                        <tr>
+                            <th scope="col">№ п/п</th>
+                            <th scope="col">Фамилия</th>
+                            <th scope="col">Имя</th>
+                            <th scope="col">Отчество</th>
+                            <th scope="col">Дата рождения</th>
+                            <th scope="col">Номер карты</th>
+                            <th scope="col">Категория</th>
+                            <th scope="col">Дата исс-я</th>
+                            <th scope="col">Исследование</th>
+                            <th scope="col">Снимков/серий</th>
+                            <th scope="col">Доза</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (isLoading)
                         {
-                            <li class="page-item @(i == records.Page ? "active" : "")">
-                                <button class="page-link" @onclick="() => GoToPageAsync(i)">@i</button>
-                            </li>
+                            <tr>
+                                <td colspan="10" class="text-center">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Загрузка...</span>
+                                    </div>
+                                </td>
+                            </tr>
                         }
-                        <li class="page-item @(records.HasNextPage ? "" : "disabled")">
-                            <button class="page-link" @onclick="() => GoToPageAsync(records.Page + 1)">Вперёд</button>
+                        else if (records?.Items != null && records.Items.Any())
+                        {
+                            @foreach (var record in records.Items)
+                            {
+                                <tr @ondblclick="() => EditRecordAsync(record.Id)">
+                                    <td>@record.DisplayNumber</td>
+                                    <td>@record.SecondName</td>
+                                    <td>@record.FirstName</td>
+                                    <td>@(record.ThirdName ?? "-")</td>
+                                    <td>@record.BirthDate.ToString("dd.MM.yyyy")</td>
+                                    <td>@record.MedNumber</td> 
+                                    <td>@(record.Category ?? "-")</td>
+                                    <td>@(record.XRayDate.Value.ToString("dd.MM.yyyy") ?? "-")</td> 
+                                    <td>@(record.XRayName ?? "-")</td>
+                                    <td>@(record.XRayShots ?? 0)</td>
+                                    <td>@(record.XRayDose ?? 0)</td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="10" class="text-center text-muted">
+                                    Нет записей за выбранный период
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        @* Пагинация *@
+        @if (records != null && records.TotalPages > 1)
+        {
+            <nav>
+                <ul class="pagination justify-content-center">
+                    <li class="page-item @(records.HasPreviousPage ? "" : "disabled")">
+                        <button class="page-link" @onclick="() => GoToPageAsync(records.Page - 1)">Назад</button>
+                    </li>
+                    @for (int i = 1; i <= records.TotalPages; i++)
+                    {
+                        <li class="page-item @(i == records.Page ? "active" : "")">
+                            <button class="page-link" @onclick="() => GoToPageAsync(i)">@i</button>
                         </li>
-                    </ul>
-                </nav>
-            }
-        
+                    }
+                    <li class="page-item @(records.HasNextPage ? "" : "disabled")">
+                        <button class="page-link" @onclick="() => GoToPageAsync(records.Page + 1)">Вперёд</button>
+                    </li>
+                </ul>
+            </nav>
+        }
+
         @if (showRecordModal)
         {
             <RecordEditModal RecordId="@editingRecordId"
@@ -303,5 +306,13 @@
     }
 
     private void GoReports() => Navigation.NavigateTo("/reports");
+
+    private async Task ChangePassword() 
+    {
+        var user = await UserService.GetByIdAsync(currentUserId);
+        var currentUserLogin = user.Data.Login;
+
+        Navigation.NavigateTo($"/change-password?login={Uri.EscapeDataString(currentUserLogin)}"); 
+    }
 
 } 

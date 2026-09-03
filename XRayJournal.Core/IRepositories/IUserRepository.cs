@@ -18,5 +18,7 @@ namespace XRayJournal.Core.IRepositories
         public Task<UserDTO?> GetByIdWithCabinetsAsync(int id);
 
         public Task<List<UserDTO>> GetUsersByIdsAsync(List<int> ids);
+
+        public Task<bool> UpdateAsync(UserDTO user);
     }
 }

@@ -43,5 +43,17 @@ namespace XRayJournal.DAL
                 .Where(u => ids.Contains(u.ID))
                 .ToListAsync();
         }
+
+        public async Task<bool> UpdateAsync(UserDTO user)
+        {
+            var exist = await _dataContext.Users.FindAsync(user.ID);
+            if (exist == null)
+            {
+                return false;
+            }
+            _dataContext.Entry(exist).CurrentValues.SetValues(user);
+            await _dataContext.SaveChangesAsync();
+            return true;
+        }
     }
 }

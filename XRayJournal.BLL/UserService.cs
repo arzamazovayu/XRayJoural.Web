@@ -95,5 +95,35 @@ namespace XRayJournal.BLL
                 return OperationResult<List<UserOutputModel>>.Fail($"Ошибка получения пользователей: {ex.Message}");
             }
         }
+
+        public async Task<OperationResult<bool>> ChangePasswordAsync(string login, string currentPw, string newPw)
+        {
+            try
+            {
+                var user = await _userRepository.GetByLoginAsync(login);
+                if (user == null)
+                { 
+                    return OperationResult<bool>.Fail("Пользователь не найден"); 
+                }
+
+                // Проверяем старый пароль
+                bool isValid = BCrypt.Net.BCrypt.Verify(currentPw, user.PwHash);
+                if (!isValid)
+                    return OperationResult<bool>.Fail("Неверный текущий пароль");
+
+                // Хешируем новый пароль
+                string newHash = BCrypt.Net.BCrypt.HashPassword(newPw);
+                user.PwHash = newHash;
+                user.PwDate = DateTime.Now; // обновляем дату смены пароля
+
+                await _userRepository.UpdateAsync(user); // обновляем пользователя
+
+                return OperationResult<bool>.Ok(true);
+            }
+            catch (Exception ex)
+            {
+                return OperationResult<bool>.Fail($"Ошибка смены пароля: {ex.Message}");
+            }
+        }
     }
 }

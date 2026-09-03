@@ -5,6 +5,7 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @using System.ComponentModel.DataAnnotations
 @using XRayJournal.DAL
+@inject NavigationManager Navigation
 
 <PageTitle>Вход в систему</PageTitle>
 
@@ -88,6 +89,12 @@
         }
 
         var currentUser = result.Data;
+
+        if (currentUser.RequiresPasswordChange)
+        {
+            Navigation.NavigateTo($"/change-password?Login={Uri.EscapeDataString(currentUser.Login)}");
+            return;
+        }
 
         // Создаем claims для пользователя
         var claims = new List<Claim>
