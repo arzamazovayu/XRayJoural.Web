@@ -43,8 +43,13 @@ namespace XRayJournal.BLL
                     ID = userDto.ID,
                     CabinetId = userDto.CabinetId,
                     IsAuthenticated = true,
-                    RequiresPasswordChange = true,
+                    RequiresPasswordChange = false,
                 };
+
+                if (isDefault)
+                {
+                    userModel.RequiresPasswordChange = true;
+                }
 
                 return OperationResult<UserModel>.Ok(userModel);
             }
@@ -109,19 +114,31 @@ namespace XRayJournal.BLL
                 // Проверяем старый пароль
                 bool isValid = BCrypt.Net.BCrypt.Verify(currentPw, user.PwHash);
                 if (!isValid)
-                    return OperationResult<bool>.Fail("Неверный текущий пароль");
+                { 
+                    return OperationResult<bool>.Fail("Неверный текущий пароль"); 
+                }
 
                 // Хешируем новый пароль
                 string newHash = BCrypt.Net.BCrypt.HashPassword(newPw);
-                user.PwHash = newHash;
-                user.PwDate = DateTime.Now; // обновляем дату смены пароля
 
-                await _userRepository.UpdateAsync(user); // обновляем пользователя
+                var success = await _userRepository.UpdatePasswordAsync(user.ID, newHash, DateTime.UtcNow); // обновляем данные пользователя
+                if (!success)
+                {
+                    return OperationResult<bool>.Fail("Не удалось обновить пароль");
+                }
 
                 return OperationResult<bool>.Ok(true);
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"=== ChangePasswordAsync Exception ===");
+                Console.WriteLine($"Message: {ex.Message}");
+                Console.WriteLine($"StackTrace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner: {ex.InnerException.Message}");
+                    Console.WriteLine($"Inner StackTrace: {ex.InnerException.StackTrace}");
+                }
                 return OperationResult<bool>.Fail($"Ошибка смены пароля: {ex.Message}");
             }
         }

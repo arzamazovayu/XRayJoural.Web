@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using XRayJournal.Core;
 using XRayJournal.Core.DTOs;
 using XRayJournal.Core.IRepositories;
@@ -44,16 +45,38 @@ namespace XRayJournal.DAL
                 .ToListAsync();
         }
 
-        public async Task<bool> UpdateAsync(UserDTO user)
+        public async Task<bool> UpdatePasswordAsync(int userId, string newHash, DateTime pwDate)
         {
-            var exist = await _dataContext.Users.FindAsync(user.ID);
-            if (exist == null)
-            {
-                return false;
+            try{
+                var user = await _dataContext.Users.FindAsync(userId);
+                if (user == null)
+                {
+                    return false;
+                }
+
+                user.PwHash = newHash;
+                user.PwDate = pwDate;
+
+                await _dataContext.SaveChangesAsync();
+                return true;
             }
-            _dataContext.Entry(exist).CurrentValues.SetValues(user);
-            await _dataContext.SaveChangesAsync();
-            return true;
+            catch (DbUpdateException ex)
+            {
+                Console.WriteLine($"=== DbUpdateException ===");
+                Console.WriteLine($"Message: {ex.Message}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                    if (ex.InnerException is PostgresException pgEx)
+                    {
+                        Console.WriteLine($"Postgres ErrorCode: {pgEx.SqlState}");
+                        Console.WriteLine($"Detail: {pgEx.Detail}");
+                        Console.WriteLine($"Hint: {pgEx.Hint}");
+                        Console.WriteLine($"Where: {pgEx.Where}");
+                    }
+                }
+                throw;
+            }
         }
     }
 }
