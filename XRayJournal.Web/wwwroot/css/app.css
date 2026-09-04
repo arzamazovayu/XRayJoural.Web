@@ -146,3 +146,13 @@ h2 {
         display: none;
     }
 }
+
+.table thead th {
+    position: sticky;
+    top: 60px;
+}
+
+.table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
