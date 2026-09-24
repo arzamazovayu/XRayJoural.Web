@@ -147,9 +147,17 @@ h2 {
     }
 }
 
+/* Высота навбара */
+:root {
+    --navbar-height: 56px;
+}
+
 .table thead th {
     position: sticky;
-    top: 60px;
+    top: var(--navbar-height);
+    z-index: 10;
+    background-color: #212529;
+    color: white;
 }
 
 .table {
