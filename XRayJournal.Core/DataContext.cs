@@ -95,7 +95,7 @@ namespace XRayJournal.Core
             modelBuilder.Entity<UserDTO>(entity =>
             {
                 entity.HasKey(u => u.ID);
-                entity.Property(u => u.ID).ValueGeneratedNever();
+                entity.Property(u => u.ID).ValueGeneratedOnAdd();
 
                 entity.HasMany(u => u.Records) //Запись Э- Пользователь
                     .WithOne(r => r.User)

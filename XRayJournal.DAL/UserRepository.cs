@@ -78,5 +78,12 @@ namespace XRayJournal.DAL
                 throw;
             }
         }
+
+        public async Task<UserDTO> AddAsync(UserDTO user)
+        {
+            _dataContext.Users.Add(user);
+            await _dataContext.SaveChangesAsync();
+            return user;
+        }
     }
 }

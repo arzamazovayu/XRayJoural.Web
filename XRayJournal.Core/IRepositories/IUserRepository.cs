@@ -20,5 +20,7 @@ namespace XRayJournal.Core.IRepositories
         public Task<List<UserDTO>> GetUsersByIdsAsync(List<int> ids);
 
         public Task<bool> UpdatePasswordAsync(int userId, string newHash, DateTime pwDate);
+
+        public Task<UserDTO> AddAsync(UserDTO user);
     }
 }

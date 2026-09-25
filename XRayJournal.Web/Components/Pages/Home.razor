@@ -51,6 +51,10 @@
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><a class="dropdown-item" @onclick="GoReports">Отчёты</a></li>
                             <li><a class="dropdown-item" @onclick="ChangePassword">Сменить пароль</a></li>
+                            @if (isHead)
+                            {
+                                <li><a class="dropdown-item" @onclick="GoToUsers">Добавить сотрудника</a></li>
+                            }
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item text-danger" href="/logout">Выйти</a></li>
                         </ul>
@@ -203,14 +207,22 @@
 
     //Пользователь
     private int currentCabinetId = 0;
+
     private int currentUserId = 0;
+
     private string currentUserFIO = string.Empty;
+
     private string currentCabinetName = string.Empty;
+
+    private bool isHead = false;
 
     protected override async Task OnInitializedAsync()
     {
         await LoadUserInfoAsync();
         await LoadRecordsAsync();
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        isHead = authState.User.IsInRole("Head");
     }
 
     private async Task LoadUserInfoAsync()
@@ -321,4 +333,5 @@
         Navigation.NavigateTo($"/change-password?login={Uri.EscapeDataString(currentUserLogin)}"); 
     }
 
+    private void GoToUsers() => Navigation.NavigateTo("/users");
 } 

@@ -1,5 +1,7 @@
 ﻿using Mapster;
 using XRayJournal.Core;
+using XRayJournal.Core.DTOs;
+using XRayJournal.Core.InputModels;
 using XRayJournal.Core.IRepositories;
 using XRayJournal.Core.Models;
 using XRayJournal.Core.OutputModels;
@@ -33,8 +35,7 @@ namespace XRayJournal.BLL
                     return OperationResult<UserModel>.Fail("Неверный логин или пароль");
                 }
 
-                string defaultHash = "$2a$12$VqlwKy2yA/1hwMK9YWHoxuCbS.wZdCS/iZ5.V2FyKcUwsfAqEscOa";
-                bool isDefault = (userDto.PwHash == defaultHash);
+                bool isDefault = (userDto.PwHash == SecurityConstants.DefaultPasswordHash);
 
                 var userModel = new UserModel
                 {
@@ -140,6 +141,48 @@ namespace XRayJournal.BLL
                     Console.WriteLine($"Inner StackTrace: {ex.InnerException.StackTrace}");
                 }
                 return OperationResult<bool>.Fail($"Ошибка смены пароля: {ex.Message}");
+            }
+        }
+
+        public async Task<OperationResult<UserOutputModel>> CreateUserAsync(UserInputModel model)
+        {
+            try
+            {
+                // 1. Проверка логина на уникальность
+                var existing = await _userRepository.GetByLoginAsync(model.Login);
+
+                if (existing != null)
+                { 
+                    return OperationResult<UserOutputModel>.Fail("Пользователь с таким логином уже существует"); 
+                }
+
+                // 2. Формируем ФИО
+                string fio = $"{model.SecondName} {model.FirstName} {model.ThirdName}".Trim();
+
+                string thirdInitial = string.IsNullOrEmpty(model.ThirdName) ? "" : model.ThirdName[0].ToString(); //потому что отчество может быть null
+
+                string fioShort = $"{model.SecondName} {model.FirstName[0]}.{thirdInitial}.".Trim();
+
+                var userDto = new UserDTO
+                {
+                    Login = model.Login,
+                    PwHash = SecurityConstants.DefaultPasswordHash,
+                    PwDate = DateTime.UtcNow,
+                    Role = model.Role.Value,
+                    FIO = fio,
+                    FIOshort = fioShort,
+                    CabinetId = model.CabinetId
+                };
+
+                var created = await _userRepository.AddAsync(userDto);
+
+                var result = created.Adapt<UserOutputModel>();
+
+                return OperationResult<UserOutputModel>.Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return OperationResult<UserOutputModel>.Fail($"Ошибка создания пользователя: {ex.Message}");
             }
         }
     }

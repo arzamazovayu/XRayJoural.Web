@@ -364,3 +364,7 @@ FodyWeavers.xsd
 /XRayJournal.Web/XRayJournal.Web/Components/ExamForm.txt
 /XRayJournal.Web/XRayJournal.Web/Components/PatientEditModal.txt
 /XRayJournal.Web/XRayJournal.Web/Components/Pages/Home.txt
+
+# txt file for test use
+/XRayJournal.Web/HashInfo.txt
+/XRayJournal.Web/SQL code.txt
